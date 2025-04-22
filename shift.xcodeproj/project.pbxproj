@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3F15A2C12DB74F5C0039128B /* shiftlogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F15A2C02DB74F5C0039128B /* shiftlogo.png */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		3F15A2A22DB74A8C0039128B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		3F15A2912DB74A8A0039128B /* shift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = shift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F15A2A12DB74A8C0039128B /* shiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = shiftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F15A2AB2DB74A8C0039128B /* shiftUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = shiftUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F15A2C02DB74F5C0039128B /* shiftlogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = shiftlogo.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		3F15A2882DB74A8A0039128B = {
 			isa = PBXGroup;
 			children = (
+				3F15A2C02DB74F5C0039128B /* shiftlogo.png */,
 				3F15A2932DB74A8A0039128B /* shift */,
 				3F15A2A42DB74A8C0039128B /* shiftTests */,
 				3F15A2AE2DB74A8C0039128B /* shiftUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F15A2C12DB74F5C0039128B /* shiftlogo.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
