@@ -79,7 +79,76 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
     
-    // Convenience initializer for local use
+    // Custom initializer for handling Firebase data
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Handle profilePhoto - could be String or Dictionary
+        if let photoString = try? container.decode(String.self, forKey: .profilePhoto) {
+            self.profilePhoto = photoString
+        } else {
+            // Try to decode as a dictionary and extract URL
+            if let photoDict = try? container.decodeIfPresent([String: AnyDecodable].self, forKey: .profilePhoto),
+               let urlValue = photoDict["url"]?.value as? String {
+                // If it's just a filename, construct the Firebase Storage URL
+                if !urlValue.hasPrefix("http") {
+                    self.profilePhoto = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(urlValue)"
+                    print("🔗 Constructed Firebase URL from user filename: \(urlValue)")
+                } else {
+                    self.profilePhoto = urlValue
+                    print("🔗 Using direct URL from user photo dict: \(urlValue)")
+                }
+            } else {
+                self.profilePhoto = nil
+            }
+        }
+        
+        // Standard fields
+        self.email = try? container.decode(String.self, forKey: .email)
+        self.username = try? container.decode(String.self, forKey: .username)
+        self.fullName = try? container.decode(String.self, forKey: .fullName)
+        self.firstName = try? container.decode(String.self, forKey: .firstName)
+        self.gender = try? container.decode(String.self, forKey: .gender)
+        self.attractedTo = try? container.decode(String.self, forKey: .attractedTo)
+        self.age = try? container.decode(Int.self, forKey: .age)
+        self.city = try? container.decode(String.self, forKey: .city)
+        self.howToApproachMe = try? container.decode(String.self, forKey: .howToApproachMe)
+        self.isEventCreator = try? container.decode(Bool.self, forKey: .isEventCreator)
+        self.isEventAttendee = try? container.decode(Bool.self, forKey: .isEventAttendee)
+        self.instagramHandle = try? container.decode(String.self, forKey: .instagramHandle)
+        self.subscribed = try? container.decode(Bool.self, forKey: .subscribed)
+        self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
+        self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
+    }
+    
+    // Custom encoding
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encodeIfPresent(username, forKey: .username)
+        try container.encodeIfPresent(fullName, forKey: .fullName)
+        try container.encodeIfPresent(firstName, forKey: .firstName)
+        try container.encodeIfPresent(profilePhoto, forKey: .profilePhoto)
+        try container.encodeIfPresent(gender, forKey: .gender)
+        try container.encodeIfPresent(attractedTo, forKey: .attractedTo)
+        try container.encodeIfPresent(age, forKey: .age)
+        try container.encodeIfPresent(city, forKey: .city)
+        try container.encodeIfPresent(howToApproachMe, forKey: .howToApproachMe)
+        try container.encodeIfPresent(isEventCreator, forKey: .isEventCreator)
+        try container.encodeIfPresent(isEventAttendee, forKey: .isEventAttendee)
+        try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
+        try container.encodeIfPresent(subscribed, forKey: .subscribed)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+    }
+    
+    // Coding keys
+    private enum CodingKeys: String, CodingKey {
+        case id, email, username, fullName, firstName, profilePhoto, gender, attractedTo, age, city
+        case howToApproachMe, isEventCreator, isEventAttendee, instagramHandle, subscribed, createdAt, updatedAt
+    }
+    
+    // Manual initializer for local creation (not from Firestore)
     init(email: String?, firstName: String?, fullName: String? = nil, profilePhoto: String? = nil, username: String? = nil, gender: String? = nil, attractedTo: String? = nil, age: Int? = nil, city: String? = nil, howToApproachMe: String? = nil, isEventCreator: Bool? = nil, instagramHandle: String? = nil) {
         // Don't set self.id - @DocumentID is managed by Firestore
         self.email = email
@@ -203,8 +272,14 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
             // Try to decode as a dictionary and extract URL
             if let imageDict = try? container.decodeIfPresent([String: AnyDecodable].self, forKey: .image),
                let urlValue = imageDict["url"]?.value as? String {
-                self.image = urlValue
-                print("🔗 Extracted URL from image dict: \(urlValue)")
+                // If it's just a filename, construct the Firebase Storage URL
+                if !urlValue.hasPrefix("http") {
+                    self.image = "https://storage.googleapis.com/shift-12948.firebasestorage.app/event_images/\(urlValue)"
+                    print("🔗 Constructed Firebase URL from filename: \(urlValue)")
+                } else {
+                    self.image = urlValue
+                    print("🔗 Using direct URL from image dict: \(urlValue)")
+                }
             } else {
                 self.image = nil
             }
@@ -247,7 +322,7 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         case image, imageUrl, firebaseImageUrl, isEventFree, eventCategory, eventDate, place, createdAt, updatedAt
     }
     
-    // Convenience initializer
+    // Manual initializer for local creation (not from Firestore)
     init(eventName: String, venueName: String? = nil, eventLocation: String? = nil, eventStartTime: String? = nil, eventEndTime: String? = nil) {
         // Don't set self.id - @DocumentID is managed by Firestore
         self.eventName = eventName
