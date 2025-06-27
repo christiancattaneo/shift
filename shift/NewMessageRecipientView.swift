@@ -60,7 +60,7 @@ struct NewMessageRecipientView: View {
                     Spacer()
                 } else {
                     List {
-                        ForEach(filteredMembers) { member in
+                        ForEach(filteredMembers, id: \.uniqueID) { member in
                             Button(action: {
                                 onSelection(member)
                                 dismiss()

@@ -82,7 +82,7 @@ struct CheckInsView: View {
                     Spacer()
                 } else {
                     List {
-                        ForEach(filteredEvents) { event in
+                        ForEach(filteredEvents, id: \.uniqueID) { event in
                             NavigationLink(
                                 destination: FirebaseEventDetailView(event: event)
                             ) {

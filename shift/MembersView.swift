@@ -105,7 +105,7 @@ struct MembersView: View {
                         .padding()
                     } else {
                         LazyVGrid(columns: columns, spacing: 20) {
-                            ForEach(filteredMembers) { member in
+                            ForEach(filteredMembers, id: \.uniqueID) { member in
                                 MemberCardView(member: member)
                             }
                         }
