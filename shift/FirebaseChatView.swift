@@ -105,12 +105,8 @@ struct FirebaseChatView: View {
             
             // Message input
             HStack(spacing: 12) {
-                TextField("Type a message...", text: $newMessageText, axis: .vertical)
-                    .lineLimit(1...4)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(20)
+                CustomMessageInput(text: $newMessageText, placeholder: "Type a message...", maxHeight: 100)
+                    .frame(minHeight: 44)
                 
                 Button(action: sendMessage) {
                     Image(systemName: "paperplane.fill")

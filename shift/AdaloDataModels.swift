@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - User Models
 struct AdaloUser: Identifiable, Codable, Hashable {
     let id: Int
-    let email: String
+    let email: String?
     let password: String?
     let username: String?
     let fullName: String?
@@ -44,7 +44,7 @@ struct AdaloUser: Identifiable, Codable, Hashable {
     }
     
     // Convenience initializer for local use
-    init(id: Int = 0, email: String, firstName: String?, fullName: String? = nil, profilePhoto: String? = nil, username: String? = nil, gender: String? = nil, attractedTo: String? = nil, age: Int? = nil, city: String? = nil, howToApproachMe: String? = nil, isEventCreator: Bool? = nil, instagramHandle: String? = nil) {
+    init(id: Int = 0, email: String?, firstName: String?, fullName: String? = nil, profilePhoto: String? = nil, username: String? = nil, gender: String? = nil, attractedTo: String? = nil, age: Int? = nil, city: String? = nil, howToApproachMe: String? = nil, isEventCreator: Bool? = nil, instagramHandle: String? = nil) {
         self.id = id
         self.email = email
         self.password = nil
@@ -263,9 +263,9 @@ struct AdaloMessage: Identifiable, Codable, Hashable {
     
     // Helper computed properties for UI
     var isSender: Bool {
-        // Compare with current logged-in Firebase user ID
-        guard let senderId = senderId else { return false }
-        return String(senderId) == FirebaseUserSession.shared.currentUser?.id
+        // Compare with current logged-in user ID
+        // This will be set by the view when displaying messages
+        return false // Default to false, view should handle this logic
     }
     
     var timestamp: Date {
@@ -375,6 +375,11 @@ extension AdaloUser {
     
     var profileImageName: String? {
         return profilePhoto
+    }
+    
+    // Helper computed property for email display
+    var displayEmail: String {
+        return email ?? "No email provided"
     }
     
     // Helper to get profile image URL from Adalo

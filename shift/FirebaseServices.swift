@@ -201,6 +201,7 @@ class FirebaseMembersService: ObservableObject {
                     
                     if let error = error {
                         self?.errorMessage = error.localizedDescription
+                        print("❌ Error fetching members: \(error.localizedDescription)")
                         // Load mock data as fallback
                         self?.members = self?.getMockMembers() ?? []
                         return
@@ -211,10 +212,14 @@ class FirebaseMembersService: ObservableObject {
                         return
                     }
                     
+                    var skippedUsersCount = 0
                     let members = documents.compactMap { document -> FirebaseMember? in
                         do {
                             let user = try document.data(as: FirebaseUser.self)
-                            guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
+                            guard let firstName = user.firstName, !firstName.isEmpty else { 
+                                skippedUsersCount += 1
+                                return nil 
+                            }
                             
                             return FirebaseMember(
                                 userId: user.id,
@@ -227,12 +232,18 @@ class FirebaseMembersService: ObservableObject {
                                 profileImage: user.profilePhoto
                             )
                         } catch {
-                            print("Error decoding user: \(error)")
+                            print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")
+                            // Continue processing other users instead of failing completely
                             return nil
                         }
                     }
                     
                     self?.members = members
+                    if skippedUsersCount > 0 {
+                        print("✅ Successfully loaded \(members.count) members from \(documents.count) user documents (skipped \(skippedUsersCount) users without firstName)")
+                    } else {
+                        print("✅ Successfully loaded \(members.count) members from \(documents.count) user documents")
+                    }
                 }
             }
     }
@@ -345,16 +356,26 @@ class FirebaseEventsService: ObservableObject {
                         return
                     }
                     
+                    var eventDecodingErrors = 0
                     let events = documents.compactMap { document -> FirebaseEvent? in
                         do {
                             return try document.data(as: FirebaseEvent.self)
                         } catch {
-                            print("Error decoding event: \(error)")
+                            eventDecodingErrors += 1
+                            // Only log first few errors to avoid spam
+                            if eventDecodingErrors <= 3 {
+                                print("⚠️ Error decoding event \(document.documentID): \(error)")
+                            }
                             return nil
                         }
                     }
                     
                     self?.events = events
+                    if eventDecodingErrors > 0 {
+                        print("✅ Successfully loaded \(events.count) events from \(documents.count) event documents (skipped \(eventDecodingErrors) with decoding errors)")
+                    } else {
+                        print("✅ Successfully loaded \(events.count) events from \(documents.count) event documents")
+                    }
                 }
             }
     }
@@ -640,57 +661,25 @@ class FirebaseMessagesService: ObservableObject {
 }
 
 // MARK: - Firebase Storage Service
-class FirebaseStorageService: ObservableObject {
+class FirebaseStorageService {
     private let storage = Storage.storage()
     
-    @Published var uploadProgress: Double = 0.0
-    @Published var isUploading = false
-    @Published var errorMessage: String?
-    
-    func uploadImage(_ imageData: Data, path: String, completion: @escaping (String?, String?) -> Void) {
-        isUploading = true
-        uploadProgress = 0.0
-        errorMessage = nil
-        
+    func uploadImage(_ imageData: Data, path: String, completion: @escaping (String?, Error?) -> Void) {
         let storageRef = storage.reference().child(path)
         
-        let uploadTask = storageRef.putData(imageData, metadata: nil) { [weak self] metadata, error in
-            DispatchQueue.main.async {
-                self?.isUploading = false
-                
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
-                    completion(nil, error.localizedDescription)
-                    return
-                }
-                
-                storageRef.downloadURL { url, error in
-                    if let error = error {
-                        completion(nil, error.localizedDescription)
-                    } else {
-                        completion(url?.absoluteString, nil)
-                    }
-                }
+        storageRef.putData(imageData, metadata: nil) { metadata, error in
+            if let error = error {
+                completion(nil, error)
+                return
             }
-        }
-        
-        uploadTask.observe(.progress) { [weak self] snapshot in
-            guard let progress = snapshot.progress else { return }
-            DispatchQueue.main.async {
-                self?.uploadProgress = Double(progress.completedUnitCount) / Double(progress.totalUnitCount)
-            }
-        }
-    }
-    
-    func deleteImage(path: String, completion: @escaping (Bool, String?) -> Void) {
-        let storageRef = storage.reference().child(path)
-        
-        storageRef.delete { error in
-            DispatchQueue.main.async {
+            
+            storageRef.downloadURL { url, error in
                 if let error = error {
-                    completion(false, error.localizedDescription)
+                    completion(nil, error)
+                } else if let url = url {
+                    completion(url.absoluteString, nil)
                 } else {
-                    completion(true, nil)
+                    completion(nil, NSError(domain: "StorageError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get download URL"]))
                 }
             }
         }

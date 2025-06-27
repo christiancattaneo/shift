@@ -259,34 +259,39 @@ struct ProfileTextField: View {
                 .font(.subheadline)
                 .fontWeight(.medium)
             
-            HStack {
-                if let iconName = icon {
-                    Image(systemName: iconName)
-                        .foregroundColor(.secondary)
-                        .padding(.leading, 12)
+            if isMultiline {
+                // Use custom text input for multiline (has its own styling)
+                HStack {
+                    if let iconName = icon {
+                        Image(systemName: iconName)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 8)
+                    }
+                    CustomMessageInput(text: $text, placeholder: placeholder, maxHeight: 120)
+                        .frame(minHeight: 44)
                 }
-                
-                if isMultiline {
-                    TextField(placeholder, text: $text, axis: .vertical)
-                        .keyboardType(keyboardType)
-                        .lineLimit(3...6)
-                        .padding(.vertical, 12)
-                        .padding(.leading, icon == nil ? 12 : 5)
-                        .padding(.trailing, 12)
-                } else {
+            } else {
+                // Use regular TextField with custom styling
+                HStack {
+                    if let iconName = icon {
+                        Image(systemName: iconName)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 12)
+                    }
+                    
                     TextField(placeholder, text: $text)
                         .keyboardType(keyboardType)
                         .padding(.vertical, 12)
                         .padding(.leading, icon == nil ? 12 : 5)
                         .padding(.trailing, 12)
                 }
+                .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(colorScheme == .dark ? Color(.systemGray4) : Color(.systemGray3), lineWidth: 1)
+                )
             }
-            .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(colorScheme == .dark ? Color(.systemGray4) : Color(.systemGray3), lineWidth: 1)
-            )
         }
     }
 }
