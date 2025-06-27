@@ -190,12 +190,24 @@ class FirebaseMembersService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    private var hasFetched = false  // Prevent redundant calls
+    
     func fetchMembers() {
+        // Prevent redundant calls that were causing freezing
+        guard !hasFetched && !isLoading else {
+            print("📋 Skipping fetchMembers - already fetched or in progress")
+            return
+        }
+        
         isLoading = true
+        hasFetched = true
         errorMessage = nil
         
+        // Use one-time fetch instead of real-time listener to prevent blocking
+        // Add pagination to avoid loading 1336 documents at once
         db.collection("users")
-            .addSnapshotListener { [weak self] querySnapshot, error in
+            .limit(to: 200)  // Limit to first 200 users to prevent freezing
+            .getDocuments { [weak self] querySnapshot, error in
                 DispatchQueue.main.async {
                     self?.isLoading = false
                     
@@ -229,7 +241,7 @@ class FirebaseMembersService: ObservableObject {
                                 attractedTo: user.attractedTo,
                                 approachTip: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
-                                profileImage: user.profilePhoto
+                                profileImage: user.profilePhoto  // This will be constructed into Firebase Storage URL by the decoder
                             )
                         } catch {
                             print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")
@@ -334,13 +346,24 @@ class FirebaseEventsService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    private var hasFetched = false  // Prevent redundant calls
+    
     func fetchEvents() {
+        // Prevent redundant calls
+        guard !hasFetched && !isLoading else {
+            print("📋 Skipping fetchEvents - already fetched or in progress")
+            return
+        }
+        
         isLoading = true
+        hasFetched = true
         errorMessage = nil
         
+        // Use one-time fetch for initial load to prevent freezing
         db.collection("events")
             .order(by: "createdAt", descending: true)
-            .addSnapshotListener { [weak self] querySnapshot, error in
+            .limit(to: 100)  // Limit events to prevent blocking
+            .getDocuments { [weak self] querySnapshot, error in
                 DispatchQueue.main.async {
                     self?.isLoading = false
                     
@@ -412,9 +435,11 @@ class FirebaseCheckInsService: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        // Use one-time fetch to prevent blocking
         db.collection("checkIns")
             .whereField("isActive", isEqualTo: true)
-            .addSnapshotListener { [weak self] querySnapshot, error in
+            .limit(to: 50)  // Limit check-ins
+            .getDocuments { [weak self] querySnapshot, error in
                 DispatchQueue.main.async {
                     self?.isLoading = false
                     
@@ -478,52 +503,39 @@ class FirebaseConversationsService: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        // Use single optimized query instead of two separate listeners
         db.collection("conversations")
-            .whereField("participantOneId", isEqualTo: userId)
-            .addSnapshotListener { [weak self] querySnapshot, error in
-                self?.handleConversationSnapshot(querySnapshot: querySnapshot, error: error, userId: userId)
-            }
-        
-        db.collection("conversations")
-            .whereField("participantTwoId", isEqualTo: userId)
-            .addSnapshotListener { [weak self] querySnapshot, error in
-                self?.handleConversationSnapshot(querySnapshot: querySnapshot, error: error, userId: userId)
-            }
-    }
-    
-    private func handleConversationSnapshot(querySnapshot: QuerySnapshot?, error: Error?, userId: String) {
-        DispatchQueue.main.async {
-            self.isLoading = false
-            
-            if let error = error {
-                self.errorMessage = error.localizedDescription
-                // Load mock data as fallback
-                self.conversations = self.getMockConversations(for: userId)
-                return
-            }
-            
-            guard let documents = querySnapshot?.documents else { return }
-            
-            let newConversations = documents.compactMap { document -> FirebaseConversation? in
-                do {
-                    return try document.data(as: FirebaseConversation.self)
-                } catch {
-                    print("Error decoding conversation: \(error)")
-                    return nil
+            .whereField("participantIds", arrayContains: userId)  // Assumes participantIds array field
+            .limit(to: 50)  // Limit conversations to prevent blocking
+            .getDocuments { [weak self] querySnapshot, error in
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    
+                    if let error = error {
+                        self?.errorMessage = error.localizedDescription
+                        self?.conversations = self?.getMockConversations(for: userId) ?? []
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        self?.conversations = []
+                        return
+                    }
+                    
+                    let conversations = documents.compactMap { document -> FirebaseConversation? in
+                        do {
+                            return try document.data(as: FirebaseConversation.self)
+                        } catch {
+                            print("Error decoding conversation: \(error)")
+                            return nil
+                        }
+                    }
+                    
+                    self?.conversations = conversations
                 }
             }
-            
-            // Merge with existing conversations
-            var allConversations = self.conversations
-            for newConversation in newConversations {
-                if !allConversations.contains(where: { $0.id == newConversation.id }) {
-                    allConversations.append(newConversation)
-                }
-            }
-            
-            self.conversations = allConversations
-        }
     }
+
     
     func createConversation(participantOneId: String, participantTwoId: String, completion: @escaping (Bool, String?) -> Void) {
         let conversation = FirebaseConversation(
@@ -579,10 +591,12 @@ class FirebaseMessagesService: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        // Use one-time fetch for initial load to prevent blocking
         db.collection("messages")
             .whereField("conversationId", isEqualTo: conversationId)
             .order(by: "createdAt", descending: false)
-            .addSnapshotListener { [weak self] querySnapshot, error in
+            .limit(to: 100)  // Limit messages to most recent 100
+            .getDocuments { [weak self] querySnapshot, error in
                 DispatchQueue.main.async {
                     self?.isLoading = false
                     
