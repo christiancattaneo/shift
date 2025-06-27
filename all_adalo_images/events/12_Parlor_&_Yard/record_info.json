@@ -1,0 +1,33 @@
+{
+  "id": 31,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Parlor & Yard",
+  "Event Location": {
+    "name": "Parlor & Yard",
+    "placeId": "ChIJF7K2ng61RIYRE_PAGQ56OcM",
+    "coordinates": {
+      "latitude": 30.2695772,
+      "longitude": -97.7486187
+    },
+    "fullAddress": "601 W 6th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "601 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T05:36:48.124Z",
+  "updated_at": "2025-01-03T05:36:48.124Z",
+  "downloadedAt": "2025-06-27T18:31:36.620Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 128,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Equinox",
+  "Event Location": {
+    "name": "Equinox Austin",
+    "placeId": "ChIJg858GFO1RIYROWiSqWkllNU",
+    "coordinates": {
+      "latitude": 30.253956,
+      "longitude": -97.7477392
+    },
+    "fullAddress": "1007 S Congress Ave Ste 100, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1007 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-03-05T16:35:37.730Z",
+  "updated_at": "2025-03-26T02:58:38.194Z",
+  "downloadedAt": "2025-06-27T18:31:37.522Z"
+}

@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules for Shift App
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Profile images - allow public read, authenticated write
+    match /profile_images/{imageId} {
+      allow read: if true; // Anyone can read profile images (for public profiles)
+      allow write: if true; // Allow uploads during migration - tighten later
+    }
+    
+    // Event images - allow public read, authenticated write  
+    match /event_images/{imageId} {
+      allow read: if true; // Anyone can read event images
+      allow write: if true; // Allow uploads during migration - tighten later
+    }
+    
+    // Place images - allow public read, authenticated write
+    match /place_images/{imageId} {
+      allow read: if true; // Anyone can read place images  
+      allow write: if true; // Allow uploads during migration - tighten later
+    }
+    
+    // Temp uploads folder for migration scripts
+    match /temp_uploads/{imageId} {
+      allow read, write: if true; // Temporary for migration
+    }
+    
+    // Test files
+    match /test-connection.txt {
+      allow read, write: if true;
+    }
+    
+    match /upload-test.txt {
+      allow read, write: if true;
+    }
+  }
+}

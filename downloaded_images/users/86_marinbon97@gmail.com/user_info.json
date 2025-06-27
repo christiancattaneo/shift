@@ -1,0 +1,36 @@
+{
+  "id": 118,
+  "email": "marinbon97@gmail.com",
+  "firstName": "Marin ",
+  "gender": "male ",
+  "age": 27,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "female ",
+  "howToApproachMe": "playing a game of tag ",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/e71e36de826ccb4d30049f9f1cd5eba93650b22ffea8170b4295433f496a658b.jpeg",
+    "filename": "Facetune_28-12-2024-22-28-58.jpeg",
+    "size": 2823668,
+    "width": 4284,
+    "height": 5712
+  },
+  "createdAt": "2025-02-19T17:50:57.063Z",
+  "updatedAt": "2025-02-19T17:59:01.878Z"
+}

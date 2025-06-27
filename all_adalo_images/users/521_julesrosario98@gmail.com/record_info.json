@@ -1,0 +1,60 @@
+{
+  "id": 641,
+  "collectionType": "users",
+  "Email": "julesrosario98@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Jules R. ",
+  "Full Name": null,
+  "First Name": "Jules",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/ea76c70e75b7d9323a2428cc480736f6cd34c3fb424685447f60a2ff0e0d9035.jpeg",
+    "size": 3650063,
+    "width": 2149,
+    "height": 4032,
+    "filename": "IMG_5566_jpg.jpeg",
+    "metadata": {
+      "width": 2149,
+      "height": 4032,
+      "blurHash": "eiM7AK%1~pxtxa~pWBx]WVWB?Gt69aWVM{%Mayaet7RjS4RkaeWBt7",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 27,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@julesrosario",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-07T00:08:15.649Z",
+  "updated_at": "2025-06-26T01:37:03.527Z",
+  "downloadedAt": "2025-06-27T18:31:12.273Z"
+}

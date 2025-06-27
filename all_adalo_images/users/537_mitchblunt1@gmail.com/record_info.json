@@ -1,0 +1,68 @@
+{
+  "id": 692,
+  "collectionType": "users",
+  "Email": "mitchblunt1@gmail.com",
+  "Password": "[hidden]",
+  "Username": "MGB97",
+  "Full Name": null,
+  "First Name": "Mitchell",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/39caba5ff5baea2df80830abeebfd520e81ff1a2ca0f78ad21e58f5389ced129.png",
+    "size": 9960883,
+    "width": 1290,
+    "height": 2796,
+    "filename": "IMG_4660.png",
+    "metadata": {
+      "width": 1290,
+      "height": 2796,
+      "blurHash": "e87^=U?Kxxo$WX%OS6kEbIWB%O%Pt9a#WB%PbdWBj^ayInIUWXWAad",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 27,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "mitchellgblunt20",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    80,
+    26
+  ],
+  "Check in for places": [
+    80,
+    26
+  ],
+  "created_at": "2025-06-10T21:46:18.669Z",
+  "updated_at": "2025-06-26T21:59:25.054Z",
+  "downloadedAt": "2025-06-27T18:31:14.092Z"
+}

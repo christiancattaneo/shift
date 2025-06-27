@@ -1,0 +1,60 @@
+{
+  "id": 12,
+  "collectionType": "users",
+  "Email": "buckleymaher11@gmail.com",
+  "Password": "[hidden]",
+  "Username": "dennymaher",
+  "Full Name": null,
+  "First Name": "Denny",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/a8b83159d0d88e1811edc56a17d655c58760a16a32f1b7834c6319bb3ea3d5f3.jpeg",
+    "size": 443773,
+    "width": 2048,
+    "height": 1364,
+    "filename": "Asset0014.jpeg",
+    "metadata": {
+      "width": 2048,
+      "height": 1364,
+      "blurHash": "eREyY=9ENFxuMxtRD%%MkDay00j?%MIUtRD%-;M{M{xabF%gM{ozof",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 24,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "say what’s up",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "dennymaher",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2024-12-30T21:56:58.227Z",
+  "updated_at": "2025-04-08T20:48:34.585Z",
+  "downloadedAt": "2025-06-27T18:30:18.917Z"
+}

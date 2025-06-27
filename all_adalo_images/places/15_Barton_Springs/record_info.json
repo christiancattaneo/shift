@@ -1,0 +1,53 @@
+{
+  "id": 16,
+  "collectionType": "places",
+  "Place Name": "Barton Springs",
+  "Place Locatioon": {
+    "placeId": "ChIJK81e_H61RIYRflpmjMatbWA",
+    "coordinates": {
+      "latitude": 30.262443,
+      "longitude": -97.76972839999999
+    },
+    "fullAddress": "Barton Jaycee Fields, 600 Azie Morton Rd, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "600 Azie Morton Road",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/0676004efd2e9ebb8bdc01e61fc47c47e60d22efc0390bb44d4ac4c9f5502dd1.png",
+    "size": 783371,
+    "width": 566,
+    "height": 636,
+    "filename": "Screenshot 2025-04-24 at 5.26.48 PM.png",
+    "metadata": {
+      "width": 566,
+      "height": 636,
+      "blurHash": "eGCQ[3%%.9.9tSrBx]x]x]xvJC.8oftRxvyZ%htStSt8?bR+ogogWC",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": false,
+  "Users": [
+    414,
+    424,
+    503,
+    455,
+    544,
+    725,
+    726,
+    774,
+    777,
+    819,
+    861,
+    873,
+    828
+  ],
+  "created_at": "2025-04-13T19:28:47.154Z",
+  "updated_at": "2025-06-26T11:51:40.845Z",
+  "downloadedAt": "2025-06-27T18:31:58.969Z"
+}

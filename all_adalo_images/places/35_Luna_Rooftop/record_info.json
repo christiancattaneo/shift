@@ -1,0 +1,39 @@
+{
+  "id": 36,
+  "collectionType": "places",
+  "Place Name": "Luna Rooftop",
+  "Place Locatioon": {
+    "name": "LUNA Rooftop",
+    "placeId": "ChIJSU81s8i1RIYRJv1gDoushNU",
+    "coordinates": {
+      "latitude": 30.2675505,
+      "longitude": -97.7439407
+    },
+    "fullAddress": "120 W 5th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "120 West 5th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/74bb880da7fd61a855d8d9839a9e4397e77a0896a654a8af0f4034c5b83ac3f8.jpeg",
+    "size": 556216,
+    "width": 646,
+    "height": 937,
+    "filename": "ED4E8F11-ACCC-41B1-A7BA-E7F8D8BB1D09.jpeg",
+    "metadata": {
+      "width": 646,
+      "height": 937,
+      "blurHash": "eZExw_M|tPoMof?EWExaj[of~CRRt6j[fks*RkoyjufkjZR+j?a|ay",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "created_at": "2025-06-04T19:04:29.487Z",
+  "updated_at": "2025-06-04T19:04:29.487Z",
+  "downloadedAt": "2025-06-27T18:32:05.234Z"
+}

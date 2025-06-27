@@ -1,0 +1,33 @@
+{
+  "id": 66,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Gold's Gym",
+  "Event Location": {
+    "name": "Gold's Gym Austin Downtown",
+    "placeId": "ChIJvQwzuAm1RIYRmzCY53POdFE",
+    "coordinates": {
+      "latitude": 30.2673606,
+      "longitude": -97.7419662
+    },
+    "fullAddress": "115 E 6th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "115 East 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:36:54.679Z",
+  "updated_at": "2025-01-03T06:36:54.679Z",
+  "downloadedAt": "2025-06-27T18:31:36.629Z"
+}

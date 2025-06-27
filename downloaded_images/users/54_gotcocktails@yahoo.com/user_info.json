@@ -1,0 +1,20 @@
+{
+  "id": 78,
+  "email": "gotcocktails@yahoo.com",
+  "firstName": "nate",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/c24ca18ba398f1e0bd5508f7185c8daae3f108d8f86cec61bab2c2f2dac88269.jpg",
+    "filename": "inbound223474480580680851.jpg",
+    "size": 2655723,
+    "width": 3392,
+    "height": 2544
+  },
+  "createdAt": "2025-02-12T22:16:19.713Z",
+  "updatedAt": "2025-02-12T22:16:19.713Z"
+}

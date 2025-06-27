@@ -1,0 +1,20 @@
+{
+  "id": 57,
+  "email": "smartt.grayson@gmail.com",
+  "firstName": "Grayson",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/e15e9fd910a90a18802321ec4455f7ef787e55eed4d165587bdd7b789568acc2.jpeg",
+    "filename": "IMG_4851.jpeg",
+    "size": 2566158,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-01-26T07:19:29.008Z",
+  "updatedAt": "2025-01-26T07:19:29.008Z"
+}

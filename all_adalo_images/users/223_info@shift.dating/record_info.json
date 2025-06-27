@@ -1,0 +1,60 @@
+{
+  "id": 282,
+  "collectionType": "users",
+  "Email": "info@shift.dating",
+  "Password": "[hidden]",
+  "Username": "bigmac",
+  "Full Name": null,
+  "First Name": "macy",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/72e30a231cfaedf84d6d43fc59cab53e178a877b2a869b7fa4b32c6c9ddec8dc.jpg",
+    "size": 569619,
+    "width": 1284,
+    "height": 1907,
+    "filename": "ED948D23-CA1E-4AAE-8A1E-150B22A0CF0A.jpg",
+    "metadata": {
+      "width": 1284,
+      "height": 1907,
+      "blurHash": "eYI53+01NGf*E1s.IU%MxuIU?cE0n$ofaeoLWAozofjZWAt7Rjj[ae",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female",
+  "Attracted to": "male",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "tell me I have a stain then boop me",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "macey_elise",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-03-31T08:01:06.519Z",
+  "updated_at": "2025-03-31T08:07:41.713Z",
+  "downloadedAt": "2025-06-27T18:30:41.810Z"
+}

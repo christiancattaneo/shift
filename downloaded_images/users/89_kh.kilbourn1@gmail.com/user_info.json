@@ -1,0 +1,20 @@
+{
+  "id": 122,
+  "email": "kh.kilbourn1@gmail.com",
+  "firstName": "Katie",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/e676cce0250c2993f308badacf317c4e40c9ab9695a624210a1d09070153040c.jpeg",
+    "filename": "F107CCF3-DBC7-4882-8A48-50F0F0A4780E.jpeg",
+    "size": 1052390,
+    "width": 1025,
+    "height": 1271
+  },
+  "createdAt": "2025-02-20T17:23:41.726Z",
+  "updatedAt": "2025-02-20T17:23:41.726Z"
+}

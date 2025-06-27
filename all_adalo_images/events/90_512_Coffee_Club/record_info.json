@@ -1,0 +1,55 @@
+{
+  "id": 110,
+  "collectionType": "events",
+  "Event Name": "512 Coffee Club",
+  "Venue Name": "Cabana Club",
+  "Event Location": {
+    "name": "Cabana Club",
+    "placeId": "ChIJMeTR8eq3RIYRUW0daGjq6nU",
+    "coordinates": {
+      "latitude": 30.25429080000001,
+      "longitude": -97.6978561
+    },
+    "fullAddress": "5012 E 7th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "5012 East 7th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Users": [
+    118,
+    121,
+    126,
+    136,
+    87,
+    28,
+    144,
+    145,
+    150,
+    151,
+    154,
+    158,
+    94,
+    161,
+    162,
+    165,
+    148,
+    156,
+    170,
+    5
+  ],
+  "Image": null,
+  "Is Event Free": false,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-19T17:39:31.684Z",
+  "updated_at": "2025-03-24T21:04:30.468Z",
+  "downloadedAt": "2025-06-27T18:31:36.974Z"
+}

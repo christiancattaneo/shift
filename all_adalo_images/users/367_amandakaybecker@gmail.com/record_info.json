@@ -1,0 +1,60 @@
+{
+  "id": 461,
+  "collectionType": "users",
+  "Email": "amandakaybecker@gmail.com",
+  "Password": "[hidden]",
+  "Username": "amandakaybecker",
+  "Full Name": null,
+  "First Name": "Amanda",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/c0f103102d66781a425386bd520e277679e90c7673234d2eb84f91f91d13e47f.jpeg",
+    "size": 1590714,
+    "width": 3088,
+    "height": 2316,
+    "filename": "IMG_3125.jpeg",
+    "metadata": {
+      "width": 3088,
+      "height": 2316,
+      "blurHash": "e9ATWW9GKP?b-U?bo#tls.xa0LWXwvIVNGIoE1VtIUM{V?xvRjWBkC",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 34,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-20T19:16:23.947Z",
+  "updated_at": "2025-05-20T21:01:49.831Z",
+  "downloadedAt": "2025-06-27T18:30:57.313Z"
+}

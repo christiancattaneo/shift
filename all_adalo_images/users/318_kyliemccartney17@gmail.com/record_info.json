@@ -1,0 +1,60 @@
+{
+  "id": 396,
+  "collectionType": "users",
+  "Email": "kyliemccartney17@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Kylie_McCartney",
+  "Full Name": null,
+  "First Name": "Kylie",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/46355d140b79ec37e1a55810fbd40360fd4ce6ea5ed8c67b6cc345dd4baf8730.jpeg",
+    "size": 563786,
+    "width": 1536,
+    "height": 2304,
+    "filename": "Facetune_30-03-2025-18-44-19.jpeg",
+    "metadata": {
+      "width": 1536,
+      "height": 2304,
+      "blurHash": "ePELyrofxut7E1~Va|WWofWBIoayIoWCxtofj[V[WCj[R+a|oLjtbH",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 25,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-24T17:51:42.302Z",
+  "updated_at": "2025-04-24T17:54:23.000Z",
+  "downloadedAt": "2025-06-27T18:30:52.709Z"
+}

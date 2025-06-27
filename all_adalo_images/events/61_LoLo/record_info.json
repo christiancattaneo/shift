@@ -1,0 +1,33 @@
+{
+  "id": 81,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "LoLo",
+  "Event Location": {
+    "name": "LoLo",
+    "placeId": "ChIJNxfDT5u1RIYRMm3dgzuqmVQ",
+    "coordinates": {
+      "latitude": 30.2633834,
+      "longitude": -97.7270688
+    },
+    "fullAddress": "1504 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1504 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:27:49.257Z",
+  "updated_at": "2025-01-05T04:27:49.257Z",
+  "downloadedAt": "2025-06-27T18:31:36.632Z"
+}

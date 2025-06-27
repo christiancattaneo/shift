@@ -1,0 +1,69 @@
+{
+  "id": 515,
+  "collectionType": "users",
+  "Email": "juli_g_08@hotmail.com",
+  "Password": "[hidden]",
+  "Username": "jewels",
+  "Full Name": null,
+  "First Name": "Juli",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/4592567f9d56bc107c31e76a8b29f12c63a27cb455964855bd098fb3a74aa51b.jpeg",
+    "size": 903679,
+    "width": 1536,
+    "height": 2048,
+    "filename": "IMG_8008.jpeg",
+    "metadata": {
+      "width": 1536,
+      "height": 2048,
+      "blurHash": "eKEe.3tR9ZRiNL4mxWxbI?Ri^jt7W@RmS49zs9ROM|R.==n%XUozad",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female ",
+  "Attracted to": "male",
+  "Age": 38,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    211
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@julifromdablock",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    34
+  ],
+  "Check in for places": [
+    34
+  ],
+  "created_at": "2025-05-30T17:08:04.422Z",
+  "updated_at": "2025-06-15T21:07:48.118Z",
+  "downloadedAt": "2025-06-27T18:31:02.021Z"
+}

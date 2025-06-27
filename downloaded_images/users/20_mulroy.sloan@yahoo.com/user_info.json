@@ -1,0 +1,36 @@
+{
+  "id": 29,
+  "email": "mulroy.sloan@yahoo.com",
+  "firstName": "Sloan",
+  "gender": null,
+  "age": 29,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": "@sloanmulroy",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/c30bf108f623da4b6d6ed3d5f5f42a4016401e8c3ef95fed8072d3b78d7bb770.jpeg",
+    "filename": "IMG_0165.jpeg",
+    "size": 562397,
+    "width": 1242,
+    "height": 2208
+  },
+  "createdAt": "2025-01-05T04:52:38.410Z",
+  "updatedAt": "2025-05-22T15:25:21.471Z"
+}

@@ -1,0 +1,60 @@
+{
+  "id": 798,
+  "collectionType": "users",
+  "Email": "aidansclive01@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Aidan ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/eb2a02a1e8886aa7e9b4aea0cb2f1fd470e50731513dedf1f6925dc4f1a1f487.jpeg",
+    "size": 3849760,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_4418.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eHIORuH;_3-;t5ET^$M|E2ad4=M_IojGRON2ITsl-;tRIpj@-:o}M|",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 21,
+  "City": {
+    "name": "Buda",
+    "placeId": "ChIJ9SXf8qVOW4YRDAZXz7cO5J8",
+    "coordinates": {
+      "latitude": 30.0817231,
+      "longitude": -97.8428927
+    },
+    "fullAddress": "Buda, TX, USA",
+    "addressElements": {
+      "city": "Buda",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "be yourself",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "Aidanramirezz",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-18T02:58:00.075Z",
+  "updated_at": "2025-06-18T03:15:28.683Z",
+  "downloadedAt": "2025-06-27T18:31:26.104Z"
+}

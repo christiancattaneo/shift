@@ -1,0 +1,33 @@
+{
+  "id": 55,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Speakeasy",
+  "Event Location": {
+    "name": "Speakeasy",
+    "placeId": "ChIJ2VVCTgi1RIYRdZUyhqoZk_s",
+    "coordinates": {
+      "latitude": 30.26681559999999,
+      "longitude": -97.74351899999999
+    },
+    "fullAddress": "412 Congress Ave. D, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "412 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:14:07.834Z",
+  "updated_at": "2025-01-03T06:14:07.834Z",
+  "downloadedAt": "2025-06-27T18:31:36.626Z"
+}

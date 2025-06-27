@@ -1,0 +1,43 @@
+{
+  "id": 30,
+  "collectionType": "places",
+  "Place Name": "Party Cove Lake Austin",
+  "Place Locatioon": {
+    "name": "Lake Austin",
+    "placeId": "ChIJbTj-2zU0W4YRLi0z4FzlNnA",
+    "coordinates": {
+      "latitude": 30.35161969999999,
+      "longitude": -97.80620549999999
+    },
+    "fullAddress": "Lake Austin, Texas, USA",
+    "addressElements": {
+      "city": "",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/597d444ab1ea388fc045321a9d5db5c815e535d270fd844e6796f1bb7a2058bc.jpeg",
+    "size": 349834,
+    "width": 1280,
+    "height": 720,
+    "filename": "27A1A37D-64A8-4CED-9BAC-D5B0231D8986.jpeg",
+    "metadata": {
+      "width": 1280,
+      "height": 720,
+      "blurHash": "eeGlnvaOn,afX8XVbvsSoze.%$n+R%j]WB?wX9nhoMW:tnsmozW=jb",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    503,
+    544
+  ],
+  "created_at": "2025-05-23T22:09:38.517Z",
+  "updated_at": "2025-06-01T22:41:02.169Z",
+  "downloadedAt": "2025-06-27T18:32:03.215Z"
+}

@@ -1,0 +1,59 @@
+{
+  "id": 433,
+  "collectionType": "users",
+  "Email": "asalcedo@shutto.co",
+  "Password": "[hidden]",
+  "Username": "Tico",
+  "Full Name": null,
+  "First Name": "Alberto",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/c0fb2eb332eadf25c9f9326bd4fdc501acd92eb1f2610fa2ba48ab86c2c754d7.jpeg",
+    "size": 119294,
+    "width": 960,
+    "height": 1280,
+    "filename": "8a648f18-e5fe-41c6-99d0-4e2fabc18c30.jpeg",
+    "metadata": {
+      "width": 960,
+      "height": 1280,
+      "blurHash": "eyG09UVrs,t8t7X=xuWBkCkCNLbvt7WBe.r=W?Wrj?V@oIj]afaxoe",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 38,
+  "City": {
+    "placeId": "ChIJuyNAGAK1RIYRiu6JF2eqhac",
+    "coordinates": {
+      "latitude": 30.253789,
+      "longitude": -97.7475368
+    },
+    "fullAddress": "1009 S Congress Ave, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1009 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-09T00:44:18.649Z",
+  "updated_at": "2025-05-09T00:45:41.529Z",
+  "downloadedAt": "2025-06-27T18:30:55.602Z"
+}

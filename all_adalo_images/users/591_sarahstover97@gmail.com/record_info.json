@@ -1,0 +1,60 @@
+{
+  "id": 760,
+  "collectionType": "users",
+  "Email": "sarahstover97@gmail.com",
+  "Password": "[hidden]",
+  "Username": "stoves ",
+  "Full Name": null,
+  "First Name": "Sarah ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/5c382880f0192c395d3abede129d0e5dabd0d548556601de022acf0f825d8279.jpeg",
+    "size": 3039720,
+    "width": 2316,
+    "height": 3088,
+    "filename": "IMG_6248.jpeg",
+    "metadata": {
+      "width": 2316,
+      "height": 3088,
+      "blurHash": "eHH-od~VFwtl-VIUxZt7%2t7OYaeIAE1M|bc%Lxa%2s:D%M{t7aKof",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 27,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "just come say hi :)",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@stoves9 ",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-14T15:08:54.296Z",
+  "updated_at": "2025-06-14T15:11:22.861Z",
+  "downloadedAt": "2025-06-27T18:31:20.963Z"
+}

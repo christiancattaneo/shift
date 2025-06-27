@@ -1,0 +1,75 @@
+{
+  "id": 424,
+  "collectionType": "users",
+  "Email": "info@aretihouse.com",
+  "Password": "[hidden]",
+  "Username": "Macey Sterry",
+  "Full Name": null,
+  "First Name": "Macy",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/78d6c68f4fefc2cd87888634384198bf0f48c3779f79603b2f9b63b393ed0a56.jpg",
+    "size": 3800780,
+    "width": 4032,
+    "height": 3024,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eHIWTN:5F|2u0}%GBpE*#,$*Fw5;=e;et7-pE2xubXE%t6Ipogs,R+",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female",
+  "Attracted to": "male",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "rock paper scissors for sure",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "Check in for event": [
+    160,
+    162,
+    176
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "macey_elise",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    26,
+    16,
+    17
+  ],
+  "Check in for places": [
+    26,
+    16,
+    17
+  ],
+  "created_at": "2025-05-07T17:47:03.442Z",
+  "updated_at": "2025-06-07T14:07:52.730Z",
+  "downloadedAt": "2025-06-27T18:30:55.005Z"
+}

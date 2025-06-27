@@ -1,0 +1,36 @@
+{
+  "id": 9,
+  "email": "crmolina0@gmail.com",
+  "firstName": "Cam",
+  "gender": "Male",
+  "age": 30,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "literally just say hi :)",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/65a3078d529e09e9a81f5e459ade426d0b54337389d80cb9520625ab84ee5e56.jpeg",
+    "filename": "PHLOW_PHOTO_20241005_1135_0001.jpeg",
+    "size": 498444,
+    "width": 1134,
+    "height": 2016
+  },
+  "createdAt": "2024-12-30T21:48:41.499Z",
+  "updatedAt": "2024-12-30T21:49:57.727Z"
+}

@@ -1,0 +1,30 @@
+{
+  "id": 13,
+  "collectionType": "places",
+  "Place Name": "Zanzibar",
+  "Place Locatioon": {
+    "name": "304 E Cesar Chavez St",
+    "placeId": "ChIJP4rtIKi1RIYRp-Dnitt9DiY",
+    "coordinates": {
+      "latitude": 30.26283089999999,
+      "longitude": -97.7415705
+    },
+    "fullAddress": "304 E Cesar Chavez St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "304 East Cesar Chavez Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Place Image": null,
+  "is place free": null,
+  "Users": [
+    503
+  ],
+  "created_at": "2025-04-12T20:31:17.877Z",
+  "updated_at": "2025-05-26T19:35:36.326Z",
+  "downloadedAt": "2025-06-27T18:31:58.593Z"
+}

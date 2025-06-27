@@ -1,0 +1,48 @@
+{
+  "id": 213,
+  "collectionType": "events",
+  "Event Name": "The Last Royal Blue Rave",
+  "Venue Name": "Royal Blue",
+  "Event Location": {
+    "name": "Royal Blue Grocery",
+    "placeId": "ChIJ10Rjwwm1RIYRC8GIJsUJ1Tk",
+    "coordinates": {
+      "latitude": 30.26832299999999,
+      "longitude": -97.74224699999999
+    },
+    "fullAddress": "609 Congress Ave., Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "609 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-06-14T03:00:00.000Z",
+  "Event End Time": "2025-06-14T04:00:00.000Z",
+  "Users": [
+    5
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/ff14a328a6aa4bba93894719a62ea53b16927b506a74de23a3af3f168db5d4e7.jpeg",
+    "size": 375111,
+    "width": 1284,
+    "height": 1561,
+    "filename": "708C31ED-6D28-40B1-9100-2570B9D677E8.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1561,
+      "blurHash": "eTEDJJxuRjt8M{~pofjsofRjs:ayt7ayfPkDj[t6azf6j@j[oLofWC",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-13T22:47:24.582Z",
+  "updated_at": "2025-06-13T23:22:51.319Z",
+  "downloadedAt": "2025-06-27T18:31:49.317Z"
+}

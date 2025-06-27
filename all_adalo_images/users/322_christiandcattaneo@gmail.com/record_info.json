@@ -1,0 +1,63 @@
+{
+  "id": 400,
+  "collectionType": "users",
+  "Email": "christiandcattaneo@gmail.com",
+  "Password": "[hidden]",
+  "Username": "christian",
+  "Full Name": null,
+  "First Name": "Christian",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/c1a3bb642f79bc001f1c65a0d7319544cc89d9254b5a3d640acb2e5f79189256.jpeg",
+    "size": 1985625,
+    "width": 3024,
+    "height": 4032,
+    "filename": "IMG_4116.jpeg",
+    "metadata": {
+      "width": 3024,
+      "height": 4032,
+      "blurHash": "eCBypm0f?F9a^%?bR+IVs:s.%Nn%RPR,R*o~M|nhR*R*?bRjRit6NH",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": "Female",
+  "Age": 24,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "Point and laugh",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    143
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "chief.hype",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-24T22:27:21.809Z",
+  "updated_at": "2025-04-24T22:29:04.424Z",
+  "downloadedAt": "2025-06-27T18:30:52.993Z"
+}

@@ -1,0 +1,48 @@
+{
+  "id": 165,
+  "collectionType": "events",
+  "Event Name": "5-9 Boys in Austin",
+  "Venue Name": "Lazarus Brewing Co.",
+  "Event Location": {
+    "name": "Lazarus Brewing Co.",
+    "placeId": "ChIJlZhRW7a1RIYR5xxRXpc_6tM",
+    "coordinates": {
+      "latitude": 30.2617398,
+      "longitude": -97.7220019
+    },
+    "fullAddress": "1902 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1902 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": "2025-06-05T22:00:00.000Z",
+  "Event End Time": "2025-06-06T02:00:00.000Z",
+  "Users": [
+    638
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/756d09ecd3484fde968d7f6692ababfedd1b3d25a6a1cbca8df17db52855ea60.jpeg",
+    "size": 1250808,
+    "width": 1284,
+    "height": 1628,
+    "filename": "338E286C-77A9-4B23-A1F4-4B7264866840.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1628,
+      "blurHash": "ecLFE%x]GuShr=0#bIOFR*jaXTa}#7s:S$TKkCv~f6S5XSj[n$jFWY",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-04T19:45:41.914Z",
+  "updated_at": "2025-06-05T19:02:27.757Z",
+  "downloadedAt": "2025-06-27T18:31:44.990Z"
+}

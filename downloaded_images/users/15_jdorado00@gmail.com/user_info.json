@@ -1,0 +1,36 @@
+{
+  "id": 23,
+  "email": "jdorado00@gmail.com",
+  "firstName": "Juan",
+  "gender": "Male",
+  "age": 24,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "Good eye contact",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/7ea0d1d0f3eb6cd271cfd2a897781be54f4fcce27674753c7f65e95ab25be0ed.jpeg",
+    "filename": "IMG_6614.jpeg",
+    "size": 1814040,
+    "width": 3088,
+    "height": 2316
+  },
+  "createdAt": "2024-12-31T15:58:21.701Z",
+  "updatedAt": "2024-12-31T16:01:41.696Z"
+}

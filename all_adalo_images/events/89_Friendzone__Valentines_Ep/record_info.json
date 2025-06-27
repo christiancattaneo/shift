@@ -1,0 +1,48 @@
+{
+  "id": 109,
+  "collectionType": "events",
+  "Event Name": "Friendzone: Valentines Ep",
+  "Venue Name": "The Courtyard",
+  "Event Location": {
+    "name": "208 W 4th St",
+    "placeId": "ChIJ620e4wi1RIYRFsNlVLkqFQg",
+    "coordinates": {
+      "latitude": 30.26698,
+      "longitude": -97.7452564
+    },
+    "fullAddress": "208 W 4th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "208 West 4th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Users": [
+    85,
+    87,
+    98,
+    103,
+    105,
+    104,
+    110,
+    91,
+    112,
+    99,
+    93,
+    116,
+    86
+  ],
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-11T08:21:48.913Z",
+  "updated_at": "2025-02-22T21:35:28.880Z",
+  "downloadedAt": "2025-06-27T18:31:36.974Z"
+}

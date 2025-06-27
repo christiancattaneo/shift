@@ -1,0 +1,52 @@
+{
+  "id": 828,
+  "collectionType": "users",
+  "Email": "testingscriptre@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "SG",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/191358efc64585479d7e571813ee5cf3531699f7cb609d47244e878f4641dcf6.png",
+    "size": 3102207,
+    "width": 1024,
+    "height": 1536,
+    "filename": "ChatGPT Image May 29, 2025 at 09_41_58 PM.png",
+    "metadata": {
+      "width": 1024,
+      "height": 1536,
+      "blurHash": "eKL.^n~9s8^iNdaKxZE3R+a#~TS5IrX7ofE4NcxYxFf*%1oLM|o0R-",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": null,
+  "City": null,
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    4,
+    16
+  ],
+  "Check in for places": [
+    4,
+    16
+  ],
+  "created_at": "2025-06-21T09:57:12.024Z",
+  "updated_at": "2025-06-26T11:51:41.331Z",
+  "downloadedAt": "2025-06-27T18:31:28.989Z"
+}

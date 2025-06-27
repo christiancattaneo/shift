@@ -1,0 +1,33 @@
+{
+  "id": 75,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Austin Garden & Studio ",
+  "Event Location": {
+    "name": "Austin Garden & Studio",
+    "placeId": "ChIJsfWUN4y1RIYRjQEKGf4bHoE",
+    "coordinates": {
+      "latitude": 30.26406399999999,
+      "longitude": -97.73019169999999
+    },
+    "fullAddress": "1209 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1209 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:25:37.844Z",
+  "updated_at": "2025-01-05T04:25:37.844Z",
+  "downloadedAt": "2025-06-27T18:31:36.631Z"
+}

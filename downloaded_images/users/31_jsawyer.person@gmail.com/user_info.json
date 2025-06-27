@@ -1,0 +1,36 @@
+{
+  "id": 45,
+  "email": "jsawyer.person@gmail.com",
+  "firstName": "jack",
+  "gender": "male",
+  "age": 28,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "female",
+  "howToApproachMe": "salutation",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/0a2d2b7c5f3378814f9131da7bc60387406e5a22b51d7a5195db857c50d77de9.jpeg",
+    "filename": "IMG_5293.jpeg",
+    "size": 2115190,
+    "width": 2268,
+    "height": 4032
+  },
+  "createdAt": "2025-01-17T06:41:07.298Z",
+  "updatedAt": "2025-06-06T23:20:05.632Z"
+}

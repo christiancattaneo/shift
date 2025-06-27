@@ -1,0 +1,80 @@
+{
+  "id": 725,
+  "collectionType": "users",
+  "Email": "viconieto15@gmail.com",
+  "Password": "[hidden]",
+  "Username": "viconieto",
+  "Full Name": null,
+  "First Name": "vico",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/2a2c7ac2463ae6c9d2befc7b9cc9003f0c507671e66029f782e772c0c08275eb.jpeg",
+    "size": 2300448,
+    "width": 1320,
+    "height": 2328,
+    "filename": "IMG_7219.jpeg",
+    "metadata": {
+      "width": 1320,
+      "height": 2328,
+      "blurHash": "eCINms^i5StmkVTLF|?H-URPS~-:E2EkNd=ZxGxt%Mtlv0EN9]xHt8",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Males",
+  "Age": 32,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@viconieto",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    16,
+    9,
+    78,
+    20,
+    80,
+    17,
+    81,
+    1
+  ],
+  "Check in for places": [
+    16,
+    9,
+    78,
+    20,
+    80,
+    17,
+    81,
+    1
+  ],
+  "created_at": "2025-06-12T04:39:40.656Z",
+  "updated_at": "2025-06-23T20:27:20.916Z",
+  "downloadedAt": "2025-06-27T18:31:17.973Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 88,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "East Austin Hotel",
+  "Event Location": {
+    "name": "East Austin Hotel",
+    "placeId": "ChIJpQEkArC1RIYRCmI6ELg52wg",
+    "coordinates": {
+      "latitude": 30.2647196,
+      "longitude": -97.7310784
+    },
+    "fullAddress": "1108 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1108 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:31:15.763Z",
+  "updated_at": "2025-01-05T04:31:15.763Z",
+  "downloadedAt": "2025-06-27T18:31:36.634Z"
+}

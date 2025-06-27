@@ -1,0 +1,48 @@
+{
+  "id": 152,
+  "collectionType": "events",
+  "Event Name": "Coffee & Chill ATX April 26th",
+  "Venue Name": "SkyBox",
+  "Event Location": {
+    "name": "SKYBOX on 6th",
+    "placeId": "ChIJt09ZGxe1RIYRbPPn6B_hwlU",
+    "coordinates": {
+      "latitude": 30.2692657,
+      "longitude": -97.7478568
+    },
+    "fullAddress": "501 W 6th St 4th Floor, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "501 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-04-26T15:00:00.000Z",
+  "Event End Time": "2025-04-26T17:00:00.000Z",
+  "Users": [
+    402
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/413a42477a4fcbdedc77b5bb1209e8fcf593599017cb1939b40f4dde54608a99.jpeg",
+    "size": 1220608,
+    "width": 1284,
+    "height": 1592,
+    "filename": "97AB7B48-D6BA-4C45-AE9E-8B03023276E3.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1592,
+      "blurHash": "eaPF=j%M%gxa%g8_t7xuWAxuyDs:a0WBni?^t6a0afV@%2j[WBjZbH",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-04-24T21:58:03.605Z",
+  "updated_at": "2025-05-23T22:37:18.491Z",
+  "downloadedAt": "2025-06-27T18:31:41.007Z"
+}

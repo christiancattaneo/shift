@@ -1,0 +1,60 @@
+{
+  "id": 642,
+  "collectionType": "users",
+  "Email": "Ernest_Gonzales91@yahoo.com",
+  "Password": "[hidden]",
+  "Username": "Nesto",
+  "Full Name": null,
+  "First Name": "Ernesto ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/ddc05470c097f09973ce701d76171e29fc13a0f7639629571cad35aacb0e1d77.jpeg",
+    "size": 1897582,
+    "width": 2316,
+    "height": 3088,
+    "filename": "IMG_7205.jpeg",
+    "metadata": {
+      "width": 2316,
+      "height": 3088,
+      "blurHash": "eODmK;n3rqSh56v}rWtRo#NG00kqNGjF%158pJR+RO%2ISNHs:oJt8",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female ",
+  "Age": 34,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "Ask me to name 3 things we have in common, bet I get at least 1 right 😅",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-07T03:29:03.823Z",
+  "updated_at": "2025-06-24T16:14:17.780Z",
+  "downloadedAt": "2025-06-27T18:31:12.422Z"
+}

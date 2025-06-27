@@ -1,0 +1,63 @@
+{
+  "id": 557,
+  "collectionType": "users",
+  "Email": "max.marta567@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Maxwell",
+  "Full Name": null,
+  "First Name": "Max",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/92da7fd496bfbabc932639cefdd04df1e039a663d48042a0b65f5a13650ef36f.png",
+    "size": 4602243,
+    "width": 1290,
+    "height": 2796,
+    "filename": "IMG_6288.png",
+    "metadata": {
+      "width": 1290,
+      "height": 2796,
+      "blurHash": "eED+rZ9-9%-pxA_4IwIXxuxaJQnzrqt7X8-y$@xSt7NeIRszE0t7xb",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 22,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "just smile and ask me a random question about our event (ILLFEST) to get our convo started ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "my snap: max_marta",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-31T18:53:18.300Z",
+  "updated_at": "2025-06-01T17:44:31.642Z",
+  "downloadedAt": "2025-06-27T18:31:04.778Z"
+}

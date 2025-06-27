@@ -1,0 +1,75 @@
+{
+  "id": 283,
+  "collectionType": "users",
+  "Email": "ericmichaela@gmail.com",
+  "Password": "[hidden]",
+  "Username": "ericatkinson",
+  "Full Name": null,
+  "First Name": "Eric",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/ef2c4cfe0dc3e37187c3944b484b604858eb8364e27914c958415ac5d3efd2c2.jpeg",
+    "size": 40925,
+    "width": 470,
+    "height": 470,
+    "filename": "headshot.jpeg",
+    "metadata": {
+      "width": 470,
+      "height": 470,
+      "blurHash": "eNI}hcX:DNVrpJ~AxFIVs:t8.9tltQbcxatRx]kCs,WCn#xttRfPRj",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": "Female",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "Check in for event": [
+    143,
+    127,
+    160
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "ericmichaelatkinson",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    6,
+    11,
+    10
+  ],
+  "Check in for places": [
+    6,
+    11,
+    10
+  ],
+  "created_at": "2025-04-01T02:27:58.462Z",
+  "updated_at": "2025-05-24T01:21:10.735Z",
+  "downloadedAt": "2025-06-27T18:30:41.845Z"
+}

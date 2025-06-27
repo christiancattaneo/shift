@@ -1,0 +1,60 @@
+{
+  "id": 96,
+  "collectionType": "users",
+  "Email": "roginskiadrian@icloud.com",
+  "Password": "[hidden]",
+  "Username": "Adirog",
+  "Full Name": null,
+  "First Name": "Adrian",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/9db032c03845fe21adad3e4c23d76aa384bb4e6ef83cd034d5ffcae97b6b48b7.jpeg",
+    "size": 1161990,
+    "width": 1835,
+    "height": 2448,
+    "filename": "IMG_1576.jpeg",
+    "metadata": {
+      "width": 1835,
+      "height": 2448,
+      "blurHash": "eYHx$%T1.TIVae.7NIxvogR+D+NIRnxts.Dh%0ROo#t8M_oIjsofo#",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 32,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "it’s all about the eyes chica…they never lie 😎",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "adiroginski",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-14T14:38:27.524Z",
+  "updated_at": "2025-02-15T03:49:09.637Z",
+  "downloadedAt": "2025-06-27T18:30:26.476Z"
+}

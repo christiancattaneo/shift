@@ -1,0 +1,60 @@
+{
+  "id": 435,
+  "collectionType": "users",
+  "Email": "jbsoza@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Bruh",
+  "Full Name": null,
+  "First Name": "Santiago",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/20d745f75233c9538f67fe7e853016a4aaaa063ac1e0e5c63a64cc0af3e8fa4e.jpeg",
+    "size": 2036869,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_3118.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eSKTuVDi~p-oE1~Wt6WBofM{tkt7RPWXV@t7WBWBj]jZWBt7aeRjxt",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 42,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "be direct",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "j_lazy_s",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-09T23:42:54.408Z",
+  "updated_at": "2025-05-10T00:32:31.128Z",
+  "downloadedAt": "2025-06-27T18:30:55.762Z"
+}

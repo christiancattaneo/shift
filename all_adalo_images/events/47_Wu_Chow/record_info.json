@@ -1,0 +1,33 @@
+{
+  "id": 67,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Wu Chow",
+  "Event Location": {
+    "name": "WU Chow - Downtown",
+    "placeId": "ChIJL3w-vA61RIYR8bQpaPieF1U",
+    "coordinates": {
+      "latitude": 30.2685782,
+      "longitude": -97.7478856
+    },
+    "fullAddress": "IBC Bank Plaza, 500 W 5th St #168, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "500 West 5th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:37:56.324Z",
+  "updated_at": "2025-01-03T06:37:56.324Z",
+  "downloadedAt": "2025-06-27T18:31:36.629Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 70,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Hotel Zaza",
+  "Event Location": {
+    "name": "Hotel ZaZa Austin Downtown",
+    "placeId": "ChIJy-WuW_i1RIYRlr7FmeRD7uk",
+    "coordinates": {
+      "latitude": 30.2671524,
+      "longitude": -97.7459817
+    },
+    "fullAddress": "400 Lavaca St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "400 Lavaca Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:40:48.723Z",
+  "updated_at": "2025-01-03T06:40:48.723Z",
+  "downloadedAt": "2025-06-27T18:31:36.630Z"
+}

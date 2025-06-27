@@ -1,0 +1,33 @@
+{
+  "id": 53,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Lonesome Dove",
+  "Event Location": {
+    "name": "Lonesome Dove Austin",
+    "placeId": "ChIJ83aXqgm1RIYRpzkWp2Xrjsk",
+    "coordinates": {
+      "latitude": 30.26826299999999,
+      "longitude": -97.74401929999999
+    },
+    "fullAddress": "123 W 6th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "123 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:13:22.396Z",
+  "updated_at": "2025-01-03T06:13:22.396Z",
+  "downloadedAt": "2025-06-27T18:31:36.625Z"
+}

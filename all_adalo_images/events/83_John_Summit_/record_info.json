@@ -1,0 +1,33 @@
+{
+  "id": 103,
+  "collectionType": "events",
+  "Event Name": "John Summit ",
+  "Venue Name": "Moody Amphitheater ",
+  "Event Location": {
+    "name": "Moody Amphitheater",
+    "placeId": "ChIJZwxyvDi1RIYRdpg1prMEK1g",
+    "coordinates": {
+      "latitude": 30.2747822,
+      "longitude": -97.7361279
+    },
+    "fullAddress": "1401 Trinity St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1401 Trinity Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-03-16T00:00:00.000Z",
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-05T21:52:01.385Z",
+  "updated_at": "2025-02-05T21:52:01.385Z",
+  "downloadedAt": "2025-06-27T18:31:36.972Z"
+}

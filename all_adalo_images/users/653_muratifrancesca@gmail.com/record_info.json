@@ -1,0 +1,60 @@
+{
+  "id": 832,
+  "collectionType": "users",
+  "Email": "muratifrancesca@gmail.com",
+  "Password": "[hidden]",
+  "Username": "francescamurati",
+  "Full Name": null,
+  "First Name": "Francesca ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/f583d528efb5631a503f1d804863a46d00dc2fa20e8aa7eab110406bc71fe35c.jpeg",
+    "size": 104959,
+    "width": 485,
+    "height": 473,
+    "filename": "Attachment.jpeg",
+    "metadata": {
+      "width": 485,
+      "height": 473,
+      "blurHash": "egL4i{Vt?us;Mx~ojZR%smIVtM%MV?bHt7-nRlM{a~t7?HoJWCj@ay",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female",
+  "Attracted to": "male",
+  "Age": 27,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-21T21:49:44.691Z",
+  "updated_at": "2025-06-22T19:08:52.600Z",
+  "downloadedAt": "2025-06-27T18:31:29.215Z"
+}

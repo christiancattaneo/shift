@@ -1,0 +1,60 @@
+{
+  "id": 769,
+  "collectionType": "users",
+  "Email": "49hawkins@gmail.com",
+  "Password": "[hidden]",
+  "Username": "zhawk1",
+  "Full Name": null,
+  "First Name": "Zach",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/0094c32276530a743b852082fb17111945ea8f4ead53a64d213905b34252d1ed.jpeg",
+    "size": 1906913,
+    "width": 3120,
+    "height": 2080,
+    "filename": "DSCF0447.jpeg",
+    "metadata": {
+      "width": 3120,
+      "height": 2080,
+      "blurHash": "eFFPNrM_%h-;$%~U?bNGt7?HoaV?oLt6t69Zt7%Mt7WU9Go#M_M_NG",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "female ",
+  "Age": 32,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "literally anything, I’m very extroverted and if I have my headphones in, just annoy me ",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@zachjhawkins",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-15T05:31:45.403Z",
+  "updated_at": "2025-06-15T05:34:31.086Z",
+  "downloadedAt": "2025-06-27T18:31:22.115Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 36,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Beez Kneew",
+  "Event Location": {
+    "name": "Beez Kneez",
+    "placeId": "ChIJD3SQTea1RIYRihbRrP2svwo",
+    "coordinates": {
+      "latitude": 30.270302,
+      "longitude": -97.7485023
+    },
+    "fullAddress": "610 Nueces St Suite 100, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "610 Nueces Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T05:47:11.121Z",
+  "updated_at": "2025-01-03T05:47:11.121Z",
+  "downloadedAt": "2025-06-27T18:31:36.621Z"
+}

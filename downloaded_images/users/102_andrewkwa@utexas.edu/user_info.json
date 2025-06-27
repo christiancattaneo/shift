@@ -1,0 +1,20 @@
+{
+  "id": 138,
+  "email": "andrewkwa@utexas.edu",
+  "firstName": "Andrew",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/6b35a85e7d5c4cd160e78bdd94d7ee9a7298809918eb347e9d9785a9b9e7844f.jpeg",
+    "filename": "IMG_2490.jpeg",
+    "size": 1576882,
+    "width": 3156,
+    "height": 4208
+  },
+  "createdAt": "2025-02-22T16:39:39.653Z",
+  "updatedAt": "2025-02-22T16:39:39.653Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 69,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Group Therapy",
+  "Event Location": {
+    "name": "Group Therapy",
+    "placeId": "ChIJ-TmN7pO1RIYRM-BV0neKLJA",
+    "coordinates": {
+      "latitude": 30.2671074,
+      "longitude": -97.74642349999999
+    },
+    "fullAddress": "400 Lavaca St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "400 Lavaca Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:40:24.221Z",
+  "updated_at": "2025-01-03T06:40:24.221Z",
+  "downloadedAt": "2025-06-27T18:31:36.630Z"
+}

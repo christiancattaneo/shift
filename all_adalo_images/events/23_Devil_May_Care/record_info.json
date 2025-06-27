@@ -1,0 +1,33 @@
+{
+  "id": 42,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Devil May Care",
+  "Event Location": {
+    "name": "Devil May Care",
+    "placeId": "ChIJW02GaiG1RIYR8ZZKBuZOWQg",
+    "coordinates": {
+      "latitude": 30.2696472,
+      "longitude": -97.7474845
+    },
+    "fullAddress": "500 W 6th St Suite 100, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "500 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T05:55:56.207Z",
+  "updated_at": "2025-01-03T05:55:56.207Z",
+  "downloadedAt": "2025-06-27T18:31:36.623Z"
+}

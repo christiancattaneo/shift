@@ -61,6 +61,7 @@ struct SplashView: View {
 
                         // Sign Up Button (now just sets state)
                          Button {
+                             Haptics.lightImpact() // Add haptic
                              needsSignUp = true // Trigger navigationDestination below
                          } label: {
                              Text("SIGN UP")
@@ -85,6 +86,8 @@ struct SplashView: View {
                                         .stroke(Color.primary, lineWidth: 1)
                                 )
                         }
+                        // Add haptic on tap gesture for NavigationLink label
+                        .simultaneousGesture(TapGesture().onEnded { Haptics.lightImpact() })
                         .padding(.horizontal, 40)
                         .padding(.top, 10)
 

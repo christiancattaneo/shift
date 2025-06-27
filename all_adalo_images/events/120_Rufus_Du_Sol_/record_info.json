@@ -1,0 +1,72 @@
+{
+  "id": 143,
+  "collectionType": "events",
+  "Event Name": "Rufus Du Sol ",
+  "Venue Name": "Q2 Stadium",
+  "Event Location": {
+    "name": "Q2 Stadium",
+    "placeId": "ChIJ3fB6atnLRIYRh-10pmVzQnk",
+    "coordinates": {
+      "latitude": 30.3877461,
+      "longitude": -97.7193751
+    },
+    "fullAddress": "10414 Mc Kalla Pl, Austin, TX 78758, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "10414 Mc Kalla Place",
+      "address2": "",
+      "postalCode": "78758"
+    }
+  },
+  "Event Start Time": "2025-04-27T00:30:00.000Z",
+  "Event End Time": "2025-04-26T05:00:00.000Z",
+  "Users": [
+    167,
+    87,
+    283,
+    363,
+    126,
+    372,
+    374,
+    361,
+    193,
+    371,
+    378,
+    382,
+    386,
+    388,
+    389,
+    28,
+    392,
+    10,
+    299,
+    398,
+    400,
+    401,
+    5,
+    86,
+    855
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/893f91a17f12597f9e37e7bcff0ef364c47e3d77376041f0e1873d90e870ed8c.jpeg",
+    "size": 7367,
+    "width": 275,
+    "height": 183,
+    "filename": "rufus.jpeg",
+    "metadata": {
+      "width": 275,
+      "height": 183,
+      "blurHash": "eiJ7R1sl~V%1xZ-QxaNGM|t6-oRjR+M|WX%1WBt7ayoLR*WCoKWCWC",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": false,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-03-31T08:05:18.236Z",
+  "updated_at": "2025-06-24T04:36:10.647Z",
+  "downloadedAt": "2025-06-27T18:31:38.499Z"
+}

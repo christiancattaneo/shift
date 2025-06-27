@@ -1,0 +1,36 @@
+{
+  "id": 16,
+  "email": "diegovgalicia@gmail.con",
+  "firstName": "Diego",
+  "gender": "male ",
+  "age": 25,
+  "city": {
+    "name": "Los Angeles",
+    "placeId": "ChIJE9on3F3HwoAR9AhGJW_fL-I",
+    "coordinates": {
+      "latitude": 34.0549076,
+      "longitude": -118.242643
+    },
+    "fullAddress": "Los Angeles, CA, USA",
+    "addressElements": {
+      "city": "Los Angeles",
+      "region": "California",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "just say hi",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/2b4539048d2d5a911ee7a1e73e673352aec8bf2f6abd9cbd0b29f60534b40607.jpeg",
+    "filename": "@boulgates_vegas_race_2024-1102968.jpeg",
+    "size": 2235409,
+    "width": 4685,
+    "height": 7039
+  },
+  "createdAt": "2024-12-30T23:12:26.550Z",
+  "updatedAt": "2024-12-30T23:14:00.084Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 112,
+  "collectionType": "events",
+  "Event Name": "two friends",
+  "Venue Name": "stubbs",
+  "Event Location": {
+    "name": "Stubb's Bar-B-Q",
+    "placeId": "ChIJSVyqJ6S1RIYRdx8PPPRl9Is",
+    "coordinates": {
+      "latitude": 30.2684932,
+      "longitude": -97.7362565
+    },
+    "fullAddress": "801 Red River St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "801 Red River Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-02-23T02:00:00.000Z",
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-22T23:40:06.866Z",
+  "updated_at": "2025-02-24T19:24:38.023Z",
+  "downloadedAt": "2025-06-27T18:31:36.974Z"
+}

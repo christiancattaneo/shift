@@ -1,0 +1,27 @@
+{
+  "id": 84,
+  "collectionType": "places",
+  "Place Name": "Golds Gym",
+  "Place Locatioon": {
+    "name": "Gold's Gym Austin Highland",
+    "placeId": "ChIJWRcrBSPKRIYRC_Ly7M4bU30",
+    "coordinates": {
+      "latitude": 30.3226436,
+      "longitude": -97.7093814
+    },
+    "fullAddress": "6001 Middle Fiskville Rd #100, Austin, TX 78752, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "6001 Middle Fiskville Road",
+      "address2": "",
+      "postalCode": "78752"
+    }
+  },
+  "Place Image": null,
+  "is place free": null,
+  "created_at": "2025-06-24T12:43:51.161Z",
+  "updated_at": "2025-06-24T18:41:56.189Z",
+  "downloadedAt": "2025-06-27T18:32:09.026Z"
+}

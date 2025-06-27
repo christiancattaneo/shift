@@ -1,0 +1,60 @@
+{
+  "id": 476,
+  "collectionType": "users",
+  "Email": "annamariasmith111@gmail.com",
+  "Password": "[hidden]",
+  "Username": "AnnamariasAdventures",
+  "Full Name": null,
+  "First Name": "Annamaria",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/424ffd6a78e62cc4c4dc23d50716a4b3edb6f612a69908b437d75aa842fc8d4f.jpeg",
+    "size": 2365727,
+    "width": 3088,
+    "height": 2316,
+    "filename": "IMG_4293.jpeg",
+    "metadata": {
+      "width": 3088,
+      "height": 2316,
+      "blurHash": "eLG8o]t7pb$*=|~ptlI^kBRiT2f,$zWCIpotxZ$*jXRPI[NGRjIpIo",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 34,
+  "City": {
+    "name": "Rainey Street",
+    "placeId": "Eh5SYWluZXkgU3RyZWV0LCBBdXN0aW4sIFRYLCBVU0EiLiosChQKEgnL7tbSq7VEhhE4IEqAncYaaBIUChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.2584263,
+      "longitude": -97.73890940000001
+    },
+    "fullAddress": "Rainey St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "Rainey Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "How to Approach Me": "Say hi and ask me about cooperative farming",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@AnnamariasAdventures",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-23T02:14:09.403Z",
+  "updated_at": "2025-05-23T02:30:52.676Z",
+  "downloadedAt": "2025-06-27T18:30:58.297Z"
+}

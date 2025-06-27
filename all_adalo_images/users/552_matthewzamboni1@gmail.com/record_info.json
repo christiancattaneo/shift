@@ -1,0 +1,60 @@
+{
+  "id": 711,
+  "collectionType": "users",
+  "Email": "matthewzamboni1@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Matthew",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/6e80d9fa3c4ac25a8163c026d014e1408c2839f6aae70036f777e7f8e9acfc26.jpeg",
+    "size": 1740000,
+    "width": 1154,
+    "height": 1487,
+    "filename": "IMG_7206.jpeg",
+    "metadata": {
+      "width": 1154,
+      "height": 1487,
+      "blurHash": "eNJkM:^*0K_3?bND?G-;%Mxt-nNGMxRiSh%gxZMxxtWBMwNH%gaxsS",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 29,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@matthewzamboni",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-11T13:58:28.203Z",
+  "updated_at": "2025-06-11T15:01:40.653Z",
+  "downloadedAt": "2025-06-27T18:31:15.836Z"
+}

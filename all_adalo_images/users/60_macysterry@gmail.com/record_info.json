@@ -1,0 +1,75 @@
+{
+  "id": 86,
+  "collectionType": "users",
+  "Email": "macysterry@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "macey",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/be950f6af7dffe393d8ece5e24493823cfb405edbd5c5ec2ef63c66c02726d6b.jpg",
+    "size": 3280111,
+    "width": 3752,
+    "height": 2814,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 3752,
+      "height": 2814,
+      "blurHash": "eFH_b|IY5j%eDhwG~VtRogsXS1%Lxvi_=|?vxubFM{W;%Lt7kWX8WB",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "Check in for event": [
+    109,
+    151,
+    144,
+    143,
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    5,
+    6
+  ],
+  "Check in for places": [
+    5,
+    6
+  ],
+  "created_at": "2025-02-13T22:07:07.377Z",
+  "updated_at": "2025-06-09T15:47:04.494Z",
+  "downloadedAt": "2025-06-27T18:30:25.395Z"
+}

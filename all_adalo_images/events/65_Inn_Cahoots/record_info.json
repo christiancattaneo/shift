@@ -1,0 +1,33 @@
+{
+  "id": 85,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Inn Cahoots",
+  "Event Location": {
+    "name": "Inn Cahoots",
+    "placeId": "ChIJm32MyMu1RIYRkGupI8MdMdg",
+    "coordinates": {
+      "latitude": 30.2639124,
+      "longitude": -97.729725
+    },
+    "fullAddress": "1221 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1221 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:29:40.652Z",
+  "updated_at": "2025-01-05T04:29:40.652Z",
+  "downloadedAt": "2025-06-27T18:31:36.633Z"
+}

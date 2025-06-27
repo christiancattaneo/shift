@@ -1,0 +1,36 @@
+{
+  "id": 104,
+  "email": "mikaelakieran@gmail.com",
+  "firstName": "Mika",
+  "gender": "female",
+  "age": 21,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "any",
+  "howToApproachMe": "joke around with me I love banter :)",
+  "instagramHandle": "mikaelakieran_",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/f108ce162d067c53a8fb204456ef26d565498832323676b0bc5a982cf7deacef.jpeg",
+    "filename": "IMG_3278.jpeg",
+    "size": 435248,
+    "width": 1242,
+    "height": 2208
+  },
+  "createdAt": "2025-02-15T03:24:47.663Z",
+  "updatedAt": "2025-02-15T04:03:07.252Z"
+}

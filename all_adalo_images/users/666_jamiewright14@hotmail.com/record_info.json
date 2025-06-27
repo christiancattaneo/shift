@@ -1,0 +1,60 @@
+{
+  "id": 848,
+  "collectionType": "users",
+  "Email": "jamiewright14@hotmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Jamie",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/30d99d645f26cba8579941a13da4ceb654a154f030d9c30258a4476d447229db.jpeg",
+    "size": 2408292,
+    "width": 3716,
+    "height": 3024,
+    "filename": "IMG_5297.jpeg",
+    "metadata": {
+      "width": 3716,
+      "height": 3024,
+      "blurHash": "eEAcVvIU55kW-VM_Rkxvogng0e%3xZRPS$I@xanhWBNekCM{ogt8M{",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 28,
+  "City": {
+    "name": "Bee Cave",
+    "placeId": "ChIJ4xVDx_Q3W4YRbZ21jYSINBE",
+    "coordinates": {
+      "latitude": 30.306098,
+      "longitude": -97.9523768
+    },
+    "fullAddress": "Bee Cave, TX, USA",
+    "addressElements": {
+      "city": "Bee Cave",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "jamie_wright96",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-23T16:52:18.053Z",
+  "updated_at": "2025-06-23T16:54:11.087Z",
+  "downloadedAt": "2025-06-27T18:31:30.871Z"
+}

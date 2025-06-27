@@ -1,0 +1,63 @@
+{
+  "id": 144,
+  "collectionType": "users",
+  "Email": "shashankrao20@gmail.com",
+  "Password": "[hidden]",
+  "Username": "shashank@1999",
+  "Full Name": null,
+  "First Name": "shashank",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/62a680f7694c2830171779bad34deab21f47ea282f5bdbbc2be16e99ed1dcd8c.jpeg",
+    "size": 1950934,
+    "width": 3024,
+    "height": 4032,
+    "filename": "IMG_8455.jpeg",
+    "metadata": {
+      "width": 3024,
+      "height": 4032,
+      "blurHash": "eVK-|Jog.8%MM{_NozIURPt7oyRjjst7of-;oLt7kCRj%Moza}RiWA",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female ",
+  "Age": 25,
+  "City": {
+    "name": "12520 Anthology St",
+    "placeId": "ChIJFzTNpKXIRIYRXTBuC4RCAM4",
+    "coordinates": {
+      "latitude": 30.3844718,
+      "longitude": -97.61901379999999
+    },
+    "fullAddress": "12520 Anthology St, Manor, TX 78653, USA",
+    "addressElements": {
+      "city": "Manor",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "12520 Anthology Street",
+      "address2": "",
+      "postalCode": "78653"
+    }
+  },
+  "How to Approach Me": "say Namste ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    110
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-22T17:57:52.758Z",
+  "updated_at": "2025-02-22T18:01:14.344Z",
+  "downloadedAt": "2025-06-27T18:30:29.985Z"
+}

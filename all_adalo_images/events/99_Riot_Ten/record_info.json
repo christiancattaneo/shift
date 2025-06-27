@@ -1,0 +1,33 @@
+{
+  "id": 120,
+  "collectionType": "events",
+  "Event Name": "Riot Ten",
+  "Venue Name": "The Marc",
+  "Event Location": {
+    "name": "The Marc",
+    "placeId": "ChIJa5oW_GaoXIYRnDthAnYg2Hw",
+    "coordinates": {
+      "latitude": 29.8821251,
+      "longitude": -97.9405117
+    },
+    "fullAddress": "120 E San Antonio St, San Marcos, TX 78666, USA",
+    "addressElements": {
+      "city": "San Marcos",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "120 East San Antonio Street",
+      "address2": "",
+      "postalCode": "78666"
+    }
+  },
+  "Event Start Time": "2025-03-23T02:00:00.000Z",
+  "Event End Time": "2025-03-23T05:00:00.000Z",
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-25T18:26:45.188Z",
+  "updated_at": "2025-02-25T18:26:45.188Z",
+  "downloadedAt": "2025-06-27T18:31:36.976Z"
+}

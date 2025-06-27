@@ -1,0 +1,33 @@
+{
+  "id": 220,
+  "collectionType": "events",
+  "Event Name": "Lake Travis Boat Party",
+  "Venue Name": "VIP Lake Travis",
+  "Event Location": {
+    "name": "16107 Farm to Market Rd 2769",
+    "placeId": "ChIJ34_TurMxW4YRnbiFRsqur18",
+    "coordinates": {
+      "latitude": 30.4415291,
+      "longitude": -97.9125193
+    },
+    "fullAddress": "16107 Farm to Market Rd 2769, Volente, TX 78641, USA",
+    "addressElements": {
+      "city": "Volente",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "16107 Farm to Market Road 2769",
+      "address2": "",
+      "postalCode": "78641"
+    }
+  },
+  "Event Start Time": "2025-07-12T19:45:00.000Z",
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-24T02:27:03.092Z",
+  "updated_at": "2025-06-24T04:33:30.961Z",
+  "downloadedAt": "2025-06-27T18:31:51.684Z"
+}

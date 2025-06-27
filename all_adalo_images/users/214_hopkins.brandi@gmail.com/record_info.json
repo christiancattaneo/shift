@@ -1,0 +1,60 @@
+{
+  "id": 272,
+  "collectionType": "users",
+  "Email": "hopkins.brandi@gmail.com",
+  "Password": "[hidden]",
+  "Username": "bdanri",
+  "Full Name": null,
+  "First Name": "Brandi",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/58ac696f23feb6a5fde3082fe3bf86630937c48f002ae0d32fef44cf308c6a2f.jpeg",
+    "size": 124230,
+    "width": 1616,
+    "height": 1080,
+    "filename": "2887192651093124750.jpeg",
+    "metadata": {
+      "width": 1616,
+      "height": 1080,
+      "blurHash": "eE7-H3o00KX8?H-;ayD*kCxu9bWB-ot6M|D%WB-pt7IoRPayt8oeRj",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female",
+  "Attracted to": "male",
+  "Age": 31,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "say hi idiot",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@bhoppy",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-03-29T19:08:38.433Z",
+  "updated_at": "2025-03-29T19:51:29.525Z",
+  "downloadedAt": "2025-06-27T18:30:40.860Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 90,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "The Liberty",
+  "Event Location": {
+    "name": "The Liberty",
+    "placeId": "ChIJ01xUKre1RIYRM_3DzIyLPT0",
+    "coordinates": {
+      "latitude": 30.2626529,
+      "longitude": -97.7250954
+    },
+    "fullAddress": "1618 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1618 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:32:16.430Z",
+  "updated_at": "2025-01-05T04:32:16.430Z",
+  "downloadedAt": "2025-06-27T18:31:36.635Z"
+}

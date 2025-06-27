@@ -1,0 +1,33 @@
+{
+  "id": 84,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Cantina El Milamores",
+  "Event Location": {
+    "name": "602 Onion St",
+    "placeId": "ChIJx1bH8rC1RIYRlYePnqsa64g",
+    "coordinates": {
+      "latitude": 30.2638213,
+      "longitude": -97.7274762
+    },
+    "fullAddress": "602 Onion St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "602 Onion Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:29:08.617Z",
+  "updated_at": "2025-01-05T04:29:08.617Z",
+  "downloadedAt": "2025-06-27T18:31:36.633Z"
+}

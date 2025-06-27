@@ -1,0 +1,65 @@
+{
+  "id": 782,
+  "collectionType": "users",
+  "Email": "cejaoscar75@yahoo.com",
+  "Password": "[hidden]",
+  "Username": "Oscar",
+  "Full Name": null,
+  "First Name": "Oscar",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/3df7f4a63073e36d096bcac276e09ac221df095fddfe8fc56a2534255864cd03.jpeg",
+    "size": 4017239,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_2950.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "e*M%}-t6f*s;WB%gj]WBofj]~qj[ofa{f6t8a{axofj[xtayj[ofWB",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 34,
+  "City": {
+    "placeId": "ChIJ8WGm79FiXIYRX7-8G7PBwZc",
+    "coordinates": {
+      "latitude": 29.6932059,
+      "longitude": -98.5179519
+    },
+    "fullAddress": "26416 Grey Horse Run, San Antonio, TX 78260, USA",
+    "addressElements": {
+      "city": "San Antonio",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "26416 Grey Horse Run",
+      "address2": "",
+      "postalCode": "78260"
+    }
+  },
+  "How to Approach Me": "Let’s hug it out lol",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    38
+  ],
+  "Check in for places": [
+    38
+  ],
+  "created_at": "2025-06-16T07:28:28.711Z",
+  "updated_at": "2025-06-17T07:00:02.430Z",
+  "downloadedAt": "2025-06-27T18:31:24.307Z"
+}

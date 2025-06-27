@@ -1,0 +1,15 @@
+[debug] [2025-06-27T19:01:58.963Z] ----------------------------------------------------------------------
+[debug] [2025-06-27T19:01:58.965Z] Command:       /opt/homebrew/Cellar/node/23.7.0/bin/node /opt/homebrew/bin/firebase use --add
+[debug] [2025-06-27T19:01:58.965Z] CLI Version:   14.6.0
+[debug] [2025-06-27T19:01:58.965Z] Platform:      darwin
+[debug] [2025-06-27T19:01:58.966Z] Node Version:  v23.7.0
+[debug] [2025-06-27T19:01:58.966Z] Time:          Fri Jun 27 2025 14:01:58 GMT-0500 (Central Daylight Time)
+[debug] [2025-06-27T19:01:58.966Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-27T19:01:59.066Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-27T19:01:59.067Z] > authorizing via signed-in user (christiandcattaneo@gmail.com)
+[debug] [2025-06-27T19:01:59.067Z] Checked if tokens are valid: true, expires at: 1751053690220
+[debug] [2025-06-27T19:01:59.067Z] Checked if tokens are valid: true, expires at: 1751053690220
+[debug] [2025-06-27T19:01:59.068Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-06-27T19:01:59.336Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-27T19:01:59.336Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]

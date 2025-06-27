@@ -1,0 +1,36 @@
+{
+  "id": 109,
+  "email": "richardhaubrich91@gmail.com",
+  "firstName": "Richie",
+  "gender": "make ",
+  "age": 33,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "female ",
+  "howToApproachMe": "ask me to take your photo and make me laugh ",
+  "instagramHandle": "richiebrichs",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/28e7278d4077b59a504b5670b3978c905c39ad153fa66f86012d5f0030a14043.jpeg",
+    "filename": "IMG_4768.jpeg",
+    "size": 931311,
+    "width": 3088,
+    "height": 2320
+  },
+  "createdAt": "2025-02-15T04:17:06.619Z",
+  "updatedAt": "2025-02-15T04:19:13.917Z"
+}

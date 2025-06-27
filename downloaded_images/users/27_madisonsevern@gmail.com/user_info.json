@@ -1,0 +1,36 @@
+{
+  "id": 40,
+  "email": "madisonsevern@gmail.com",
+  "firstName": "Maddie",
+  "gender": "female",
+  "age": 26,
+  "city": {
+    "name": "Dallas",
+    "placeId": "ChIJS5dFe_cZTIYRj2dH9qSb7Lk",
+    "coordinates": {
+      "latitude": 32.7766642,
+      "longitude": -96.79698789999999
+    },
+    "fullAddress": "Dallas, TX, USA",
+    "addressElements": {
+      "city": "Dallas",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "male",
+  "howToApproachMe": "Message on here or IG!",
+  "instagramHandle": "@madisonkirkseysevern",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/0fb8565b13497788180a0b5eb47cfd3030eb18c128a6d9aae331fd98ab9b3548.jpeg",
+    "filename": "Facetune_12-09-2024-02-39-05.jpeg",
+    "size": 220444,
+    "width": 1179,
+    "height": 1099
+  },
+  "createdAt": "2025-01-16T03:25:59.953Z",
+  "updatedAt": "2025-02-06T21:14:45.567Z"
+}

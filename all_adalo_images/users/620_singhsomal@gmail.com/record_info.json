@@ -1,0 +1,60 @@
+{
+  "id": 795,
+  "collectionType": "users",
+  "Email": "singhsomal@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Somak",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/5baa1378f543427e934dcd63b4e9e9e4912a2b5d8929658cd44cd41b18b1f2ec.jpeg",
+    "size": 1104794,
+    "width": 978,
+    "height": 1218,
+    "filename": "IMG_3315.jpeg",
+    "metadata": {
+      "width": 978,
+      "height": 1218,
+      "blurHash": "eZGJ85V]XmM_R%?wx[RqROM{OZjEj[RPo}RljEW=s,oLRTfha%aeV@",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 27,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "somak_singh",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-17T05:47:42.141Z",
+  "updated_at": "2025-06-17T05:49:03.032Z",
+  "downloadedAt": "2025-06-27T18:31:25.869Z"
+}

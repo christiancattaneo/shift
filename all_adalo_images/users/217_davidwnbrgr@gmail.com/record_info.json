@@ -1,0 +1,60 @@
+{
+  "id": 275,
+  "collectionType": "users",
+  "Email": "davidwnbrgr@gmail.com",
+  "Password": "[hidden]",
+  "Username": "dave",
+  "Full Name": null,
+  "First Name": "David",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/015a11ca85de01d07d410489de61742c379996a814d421e6ca65b2d268748161.jpeg",
+    "size": 3014292,
+    "width": 2667,
+    "height": 4000,
+    "filename": "stellanovak-1.jpeg",
+    "metadata": {
+      "width": 2667,
+      "height": 4000,
+      "blurHash": "eABM#.0LE2xuIo^+%1IURjNFx[xaM{RkR+%LM_aejaWES$RjxboMkC",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 32,
+  "City": {
+    "name": "Seattle",
+    "placeId": "ChIJVTPokywQkFQRmtVEaUZlJRA",
+    "coordinates": {
+      "latitude": 47.6061389,
+      "longitude": -122.3328481
+    },
+    "fullAddress": "Seattle, WA, USA",
+    "addressElements": {
+      "city": "Seattle",
+      "region": "Washington",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "daveweinberger",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-03-29T20:00:07.989Z",
+  "updated_at": "2025-03-29T20:01:25.451Z",
+  "downloadedAt": "2025-06-27T18:30:40.964Z"
+}

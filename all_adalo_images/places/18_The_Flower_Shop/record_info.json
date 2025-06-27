@@ -1,0 +1,44 @@
+{
+  "id": 19,
+  "collectionType": "places",
+  "Place Name": "The Flower Shop",
+  "Place Locatioon": {
+    "name": "The Flower Shop Austin",
+    "placeId": "ChIJiwDwNmC1RIYR5uiPzA46JlY",
+    "coordinates": {
+      "latitude": 30.26507789999999,
+      "longitude": -97.72869060000001
+    },
+    "fullAddress": "1300 E 7th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1300 East 7th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/67d0a0ad72d897095c386252c9440e47df9e9e20ca6fab7fda9a0df1af28d147.jpg",
+    "size": 1920813,
+    "width": 4032,
+    "height": 3024,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "e56aq?9aM|xuRjxvbboeWBt60M-oxaRka}IUt6R*ofRk%KIpRkt6n$",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    5,
+    379,
+    503
+  ],
+  "created_at": "2025-04-20T01:49:39.347Z",
+  "updated_at": "2025-05-27T21:47:27.628Z",
+  "downloadedAt": "2025-06-27T18:31:59.638Z"
+}

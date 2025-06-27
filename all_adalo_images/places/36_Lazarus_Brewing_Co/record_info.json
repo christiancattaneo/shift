@@ -1,0 +1,39 @@
+{
+  "id": 37,
+  "collectionType": "places",
+  "Place Name": "Lazarus Brewing Co",
+  "Place Locatioon": {
+    "name": "Lazarus Brewing Co.",
+    "placeId": "ChIJlZhRW7a1RIYR5xxRXpc_6tM",
+    "coordinates": {
+      "latitude": 30.2617398,
+      "longitude": -97.7220019
+    },
+    "fullAddress": "1902 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1902 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/868b8d1603be57e2825d321c03edd1fda07b7542a91a3dfb89ca293e8eadd4f1.jpeg",
+    "size": 434870,
+    "width": 505,
+    "height": 828,
+    "filename": "B2D99AB5-5DE5-447B-BDA6-9ABBC857EECE.jpeg",
+    "metadata": {
+      "width": 505,
+      "height": 828,
+      "blurHash": "e-D,vbt9bcogj[yGjvaeflj[kZV@jXaxaeV@WAoejZayacj?jbbIkC",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "created_at": "2025-06-04T19:13:26.056Z",
+  "updated_at": "2025-06-04T19:13:26.056Z",
+  "downloadedAt": "2025-06-27T18:32:05.441Z"
+}

@@ -1,0 +1,36 @@
+{
+  "id": 54,
+  "email": "emccandless3@gmail.com",
+  "firstName": "Emma",
+  "gender": "Female",
+  "age": 25,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Male, Female",
+  "howToApproachMe": "IRL/ IG DMs (@emma__mccandless)",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/655d00dd0315db20d16b98b21778222bb11e2d3e1fa0fd590c078b39f756f7dd.jpeg",
+    "filename": "photo feb 04 2024, 12 41 48 am.jpeg",
+    "size": 3530417,
+    "width": 3468,
+    "height": 4336
+  },
+  "createdAt": "2025-01-25T21:15:34.238Z",
+  "updatedAt": "2025-01-25T21:44:12.569Z"
+}

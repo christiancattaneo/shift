@@ -1,0 +1,33 @@
+{
+  "id": 58,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Velvet Taco",
+  "Event Location": {
+    "name": "Velvet Taco",
+    "placeId": "ChIJIQ4kr4e1RIYRbQ_afrDF1p0",
+    "coordinates": {
+      "latitude": 30.2679585,
+      "longitude": -97.74317239999999
+    },
+    "fullAddress": "522 Congress Ave. Suite 100, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "522 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:17:28.878Z",
+  "updated_at": "2025-01-03T06:17:28.878Z",
+  "downloadedAt": "2025-06-27T18:31:36.626Z"
+}

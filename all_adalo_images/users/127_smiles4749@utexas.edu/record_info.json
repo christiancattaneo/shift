@@ -1,0 +1,60 @@
+{
+  "id": 166,
+  "collectionType": "users",
+  "Email": "smiles4749@utexas.edu",
+  "Password": "[hidden]",
+  "Username": "sam:)",
+  "Full Name": null,
+  "First Name": "Sam",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/bc26987b5537745df91388d0eba9a42f8a8ec81a43dcb71d4a52901122dba99a.jpeg",
+    "size": 2930525,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_8731.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "egHVoBsSkDx]xu_4tRjZRjR+s.ocoJnhjE%gs.bHbIoL%Mf+fPWCR+",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female ",
+  "Attracted to": "male",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "challenge me to a dance off ",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@amiableblanket",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-22T21:36:43.318Z",
+  "updated_at": "2025-02-22T21:44:23.419Z",
+  "downloadedAt": "2025-06-27T18:30:31.269Z"
+}

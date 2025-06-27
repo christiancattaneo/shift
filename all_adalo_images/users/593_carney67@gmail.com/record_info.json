@@ -1,0 +1,66 @@
+{
+  "id": 762,
+  "collectionType": "users",
+  "Email": "carney67@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Meredith ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/2820ebdab17967045e73d6f73d7c085723c36e9b3bd8857fd23ab346dbccf8c8.jpeg",
+    "size": 2618600,
+    "width": 3088,
+    "height": 2316,
+    "filename": "IMG_0631.jpeg",
+    "metadata": {
+      "width": 3088,
+      "height": 2316,
+      "blurHash": "eTG[m800k=56jE?vRPI:njRjR+NHxEjYtQE2tQniaetRWVaft6j[of",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female ",
+  "Attracted to": "male ",
+  "Age": 43,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "come tell me your favorite dad joke 😁",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    79
+  ],
+  "Check in for places": [
+    79
+  ],
+  "created_at": "2025-06-14T17:33:37.503Z",
+  "updated_at": "2025-06-20T23:49:11.861Z",
+  "downloadedAt": "2025-06-27T18:31:21.153Z"
+}

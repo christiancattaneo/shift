@@ -1,0 +1,33 @@
+{
+  "id": 79,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Latchkey",
+  "Event Location": {
+    "name": "Latchkey",
+    "placeId": "ChIJ71DCZ7C1RIYRI3cGvUM87ak",
+    "coordinates": {
+      "latitude": 30.2640032,
+      "longitude": -97.7287525
+    },
+    "fullAddress": "1308 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1308 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:27:06.819Z",
+  "updated_at": "2025-01-05T04:27:06.819Z",
+  "downloadedAt": "2025-06-27T18:31:36.632Z"
+}

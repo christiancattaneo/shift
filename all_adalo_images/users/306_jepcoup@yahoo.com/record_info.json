@@ -1,0 +1,47 @@
+{
+  "id": 382,
+  "collectionType": "users",
+  "Email": "jepcoup@yahoo.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "janelle",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/93952dd5073fa09609f7e7e93fb33f6dc9dfb50d2f7f72ca17a8b171caf00bb1.jpeg",
+    "size": 1225450,
+    "width": 2316,
+    "height": 3088,
+    "filename": "IMG_9630.jpeg",
+    "metadata": {
+      "width": 2316,
+      "height": 3088,
+      "blurHash": "eqJ$dhnOt8tRwc}@aJnht8RibDjFRif,R%$+ofS5bbs:aeWoWBWCf5",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": null,
+  "City": null,
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    143
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-20T03:39:21.242Z",
+  "updated_at": "2025-04-20T03:40:16.433Z",
+  "downloadedAt": "2025-06-27T18:30:51.387Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 133,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Charleston International Airport (CHS)",
+  "Event Location": {
+    "name": "Charleston International Airport",
+    "placeId": "ChIJoyrqSw9j_ogR3_7un9DHSxw",
+    "coordinates": {
+      "latitude": 32.8916648,
+      "longitude": -80.0395233
+    },
+    "fullAddress": "5500 International Blvd, North Charleston, SC 29418, USA",
+    "addressElements": {
+      "city": "North Charleston",
+      "region": "South Carolina",
+      "country": "United States",
+      "address1": "5500 International Boulevard",
+      "address2": "",
+      "postalCode": "29418"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-03-16T21:39:17.748Z",
+  "updated_at": "2025-03-17T20:45:30.470Z",
+  "downloadedAt": "2025-06-27T18:31:37.523Z"
+}

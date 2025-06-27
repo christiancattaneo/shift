@@ -1,0 +1,42 @@
+{
+  "id": 31,
+  "collectionType": "places",
+  "Place Name": "the lucky duck",
+  "Place Locatioon": {
+    "name": "1300 E 6th St",
+    "placeId": "ChIJZwOAa7C1RIYRhQhwy3Ev7gc",
+    "coordinates": {
+      "latitude": 30.2641244,
+      "longitude": -97.72927969999999
+    },
+    "fullAddress": "1300 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1300 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/f9aa48fcb4ed8450fafdef9a2c893870c81b8c240423a273184c3527c3dfae35.png",
+    "size": 3003347,
+    "width": 1080,
+    "height": 2400,
+    "filename": "1000003759.png",
+    "metadata": {
+      "width": 1080,
+      "height": 2400,
+      "blurHash": "ehIY2$t6oKt7t700ofV@bHWB?bafj[j@oL-;WBWWaya{xuogWBa|WB",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    503
+  ],
+  "created_at": "2025-05-25T20:01:46.032Z",
+  "updated_at": "2025-06-22T02:11:27.013Z",
+  "downloadedAt": "2025-06-27T18:32:03.587Z"
+}

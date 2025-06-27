@@ -1,0 +1,20 @@
+{
+  "id": 48,
+  "email": "lisa.viviano98@gmail.com",
+  "firstName": "Lisa",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/7631ab043eb4809b81193ca028ce8c9a2362f8fa0a0d4d113cb35ca3bdb5ab8b.jpeg",
+    "filename": "IMG_0322.jpeg",
+    "size": 3233604,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-01-18T19:40:16.076Z",
+  "updatedAt": "2025-01-18T19:40:16.076Z"
+}

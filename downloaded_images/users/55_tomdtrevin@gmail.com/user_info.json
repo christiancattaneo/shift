@@ -1,0 +1,36 @@
+{
+  "id": 79,
+  "email": "tomdtrevin@gmail.com",
+  "firstName": "Thomas",
+  "gender": "Male",
+  "age": 25,
+  "city": {
+    "name": "San Antonio",
+    "placeId": "ChIJrw7QBK9YXIYRvBagEDvhVgg",
+    "coordinates": {
+      "latitude": 29.4251905,
+      "longitude": -98.4945922
+    },
+    "fullAddress": "San Antonio, TX, USA",
+    "addressElements": {
+      "city": "San Antonio",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "paper scissors rock… let’s do it",
+  "instagramHandle": "tommyt_18",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/9fe6f6b4d20746b2461c35112c51be3a226bfdbdfe7d981fa1f24d1582e40b10.jpeg",
+    "filename": "IMG_1885.jpeg",
+    "size": 2385992,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-02-13T02:41:05.849Z",
+  "updatedAt": "2025-02-13T02:43:55.969Z"
+}

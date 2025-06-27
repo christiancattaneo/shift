@@ -1,0 +1,48 @@
+{
+  "id": 137,
+  "collectionType": "events",
+  "Event Name": "Leon Bridges - Red Rocks Amphitheater ",
+  "Venue Name": "Red Rocks Amphitheater",
+  "Event Location": {
+    "name": "Red Rocks Park and Amphitheatre",
+    "placeId": "ChIJ18hsDtqCa4cRrdYsOQfng3w",
+    "coordinates": {
+      "latitude": 39.6655381,
+      "longitude": -105.2052116
+    },
+    "fullAddress": "18300 W Alameda Pkwy, Morrison, CO 80465, USA",
+    "addressElements": {
+      "city": "Morrison",
+      "region": "Colorado",
+      "country": "United States",
+      "address1": "18300 West Alameda Parkway",
+      "address2": "",
+      "postalCode": "80465"
+    }
+  },
+  "Event Start Time": "2025-05-24T01:00:00.000Z",
+  "Event End Time": null,
+  "Users": [
+    5
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/68387f83a8fd95326ac73a96b9275d59652d698be73f14549d55885b678e8b44.jpeg",
+    "size": 8644,
+    "width": 225,
+    "height": 225,
+    "filename": "leon.jpeg",
+    "metadata": {
+      "width": 225,
+      "height": 225,
+      "blurHash": "eILLRg?G_Mof%},sofXSs:of~VRjNuxaoLx]t7n$R*WB_Nt7jFWBRj",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": false,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-03-24T21:22:38.208Z",
+  "updated_at": "2025-04-01T08:09:49.980Z",
+  "downloadedAt": "2025-06-27T18:31:37.524Z"
+}

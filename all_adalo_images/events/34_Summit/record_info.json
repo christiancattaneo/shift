@@ -1,0 +1,33 @@
+{
+  "id": 54,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Summit",
+  "Event Location": {
+    "name": "Summit Rooftop",
+    "placeId": "ChIJJfN_rgm1RIYRz3pXP5N6B1Y",
+    "coordinates": {
+      "latitude": 30.26754399999999,
+      "longitude": -97.7438473
+    },
+    "fullAddress": "120 W 5th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "120 West 5th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:13:40.656Z",
+  "updated_at": "2025-01-03T06:13:40.656Z",
+  "downloadedAt": "2025-06-27T18:31:36.625Z"
+}

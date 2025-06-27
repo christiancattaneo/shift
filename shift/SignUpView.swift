@@ -9,11 +9,48 @@ struct SignUpView: View {
     @State private var agreesToTerms = false
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var selectedImageData: Data? = nil
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     @Environment(\.colorScheme) var colorScheme // Add environment variable
     @Environment(\.dismiss) var dismiss // Keep dismiss if needed for back navigation
     
     // Binding to signal completion to the parent view
     @Binding var didCompleteSignUp: Bool
+
+    // Helper function to upload profile image
+    private func uploadProfileImage(imageData: Data) {
+        guard let userId = FirebaseUserSession.shared.currentUser?.id else { return }
+        
+        let imagePath = "profile_images/\(userId)/profile.jpg"
+        FirebaseStorageService().uploadImage(imageData, path: imagePath) { imageUrl, error in
+            if let imageUrl = imageUrl {
+                // Update user profile with image URL
+                if let currentUser = FirebaseUserSession.shared.currentUser {
+                    let updatedUser = FirebaseUser(
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        firstName: currentUser.firstName,
+                        fullName: currentUser.fullName,
+                        profilePhoto: imageUrl,
+                        username: currentUser.username,
+                        gender: currentUser.gender,
+                        attractedTo: currentUser.attractedTo,
+                        age: currentUser.age,
+                        city: currentUser.city,
+                        howToApproachMe: currentUser.howToApproachMe,
+                        isEventCreator: currentUser.isEventCreator,
+                        instagramHandle: currentUser.instagramHandle
+                    )
+                    
+                    FirebaseUserSession.shared.updateUserProfile(updatedUser) { success, error in
+                        if !success {
+                            print("Failed to update user profile with image: \(error ?? "Unknown error")")
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -156,19 +193,43 @@ struct SignUpView: View {
                              .foregroundColor(.primary)
                      }
                      // Use standard blue consistently
-                     .toggleStyle(CheckboxToggleStyle(tintColor: Color.blue)) 
+                     .toggleStyle(CheckboxToggleStyle(tintColor: Color.blue))
+                     // Add haptic for toggle change
+                     .onChange(of: agreesToTerms) { _, _ in Haptics.lightImpact() }
 
 
                     // Sign Up Button
                     Button(action: {
-                        // TODO: Implement actual sign up logic (validation, network call etc.)
-                        print("Sign Up Button Tapped - Simulating Success")
+                        Haptics.lightImpact() // Add haptic
                         
-                        // Set the binding to true to signal completion
-                        didCompleteSignUp = true
+                        // Validate input
+                        guard !email.isEmpty, !password.isEmpty, !firstName.isEmpty else {
+                            errorMessage = "Please fill in all required fields"
+                            return
+                        }
                         
-                        // Optionally dismiss this view if presented modally/pushed
-                        // dismiss()
+                        guard agreesToTerms else {
+                            errorMessage = "Please agree to the terms and conditions"
+                            return
+                        }
+                        
+                        // Use Firebase authentication
+                        isLoading = true
+                        errorMessage = nil
+                        
+                        FirebaseUserSession.shared.signUp(email: email, password: password, firstName: firstName) { success, error in
+                            isLoading = false
+                            
+                            if success {
+                                // TODO: Upload profile image if selected
+                                if let imageData = selectedImageData {
+                                    uploadProfileImage(imageData: imageData)
+                                }
+                                didCompleteSignUp = true
+                            } else {
+                                errorMessage = error ?? "Sign up failed"
+                            }
+                        }
                     }) {
                         Text("SIGN UP")
                             .font(.headline)
@@ -179,27 +240,55 @@ struct SignUpView: View {
                             .background(Color.blue)
                             .cornerRadius(10)
                     }
-                    .disabled(!agreesToTerms) 
-                    .opacity(agreesToTerms ? 1.0 : 0.6)
+                    .disabled(!agreesToTerms || isLoading) 
+                    .opacity((agreesToTerms && !isLoading) ? 1.0 : 0.6)
+                    
+                    // Loading indicator
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .padding(.top, 5)
+                    }
+                    
+                    // Error message
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, 5)
+                    }
+                    
+                    // Note about authentication
+                    Text("Note: Using Firebase secure authentication system")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 5)
 
 
                     // Links and Login Option
                     VStack(spacing: 15) {
                          HStack {
-                             Button("Privacy Policy") { /* TODO */ }
+                             Button("Privacy Policy") {
+                                Haptics.lightImpact() // Add haptic
+                                /* TODO */ 
+                             }
                                  .font(.caption)
                                  // Use standard blue consistently
                                  .foregroundColor(Color.blue)
                              Text("and")
                                  .font(.caption)
                                  .foregroundColor(.secondary) // Use secondary for 'and'
-                             Button("Terms & Conditions") { /* TODO */ }
+                             Button("Terms & Conditions") {
+                                Haptics.lightImpact() // Add haptic
+                                /* TODO */ 
+                             }
                                  .font(.caption)
                                  // Use standard blue consistently
                                  .foregroundColor(Color.blue)
                          }
 
                          Button("ALREADY HAVE AN ACCOUNT?") {
+                             Haptics.lightImpact() // Add haptic
                              // TODO: Navigate to Login Screen OR dismiss
                              dismiss() // Example: go back to previous screen
                          }

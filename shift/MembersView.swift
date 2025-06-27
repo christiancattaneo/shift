@@ -1,24 +1,21 @@
 import SwiftUI
 
-// Placeholder data structure
-struct Member: Identifiable {
-    let id = UUID()
-    let name: String
-    let imageName: String // Use system images or asset names later
-    let attractedTo: String
-    let approach: String
-}
-
 struct MembersView: View {
     @State private var searchText = ""
-
-    // Placeholder data - replace with actual data source later
-    let members: [Member] = [
-        Member(name: "Omeed", imageName: "person.fill", attractedTo: "Female", approach: "Say hello"),
-        Member(name: "Caroline", imageName: "person.fill", attractedTo: "male", approach: "I tend to go for the personality hire"),
-        Member(name: "User 3", imageName: "person.fill", attractedTo: "Anyone", approach: "Compliments"),
-        Member(name: "User 4", imageName: "person.fill", attractedTo: "Female", approach: "Ask about their day")
-    ]
+    @StateObject private var membersService = FirebaseMembersService()
+    
+    // Computed property for filtered members  
+    var filteredMembers: [FirebaseMember] {
+        if searchText.isEmpty {
+            return membersService.members
+        } else {
+            return membersService.members.filter { 
+                $0.firstName.localizedCaseInsensitiveContains(searchText) ||
+                ($0.city?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                ($0.attractedTo?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+    }
 
     // Define grid layout
     let columns: [GridItem] = [
@@ -71,10 +68,82 @@ struct MembersView: View {
                         .padding(.top, 5)
 
                     // Members Grid
-                    LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(members) { member in
-                            MemberCardView(member: member)
+                    if membersService.isLoading {
+                        VStack {
+                            ProgressView("Loading members from Firebase...")
+                                .progressViewStyle(CircularProgressViewStyle())
+                            Text("Fetching real data...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.top, 5)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    } else if filteredMembers.isEmpty {
+                        VStack {
+                            if membersService.errorMessage != nil {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.orange)
+                                Text("Unable to load members")
+                                    .font(.headline)
+                                Text("Check your internet connection")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Image(systemName: "person.3")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.gray)
+                                Text("No members found")
+                                    .font(.headline)
+                                Text("Try adjusting your search")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(filteredMembers) { member in
+                                MemberCardView(member: member)
+                            }
+                        }
+                        
+                        // Data source indicator
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Loaded \(filteredMembers.count) members from Firebase")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.top, 10)
+                    }
+                    
+                    // Error message
+                    if let errorMessage = membersService.errorMessage {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                Text("Connection Error")
+                                    .font(.headline)
+                                    .foregroundColor(.red)
+                            }
+                            Text(errorMessage)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                            
+                            Button("Retry") {
+                                membersService.fetchMembers()
+                            }
+                            .padding(.top, 5)
+                            .buttonStyle(.bordered)
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
                     }
 
                 }
@@ -82,44 +151,116 @@ struct MembersView: View {
             }
             .navigationBarHidden(true) // Hide default nav bar for custom header
         }
+        .onAppear {
+            membersService.fetchMembers()
+        }
+        .refreshable {
+            membersService.fetchMembers()
+        }
     }
 }
 
 // Card View for each member
 struct MemberCardView: View {
-    let member: Member
+    let member: FirebaseMember
 
     var body: some View {
-        VStack(alignment: .leading) {
-            // Image placeholder
-            Image(member.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(height: 150)
-                .clipped()
-                .background(Color.gray.opacity(0.3))
+        VStack(alignment: .leading, spacing: 0) {
+            // Profile Image
+            AsyncImage(url: member.profileImageURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 150)
+                    .clipped()
+            } placeholder: {
+                ZStack {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 150)
+                    
+                    VStack {
+                        Image(systemName: "person.crop.circle")
+                            .font(.system(size: 40))
+                            .foregroundColor(.gray)
+                        Text("Loading...")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(member.name)
-                    .font(.headline)
-                Text("Attracted to: \(member.attractedTo)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Text("How to approach me: \(member.approach)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 6) {
+                // Name and Age
+                HStack {
+                    Text(member.name)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                    
+                    if let age = member.age {
+                        Text("\(age)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // City
+                if let city = member.city, !city.isEmpty {
+                    HStack {
+                        Image(systemName: "location")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                        Text(city)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Attracted To
+                if let attractedTo = member.attractedTo, !attractedTo.isEmpty {
+                    Text("Attracted to: \(attractedTo)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                // Approach Tip
+                if let approachTip = member.approachTip, !approachTip.isEmpty {
+                    Text(approachTip)
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .lineLimit(2)
+                        .padding(.top, 2)
+                }
+                
+                // Instagram Handle
+                if let instagram = member.instagramHandle, !instagram.isEmpty {
+                    HStack {
+                        Image(systemName: "camera")
+                            .font(.caption)
+                            .foregroundColor(.purple)
+                        Text("@\(instagram)")
+                            .font(.caption)
+                            .foregroundColor(.purple)
+                    }
+                    .padding(.top, 2)
+                }
                 
                 HStack {
                     Spacer()
                     Image(systemName: "chevron.right")
                         .foregroundColor(.blue)
+                        .font(.caption)
                 }
+                .padding(.top, 4)
             }
-            .padding(8)
+            .padding(12)
         }
         .background(Color(.systemGray6)) // Background for the card
-        .cornerRadius(10)
-        .shadow(radius: 3)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
 

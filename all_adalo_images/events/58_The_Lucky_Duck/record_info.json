@@ -1,0 +1,33 @@
+{
+  "id": 78,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "The Lucky Duck",
+  "Event Location": {
+    "name": "The Lucky Duck",
+    "placeId": "ChIJP-pXhlS1RIYRsA12mbXywQ8",
+    "coordinates": {
+      "latitude": 30.2641192,
+      "longitude": -97.72925819999999
+    },
+    "fullAddress": "1300 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1300 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:26:34.134Z",
+  "updated_at": "2025-01-05T04:26:34.134Z",
+  "downloadedAt": "2025-06-27T18:31:36.632Z"
+}

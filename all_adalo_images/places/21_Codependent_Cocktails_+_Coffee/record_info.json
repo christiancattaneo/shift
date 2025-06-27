@@ -1,0 +1,42 @@
+{
+  "id": 22,
+  "collectionType": "places",
+  "Place Name": "Codependent Cocktails + Coffee",
+  "Place Locatioon": {
+    "name": "Codependent Cocktails + Coffee",
+    "placeId": "ChIJQc2zzb21RIYRpx0AZEEweFg",
+    "coordinates": {
+      "latitude": 30.2674559,
+      "longitude": -97.75076829999999
+    },
+    "fullAddress": "301 West Ave STE 110, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "301 West Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/e86edcbe826476d6af8edb00464cad03151bd69d7c4af798346144afb83cc241.jpg",
+    "size": 3019815,
+    "width": 4032,
+    "height": 3024,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eGF=z2-=Ip%MkX~VIuWrbHoKmPIUxZV@M{I]IoxWbIoe%$%2xsofog",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    5
+  ],
+  "created_at": "2025-04-30T14:55:51.131Z",
+  "updated_at": "2025-05-14T13:14:47.509Z",
+  "downloadedAt": "2025-06-27T18:32:00.301Z"
+}

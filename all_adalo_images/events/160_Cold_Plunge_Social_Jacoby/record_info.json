@@ -1,0 +1,45 @@
+{
+  "id": 215,
+  "collectionType": "events",
+  "Event Name": "Cold Plunge Social Jacoby",
+  "Venue Name": "Bathe",
+  "Event Location": {
+    "name": "Bathe",
+    "placeId": "ChIJ8zlCvXa1RIYRg1W9vQuip2s",
+    "coordinates": {
+      "latitude": 30.2527081,
+      "longitude": -97.71107429999999
+    },
+    "fullAddress": "2922 E Cesar Chavez St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "2922 East Cesar Chavez Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": "2025-06-15T15:00:00.000Z",
+  "Event End Time": "2025-06-15T19:00:00.000Z",
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/2567c97cff7299cbf3a39c99aecb76e48a50c1ebc08fedf3fdb43c1c195203ea.jpeg",
+    "size": 327013,
+    "width": 1094,
+    "height": 1225,
+    "filename": "4846A31F-BC78-4D50-9A99-023F10C36E18.jpeg",
+    "metadata": {
+      "width": 1094,
+      "height": 1225,
+      "blurHash": "eKGb9ibwM{WAW=009aWBxZs.^+ozxtbvRknOWVn%RjbbE2smbcRjt6",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-13T22:50:37.355Z",
+  "updated_at": "2025-06-22T02:04:35.273Z",
+  "downloadedAt": "2025-06-27T18:31:50.137Z"
+}

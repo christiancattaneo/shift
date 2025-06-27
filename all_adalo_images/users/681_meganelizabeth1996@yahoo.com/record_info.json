@@ -1,0 +1,60 @@
+{
+  "id": 865,
+  "collectionType": "users",
+  "Email": "meganelizabeth1996@yahoo.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Megan",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/70cd05021d61c28b8ffef5b6737984ac670b4d6bd7a63d1e56c52ba73627a101.jpeg",
+    "size": 3155652,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_2095.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "elI5oXozNGkCnj?wofjZf8bHbcofaefkofITofbHjsjbt7ofoLofRj",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 28,
+  "City": {
+    "name": "New Orleans",
+    "placeId": "ChIJZYIRslSkIIYRtNMiXuhbBts",
+    "coordinates": {
+      "latitude": 29.9508941,
+      "longitude": -90.07583559999999
+    },
+    "fullAddress": "New Orleans, LA, USA",
+    "addressElements": {
+      "city": "New Orleans",
+      "region": "Louisiana",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-25T19:24:44.622Z",
+  "updated_at": "2025-06-25T19:26:10.925Z",
+  "downloadedAt": "2025-06-27T18:31:32.566Z"
+}

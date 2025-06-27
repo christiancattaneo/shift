@@ -1,0 +1,61 @@
+{
+  "id": 599,
+  "collectionType": "users",
+  "Email": "shay.shay.ruiz324@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Shay",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/471afe3d07a1f8869daa6bebecf289b85b3b479e180c94a33a3c3e3310b05713.heic",
+    "size": 2329429,
+    "filename": "1000005676.heic",
+    "metadata": {
+      "width": 3392,
+      "height": 2544,
+      "blurHash": "eKEx-G%go}~V%M~p-;oz-:tR%gNxxZt7E2EMxaxZE2IpkCs:%1oLWA",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female ",
+  "Attracted to": "male and female ",
+  "Age": 30,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "make me laugh ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-01T02:17:30.086Z",
+  "updated_at": "2025-06-01T04:18:16.177Z",
+  "downloadedAt": "2025-06-27T18:31:07.780Z"
+}

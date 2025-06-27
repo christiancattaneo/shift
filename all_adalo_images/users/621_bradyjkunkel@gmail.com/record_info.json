@@ -1,0 +1,60 @@
+{
+  "id": 796,
+  "collectionType": "users",
+  "Email": "bradyjkunkel@gmail.com",
+  "Password": "[hidden]",
+  "Username": "bradykunkel",
+  "Full Name": null,
+  "First Name": "Brady",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/716e206bd9cccd0160243369f5020cc4494c0d77634db52d4368f506fc1c132f.jpeg",
+    "size": 3716213,
+    "width": 3024,
+    "height": 4032,
+    "filename": "FullSizeRender_VSCO.jpeg",
+    "metadata": {
+      "width": 3024,
+      "height": 4032,
+      "blurHash": "eZKBK+VvIAsmod.TxuNFRkWBOZSNbbkCj??bs9s;oLoLx^NGWXWXj[",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "brady_kunkel",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-17T15:39:40.928Z",
+  "updated_at": "2025-06-19T04:15:50.740Z",
+  "downloadedAt": "2025-06-27T18:31:25.922Z"
+}

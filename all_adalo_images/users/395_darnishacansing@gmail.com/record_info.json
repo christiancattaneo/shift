@@ -1,0 +1,60 @@
+{
+  "id": 496,
+  "collectionType": "users",
+  "Email": "darnishacansing@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Shari",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/87c62f315a74820d45fd7a4a3db8a57fb8707e16a5c2fa273342a51ac0c91ed1.jpeg",
+    "size": 414073,
+    "width": 1242,
+    "height": 2208,
+    "filename": "IMG_7961.jpeg",
+    "metadata": {
+      "width": 1242,
+      "height": 2208,
+      "blurHash": "eKF#K[WA57NH%1NGW=EMNGs:0#%1$%s.R*bcNG-Ts:NcM|I;WXoLs.",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 30,
+  "City": {
+    "name": "Cabana Club",
+    "placeId": "ChIJMeTR8eq3RIYRUW0daGjq6nU",
+    "coordinates": {
+      "latitude": 30.25429080000001,
+      "longitude": -97.6978561
+    },
+    "fullAddress": "5012 E 7th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "5012 East 7th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-24T18:01:15.131Z",
+  "updated_at": "2025-05-24T18:51:49.611Z",
+  "downloadedAt": "2025-06-27T18:31:00.055Z"
+}

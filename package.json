@@ -1,0 +1,36 @@
+{
+  "name": "shift-data-uploader",
+  "version": "1.0.0",
+  "description": "Upload CSV data to Firebase Firestore for Shift app",
+  "main": "upload_data.js",
+  "scripts": {
+    "upload": "node upload_data.js",
+    "migrate-users": "node migrate_users_to_firebase.js",
+    "migrate-events": "node migrate_events_to_firebase.js",
+    "migrate-places": "node migrate_places_to_firebase.js",
+    "migrate-all": "npm run migrate-users && npm run migrate-events && npm run migrate-places",
+    "test-images": "node test_image_access.js",
+    "find-urls": "node find_adalo_urls.js",
+    "download-images": "node download_and_upload_images.js",
+    "download-images-api": "node download_images_from_api.js",
+    "test-api": "node test_adalo_api.js",
+    "test-firebase": "node test_firebase_storage.js",
+    "download-local": "node download_images_local.js",
+    "analysis": "node complete_image_analysis.js",
+    "quick-stats": "node complete_image_analysis.js quick",
+    "download-all": "node download_all_collections.js",
+    "upload-to-firebase": "node upload_to_firebase_storage.js",
+    "test-firebase-connection": "node upload_to_firebase_storage.js test",
+    "install-deps": "npm install"
+  },
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.6.1",
+    "firebase-admin": "^12.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "Shift App",
+  "license": "MIT"
+}

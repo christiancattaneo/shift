@@ -1,0 +1,60 @@
+{
+  "id": 775,
+  "collectionType": "users",
+  "Email": "ashleighhopkins1998@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Ashleigh",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/1e031d43ed2d5f896a995ddc2e9b168c4cecd6ee8582908be51611708a9e1763.jpeg",
+    "size": 1437265,
+    "width": 2223,
+    "height": 2557,
+    "filename": "65B6E638-1D5D-4174-AE6A-B00F7E37ACD8.jpeg",
+    "metadata": {
+      "width": 2223,
+      "height": 2557,
+      "blurHash": "ebJk1Qt7~XxuR+.AofNeWVi^xsWDV?WBayx[jYs-j[SiXAf6WBj[jY",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": null,
+  "Age": 27,
+  "City": {
+    "name": "Dallas",
+    "placeId": "ChIJS5dFe_cZTIYRj2dH9qSb7Lk",
+    "coordinates": {
+      "latitude": 32.7766642,
+      "longitude": -96.79698789999999
+    },
+    "fullAddress": "Dallas, TX, USA",
+    "addressElements": {
+      "city": "Dallas",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-15T21:29:11.130Z",
+  "updated_at": "2025-06-15T21:33:04.356Z",
+  "downloadedAt": "2025-06-27T18:31:24.056Z"
+}

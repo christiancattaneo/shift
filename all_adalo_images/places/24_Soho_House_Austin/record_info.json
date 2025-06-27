@@ -1,0 +1,42 @@
+{
+  "id": 25,
+  "collectionType": "places",
+  "Place Name": "Soho House Austin",
+  "Place Locatioon": {
+    "name": "Soho House Austin",
+    "placeId": "ChIJOUnGFMm1RIYRY7NvqzXkeY0",
+    "coordinates": {
+      "latitude": 30.2531671,
+      "longitude": -97.74784969999999
+    },
+    "fullAddress": "1011 S Congress Ave Building 2, Suite 100, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1011 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/9ce2d2554903a9f1110344cb4df9d242bbdf6dc4dccc1ab41c33250ec634afcf.jpeg",
+    "size": 1301214,
+    "width": 1284,
+    "height": 966,
+    "filename": "0CE77782-D992-43DD-B46A-97A112966F92.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 966,
+      "blurHash": "e7Bp2w9b0Mt6oeJCIpjYt6WVMxWBRjW=WrMyt6NH-oRkIoxuNHs.s.",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    503
+  ],
+  "created_at": "2025-05-06T19:42:20.747Z",
+  "updated_at": "2025-06-22T01:46:20.981Z",
+  "downloadedAt": "2025-06-27T18:32:01.965Z"
+}

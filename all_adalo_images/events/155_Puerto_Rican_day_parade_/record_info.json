@@ -1,0 +1,33 @@
+{
+  "id": 178,
+  "collectionType": "events",
+  "Event Name": "Puerto Rican day parade ",
+  "Venue Name": "down town dallas",
+  "Event Location": {
+    "name": "Dallas",
+    "placeId": "ChIJS5dFe_cZTIYRj2dH9qSb7Lk",
+    "coordinates": {
+      "latitude": 32.7766642,
+      "longitude": -96.79698789999999
+    },
+    "fullAddress": "Dallas, TX, USA",
+    "addressElements": {
+      "city": "Dallas",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "Event Start Time": "2025-06-07T18:00:00.000Z",
+  "Event End Time": "2025-06-08T01:00:00.000Z",
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-07T03:46:28.473Z",
+  "updated_at": "2025-06-07T03:46:28.473Z",
+  "downloadedAt": "2025-06-27T18:31:49.316Z"
+}

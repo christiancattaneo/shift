@@ -1,0 +1,36 @@
+{
+  "id": 26,
+  "email": "osaberllc@live.com",
+  "firstName": "Omar",
+  "gender": "Male",
+  "age": 25,
+  "city": {
+    "name": "Dallas",
+    "placeId": "ChIJS5dFe_cZTIYRj2dH9qSb7Lk",
+    "coordinates": {
+      "latitude": 32.7766642,
+      "longitude": -96.79698789999999
+    },
+    "fullAddress": "Dallas, TX, USA",
+    "addressElements": {
+      "city": "Dallas",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "just say hi",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/77472cd71918e6c4fc10195b72e1d21239d25e73cfefb82031d4b7290ac33532.jpeg",
+    "filename": "IMG_4198.jpeg",
+    "size": 4291801,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-01-02T18:51:17.065Z",
+  "updatedAt": "2025-01-02T18:59:02.551Z"
+}

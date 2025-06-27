@@ -1,0 +1,39 @@
+{
+  "id": 32,
+  "collectionType": "places",
+  "Place Name": "De Nada Cantina",
+  "Place Locatioon": {
+    "name": "De Nada Cantina",
+    "placeId": "ChIJYzTW7YK1RIYRCW0QG4_Eik4",
+    "coordinates": {
+      "latitude": 30.2514145,
+      "longitude": -97.7022034
+    },
+    "fullAddress": "4715 E Cesar Chavez St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "4715 East Cesar Chavez Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/5a6d994f5b1a0e17401fb1439c275bfd117cf12c5d86e3a55f0001cece97e604.jpeg",
+    "size": 379905,
+    "width": 1284,
+    "height": 1550,
+    "filename": "14504843-8AD2-474B-8039-96FD7EDDE0BA.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1550,
+      "blurHash": "eHHyOVx9pLx^ROtTnzIqxWxZ%hofMbjXWB.AIsRORkkC9ERiI[axt7",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "created_at": "2025-05-30T15:57:58.070Z",
+  "updated_at": "2025-06-22T01:46:46.780Z",
+  "downloadedAt": "2025-06-27T18:32:04.154Z"
+}

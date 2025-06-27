@@ -1,0 +1,46 @@
+{
+  "id": 6,
+  "collectionType": "places",
+  "Place Name": "Guest House",
+  "Place Locatioon": {
+    "name": "The Guest House Austin",
+    "placeId": "ChIJqQ7aNPa1RIYREETlax1ArpU",
+    "coordinates": {
+      "latitude": 30.2656426,
+      "longitude": -97.74932559999999
+    },
+    "fullAddress": "110 San Antonio St Ste R140, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "110 San Antonio Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/a665dd38c2bebf9e52f307f778591dbe7d8a9bbf601a82394881689f3b6441ff.png",
+    "size": 2926726,
+    "width": 1138,
+    "height": 1490,
+    "filename": "Screenshot 2025-04-07 at 10.40.33 PM.png",
+    "metadata": {
+      "width": 1138,
+      "height": 1490,
+      "blurHash": "e5AJi+~UE3?GD*0L9ZE2xu?a0g-:-oRjRk0LIU%1RkIVe-t6%MNHt7",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": false,
+  "Users": [
+    86,
+    283,
+    341,
+    346,
+    483
+  ],
+  "created_at": "2025-04-03T01:30:52.918Z",
+  "updated_at": "2025-05-23T22:44:26.880Z",
+  "downloadedAt": "2025-06-27T18:31:55.702Z"
+}

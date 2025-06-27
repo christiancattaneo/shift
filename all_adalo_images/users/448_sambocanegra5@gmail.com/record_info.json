@@ -1,0 +1,47 @@
+{
+  "id": 556,
+  "collectionType": "users",
+  "Email": "sambocanegra5@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "sam",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/b77c1b97ab006c73eebb76dec9901c377b2e247ab18115d8fc4a784a26a2fb71.jpeg",
+    "size": 6466238,
+    "width": 6960,
+    "height": 4640,
+    "filename": "IMG_9960.jpeg",
+    "metadata": {
+      "width": 6960,
+      "height": 4640,
+      "blurHash": "eIBV|jNG0Lxu?H0hs:n$axxt$xay%3R*IUD*j[xuWVRjogj[WBaxof",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": null,
+  "City": null,
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-31T17:19:07.099Z",
+  "updated_at": "2025-05-31T17:20:41.017Z",
+  "downloadedAt": "2025-06-27T18:31:04.540Z"
+}

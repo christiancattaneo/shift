@@ -1,0 +1,36 @@
+{
+  "id": 99,
+  "email": "emilyfinis67@gmail.com",
+  "firstName": "Emily",
+  "gender": "female ",
+  "age": 24,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "you",
+  "howToApproachMe": "gimmie a forehead kiss",
+  "instagramHandle": "emilaayyeeee",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/28c703d085af49e79d360af6b51e8c01547ef835307458ff91affca59c657363.jpeg",
+    "filename": "IMG_2180.jpeg",
+    "size": 613991,
+    "width": 1223,
+    "height": 1769
+  },
+  "createdAt": "2025-02-14T20:58:14.399Z",
+  "updatedAt": "2025-02-15T05:10:19.368Z"
+}

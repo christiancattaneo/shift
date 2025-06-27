@@ -1,0 +1,42 @@
+{
+  "id": 8,
+  "collectionType": "places",
+  "Place Name": "Matt’s El Rancho",
+  "Place Locatioon": {
+    "name": "Matt's El Rancho",
+    "placeId": "ChIJH5Enqda0RIYR7UBMfuWeCvE",
+    "coordinates": {
+      "latitude": 30.245118,
+      "longitude": -97.779281
+    },
+    "fullAddress": "2613 S Lamar Blvd, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "2613 South Lamar Boulevard",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/3f7dd346b3996c7a450bca1c1bfccf24657db87d83fdf5b1b2dad3b18cda1263.jpeg",
+    "size": 4543294,
+    "width": 4032,
+    "height": 3024,
+    "filename": "01AC07B9-EE74-4FE5-A7EF-C8C0AB41F3C6.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eMF=BkI-%gRPsp_M9Y-pWAWBPTDi%MNZWU-;rsbvaes:,@XSxtniWV",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    309
+  ],
+  "created_at": "2025-04-04T23:44:30.704Z",
+  "updated_at": "2025-05-23T22:49:19.122Z",
+  "downloadedAt": "2025-06-27T18:31:56.238Z"
+}

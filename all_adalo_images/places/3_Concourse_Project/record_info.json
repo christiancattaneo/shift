@@ -1,0 +1,43 @@
+{
+  "id": 3,
+  "collectionType": "places",
+  "Place Name": "Concourse Project",
+  "Place Locatioon": {
+    "name": "The Concourse Project",
+    "placeId": "ChIJC9RGbjGxRIYRN-e4HbjFaYw",
+    "coordinates": {
+      "latitude": 30.18059379999999,
+      "longitude": -97.6863795
+    },
+    "fullAddress": "8509 Burleson Rd, Austin, TX 78719, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "8509 Burleson Road",
+      "address2": "",
+      "postalCode": "78719"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/9ee492a3b110041d8336baa29984458fe81939b4188d17f9fc65dcbe69a21254.jpg",
+    "size": 177569,
+    "width": 1360,
+    "height": 762,
+    "filename": "concourse.jpg",
+    "metadata": {
+      "width": 1360,
+      "height": 762,
+      "blurHash": "eR5}wkavIRogxYfpaxj=j[axIQj^%NadRkoGj^WBaxofxwa#M_j@t5",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    5,
+    301
+  ],
+  "created_at": "2025-04-01T07:39:08.144Z",
+  "updated_at": "2025-05-07T20:35:08.555Z",
+  "downloadedAt": "2025-06-27T18:31:54.767Z"
+}

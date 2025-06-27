@@ -1,0 +1,20 @@
+{
+  "id": 18,
+  "email": "ross.melby@me.com",
+  "firstName": "ross",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/285c191d4c3028da71756f078c7006af2ee036e033868d82dca7fad5cbbb7293.jpeg",
+    "filename": "IMG_7421.jpeg",
+    "size": 1251552,
+    "width": 2450,
+    "height": 3267
+  },
+  "createdAt": "2024-12-31T00:51:39.826Z",
+  "updatedAt": "2024-12-31T00:51:39.826Z"
+}

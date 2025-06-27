@@ -1,0 +1,59 @@
+{
+  "id": 387,
+  "collectionType": "users",
+  "Email": "elijah.stout@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Elijahstout",
+  "Full Name": null,
+  "First Name": "Elijah",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/96fa7b6b6996d42a61e235efb9f82af56a43ecc3c53c439079526f26cf29f0a6.png",
+    "size": 3484433,
+    "width": 1179,
+    "height": 2556,
+    "filename": "IMG_1890.png",
+    "metadata": {
+      "width": 1179,
+      "height": 2556,
+      "blurHash": "e87T%rxZnNIpOYxDjZozR*M|0ifOX9%1r=ENW-xa%1%0?GIrRPM|t7",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 28,
+  "City": {
+    "placeId": "ChIJj10rURe1RIYRlwNrGzd3r78",
+    "coordinates": {
+      "latitude": 30.2625855,
+      "longitude": -97.72598099999999
+    },
+    "fullAddress": "1621 E 6th St #1104, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1621 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "elijahburrr",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-21T04:28:38.452Z",
+  "updated_at": "2025-04-21T04:33:40.164Z",
+  "downloadedAt": "2025-06-27T18:30:51.861Z"
+}

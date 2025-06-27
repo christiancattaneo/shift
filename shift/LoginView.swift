@@ -3,6 +3,8 @@ import SwiftUI
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
@@ -10,7 +12,7 @@ struct LoginView: View {
     @Binding var didCompleteLogin: Bool
     
     // Binding to potentially switch back to Sign Up view
-    @Binding var needsSignUp: Bool 
+    @Binding var needsSignUp: Bool
 
     var body: some View {
         ZStack {
@@ -78,9 +80,32 @@ struct LoginView: View {
                     
                     // Log In Button
                     Button {
-                        // TODO: Implement actual login logic
-                        print("Login Tapped - Simulating Success")
-                        didCompleteLogin = true
+                        Haptics.lightImpact()
+                        
+                        // Validate input
+                        guard !email.isEmpty, !password.isEmpty else {
+                            errorMessage = "Please enter both email and password"
+                            return
+                        }
+                        
+                        // Use Firebase authentication
+                        isLoading = true
+                        errorMessage = nil
+                        
+                        FirebaseUserSession.shared.signIn(email: email, password: password) { success, error in
+                            isLoading = false
+                            
+                            if success {
+                                didCompleteLogin = true
+                            } else {
+                                // Check if this might be a migrated user who needs password reset
+                                if error?.contains("wrong-password") == true || error?.contains("user-not-found") == true {
+                                    errorMessage = "Please use 'Forgot Password' to set up your new password. Your account has been migrated to our new system."
+                                } else {
+                                    errorMessage = error ?? "Login failed"
+                                }
+                            }
+                        }
                     } label: {
                         Text("LOG IN")
                             .font(.headline)
@@ -91,11 +116,46 @@ struct LoginView: View {
                             .background(Color.blue)
                             .cornerRadius(10)
                     }
+                    .disabled(isLoading)
+                    .opacity(isLoading ? 0.6 : 1.0)
+                    
+                    // Loading indicator
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .padding(.top, 5)
+                    }
+                    
+                    // Error message
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, 5)
+                    }
+                    
+                    // Note about authentication
+                    Text("Note: Using Firebase secure authentication system")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 5)
                     
                     // Forgot Password Button
                     Button {
-                        // TODO: Navigate to Forgot Password flow
-                        print("Forgot Password Tapped")
+                        Haptics.lightImpact()
+                        // Use Firebase password reset
+                        guard !email.isEmpty else {
+                            errorMessage = "Please enter your email address first"
+                            return
+                        }
+                        
+                        FirebaseUserSession.shared.resetPassword(email: email) { success, error in
+                            if success {
+                                errorMessage = "Password reset email sent!"
+                            } else {
+                                errorMessage = error ?? "Failed to send reset email"
+                            }
+                        }
                     } label: {
                         Text("FORGOT PASSWORD?")
                             .font(.footnote)
@@ -107,9 +167,9 @@ struct LoginView: View {
                     
                     // Sign Up Button
                     Button {
-                        // Signal to parent view (SplashView) to switch back
+                        Haptics.lightImpact()
                         needsSignUp = true
-                        dismiss() // Dismiss this LoginView
+                        dismiss()
                     } label: {
                         Text("SIGNUP")
                             .font(.footnote)

@@ -1,0 +1,50 @@
+{
+  "id": 166,
+  "collectionType": "events",
+  "Event Name": "First Thursday",
+  "Venue Name": "South Congress Hotel",
+  "Event Location": {
+    "name": "South Congress Hotel",
+    "placeId": "ChIJh91qhvy0RIYRtJ71kCXMjsc",
+    "coordinates": {
+      "latitude": 30.2472958,
+      "longitude": -97.7503382
+    },
+    "fullAddress": "1603 S Congress Ave, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1603 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Event Start Time": "2025-06-05T23:00:00.000Z",
+  "Event End Time": "2025-06-06T03:30:00.000Z",
+  "Users": [
+    10,
+    627,
+    632
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/757d63dd9481ad5e355d844cfe5efda8d954c338f3363e3a95cd5e8265647b1d.jpeg",
+    "size": 1343510,
+    "width": 1274,
+    "height": 1585,
+    "filename": "B0ABC156-51B7-4971-9429-5337F5056BE7.jpeg",
+    "metadata": {
+      "width": 1274,
+      "height": 1585,
+      "blurHash": "ebKdY;xuE1xbIoD%oft7oft70dafxakCxa?bt7aet7WoxbkBa{ofay",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-04T19:46:47.069Z",
+  "updated_at": "2025-06-12T04:43:08.751Z",
+  "downloadedAt": "2025-06-27T18:31:45.350Z"
+}

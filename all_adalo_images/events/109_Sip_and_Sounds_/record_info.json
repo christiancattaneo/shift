@@ -1,0 +1,40 @@
+{
+  "id": 130,
+  "collectionType": "events",
+  "Event Name": "Sip and Sounds ",
+  "Venue Name": "Auditorium Shores",
+  "Event Location": {
+    "name": "Auditorium Shores at Town Lake Metropolitan Park",
+    "placeId": "ChIJSfh_QgW1RIYRMGJ2BEpGG1c",
+    "coordinates": {
+      "latitude": 30.261474,
+      "longitude": -97.7522067
+    },
+    "fullAddress": "900 W Riverside Dr, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "900 West Riverside Drive",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Users": [
+    5,
+    161,
+    194,
+    199,
+    167
+  ],
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-03-06T22:29:21.358Z",
+  "updated_at": "2025-04-09T00:06:40.723Z",
+  "downloadedAt": "2025-06-27T18:31:37.523Z"
+}

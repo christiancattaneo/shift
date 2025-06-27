@@ -1,0 +1,60 @@
+{
+  "id": 123,
+  "collectionType": "users",
+  "Email": "jcbarron12@yahoo.com",
+  "Password": "[hidden]",
+  "Username": "ohjoejoe",
+  "Full Name": null,
+  "First Name": "Joe",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/da8f70ad1f54ff5c0a27065f9578f931ed96bb54e59b3e54f9c0032878d43e38.jpeg",
+    "size": 9752275,
+    "width": 3547,
+    "height": 5321,
+    "filename": "IMG_6724.jpeg",
+    "metadata": {
+      "width": 3547,
+      "height": 5321,
+      "blurHash": "eCAlRts.0{oJ-pPSbHI:ayxa58a|$+juRQVHo1-BkCI;NHWVxGWqJ7",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Females",
+  "Age": 33,
+  "City": {
+    "name": "Houston",
+    "placeId": "ChIJAYWNSLS4QIYROwVl894CDco",
+    "coordinates": {
+      "latitude": 29.7600771,
+      "longitude": -95.37011079999999
+    },
+    "fullAddress": "Houston, TX, USA",
+    "addressElements": {
+      "city": "Houston",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "A good pun or dad joke",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "ohjoejoe",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-21T02:33:16.954Z",
+  "updated_at": "2025-02-21T02:36:20.299Z",
+  "downloadedAt": "2025-06-27T18:30:28.295Z"
+}

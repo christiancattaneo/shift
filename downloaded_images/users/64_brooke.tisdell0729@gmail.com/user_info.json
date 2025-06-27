@@ -1,0 +1,36 @@
+{
+  "id": 91,
+  "email": "brooke.tisdell0729@gmail.com",
+  "firstName": "Brooke",
+  "gender": "Female",
+  "age": 24,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Male",
+  "howToApproachMe": " ",
+  "instagramHandle": "brooke.tisdell",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/5e47472bf315ce5122b202b6a564f9a26328322e29e44d3f5d569c7df652d50f.jpeg",
+    "filename": "Facetune_17-01-2025-02-32-50.jpeg",
+    "size": 175651,
+    "width": 925,
+    "height": 1917
+  },
+  "createdAt": "2025-02-14T02:32:14.025Z",
+  "updatedAt": "2025-02-19T20:00:59.747Z"
+}

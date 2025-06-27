@@ -1,0 +1,52 @@
+{
+  "id": 157,
+  "collectionType": "events",
+  "Event Name": "512 Coffee Club 05/10",
+  "Venue Name": "Prana",
+  "Event Location": {
+    "name": "Prana Café",
+    "placeId": "ChIJLdvnDwC1RIYRsGz1c9vX4w4",
+    "coordinates": {
+      "latitude": 30.2630611,
+      "longitude": -97.7244213
+    },
+    "fullAddress": "1623 E 7th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1623 East 7th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": "2025-05-10T15:00:00.000Z",
+  "Event End Time": "2025-05-10T17:00:00.000Z",
+  "Users": [
+    5,
+    414,
+    425,
+    440,
+    455
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/e31a98941c5c367ac12e48d15e8c955bb549c5f0143c377e573349168f652e45.jpeg",
+    "size": 287079,
+    "width": 1080,
+    "height": 1350,
+    "filename": "9AEDD586-A5F1-4E6D-830E-793C1D3CCC14.jpeg",
+    "metadata": {
+      "width": 1080,
+      "height": 1350,
+      "blurHash": "e9Bo{p%2oat6E3~BaxoIg3X90yWU%2j]Rj9tkCIpRjxW^*jcIqf7s,",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-05-06T19:39:44.418Z",
+  "updated_at": "2025-06-24T04:35:00.031Z",
+  "downloadedAt": "2025-06-27T18:31:42.853Z"
+}

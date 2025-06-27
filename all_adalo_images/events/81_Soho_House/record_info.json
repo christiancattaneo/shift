@@ -1,0 +1,36 @@
+{
+  "id": 101,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Soho House",
+  "Event Location": {
+    "name": "Soho House",
+    "placeId": "ChIJOUnGFMm1RIYRY7NvqzXkeY0",
+    "coordinates": {
+      "latitude": 30.2531671,
+      "longitude": -97.74784969999999
+    },
+    "fullAddress": "1011 S Congress Ave Building 2, Suite 100, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1011 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Users": [
+    88
+  ],
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-03T23:07:36.545Z",
+  "updated_at": "2025-02-24T00:43:51.560Z",
+  "downloadedAt": "2025-06-27T18:31:36.971Z"
+}

@@ -1,0 +1,33 @@
+{
+  "id": 94,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Zilker Brewing Company",
+  "Event Location": {
+    "name": "Zilker Brewing Company and Taproom",
+    "placeId": "ChIJh3VV2ra1RIYRe9iXltqXIZM",
+    "coordinates": {
+      "latitude": 30.2621351,
+      "longitude": -97.7245464
+    },
+    "fullAddress": "1701 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1701 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-05T04:34:34.238Z",
+  "updated_at": "2025-01-05T04:34:34.238Z",
+  "downloadedAt": "2025-06-27T18:31:36.636Z"
+}

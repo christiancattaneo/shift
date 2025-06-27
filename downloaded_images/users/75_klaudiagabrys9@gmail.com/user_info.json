@@ -1,0 +1,20 @@
+{
+  "id": 103,
+  "email": "klaudiagabrys9@gmail.com",
+  "firstName": "klaudia ",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/403aec9a2d10ec3c0843e539c5020757ed565195589cd7fad20b5b28d01e9d31.jpeg",
+    "filename": "IMG_4004.jpeg",
+    "size": 506274,
+    "width": 1486,
+    "height": 2000
+  },
+  "createdAt": "2025-02-15T01:31:10.748Z",
+  "updatedAt": "2025-02-15T01:31:55.718Z"
+}

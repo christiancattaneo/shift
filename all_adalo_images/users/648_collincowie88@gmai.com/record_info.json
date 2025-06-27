@@ -1,0 +1,66 @@
+{
+  "id": 827,
+  "collectionType": "users",
+  "Email": "collincowie88@gmai.com",
+  "Password": "[hidden]",
+  "Username": "collin",
+  "Full Name": null,
+  "First Name": "Collin",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/65c9a4271cb6dac7b0c0b18cf61217348c671ac5d29daa9c0810e3b54c577474.jpeg",
+    "size": 2640411,
+    "width": 2784,
+    "height": 4176,
+    "filename": "IMG_5581.jpeg",
+    "metadata": {
+      "width": 2784,
+      "height": 4176,
+      "blurHash": "eFBL#HEf0y-COE?bWoIAxGFxtRxGIoJ7-BAsxGr=NGogwKf+NtRQxG",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 22,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "collincowie_",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    83
+  ],
+  "Check in for places": [
+    83
+  ],
+  "created_at": "2025-06-21T07:21:15.409Z",
+  "updated_at": "2025-06-25T02:32:26.819Z",
+  "downloadedAt": "2025-06-27T18:31:28.837Z"
+}

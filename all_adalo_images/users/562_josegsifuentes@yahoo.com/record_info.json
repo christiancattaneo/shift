@@ -1,0 +1,60 @@
+{
+  "id": 724,
+  "collectionType": "users",
+  "Email": "josegsifuentes@yahoo.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Memo",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/5b937838e2e8571e8195a44d3a9c06ae06a23e08f878df3b0d1461cc3a888d6f.jpeg",
+    "size": 24616675,
+    "width": 6866,
+    "height": 4578,
+    "filename": "ATXFC_20220819_P&G_CB307588.jpeg",
+    "metadata": {
+      "width": 6866,
+      "height": 4578,
+      "blurHash": "eHG923DOI9%fIot.%M4TEf%LtmIUIU%MkC.99ZxtrrbcohjYoIMxWB",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Make",
+  "Attracted to": "Female",
+  "Age": 35,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-12T04:37:42.108Z",
+  "updated_at": "2025-06-22T22:30:50.370Z",
+  "downloadedAt": "2025-06-27T18:31:17.047Z"
+}

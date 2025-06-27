@@ -1,0 +1,20 @@
+{
+  "id": 71,
+  "email": "kailarae.miller@gmail.com",
+  "firstName": "Kaila",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/f0ef473f5c9b37570f7d304fcb876afba40f647718e818e7ed52dbdf8da474cb.jpeg",
+    "filename": "IMG_5125.jpeg",
+    "size": 2896903,
+    "width": 2601,
+    "height": 2601
+  },
+  "createdAt": "2025-02-11T18:57:24.745Z",
+  "updatedAt": "2025-02-11T18:57:24.745Z"
+}

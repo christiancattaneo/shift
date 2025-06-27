@@ -1,0 +1,33 @@
+{
+  "id": 43,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Mayfair",
+  "Event Location": {
+    "name": "Mayfair Austin",
+    "placeId": "ChIJB7V7spu1RIYRYhDfQvyCm-Q",
+    "coordinates": {
+      "latitude": 30.269194,
+      "longitude": -97.7476628
+    },
+    "fullAddress": "501 W 6th St Ste. 300, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "501 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T05:56:22.292Z",
+  "updated_at": "2025-01-03T05:56:22.292Z",
+  "downloadedAt": "2025-06-27T18:31:36.623Z"
+}

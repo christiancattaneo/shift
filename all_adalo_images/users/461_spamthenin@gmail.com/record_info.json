@@ -1,0 +1,62 @@
+{
+  "id": 571,
+  "collectionType": "users",
+  "Email": "spamthenin@gmail.com",
+  "Password": "[hidden]",
+  "Username": "ninthespamm",
+  "Full Name": null,
+  "First Name": "Nin ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/7f5d551ef82e113a0239b97bc53b1285955650d27317477dd2c9c52d73ac642b.jpeg",
+    "size": 659901,
+    "width": 1656,
+    "height": 2208,
+    "filename": "IMG_7193.jpeg",
+    "metadata": {
+      "width": 1656,
+      "height": 2208,
+      "blurHash": "eNF?01#;+d%NMJ.Tv}#6.7nN%LSeM_bFOYOGkXo~Rkogn3oyozn$R%",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 29,
+  "City": {
+    "placeId": "ChIJDxdZsPq3RIYR1fFeGQJRD0M",
+    "coordinates": {
+      "latitude": 30.2953579,
+      "longitude": -97.6216596
+    },
+    "fullAddress": "7311 Decker Ln, Austin, TX 78724, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "7311 Decker Lane",
+      "address2": "",
+      "postalCode": "78724"
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-31T21:48:27.332Z",
+  "updated_at": "2025-05-31T21:51:56.239Z",
+  "downloadedAt": "2025-06-27T18:31:05.774Z"
+}

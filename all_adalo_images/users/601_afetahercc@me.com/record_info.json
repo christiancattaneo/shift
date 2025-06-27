@@ -1,0 +1,60 @@
+{
+  "id": 773,
+  "collectionType": "users",
+  "Email": "afetahercc@me.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Austin ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/c263ee93c7406437bfb55394fe9caa69c5c6d11197268d5b41305cec257e7955.jpeg",
+    "size": 2527312,
+    "width": 2339,
+    "height": 3877,
+    "filename": "IMG_9295.jpeg",
+    "metadata": {
+      "width": 2339,
+      "height": 3877,
+      "blurHash": "eNH_+0Rp%L-.xt~qR*of%Ln#%eMwfTtSxvsjI9kDWYW=tSM|M{emV@",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female ",
+  "Age": 29,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "if I’m out with my dog come say hi! ",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-15T17:14:16.288Z",
+  "updated_at": "2025-06-15T17:15:24.500Z",
+  "downloadedAt": "2025-06-27T18:31:23.808Z"
+}

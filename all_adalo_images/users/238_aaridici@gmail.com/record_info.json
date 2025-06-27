@@ -1,0 +1,75 @@
+{
+  "id": 301,
+  "collectionType": "users",
+  "Email": "aaridici@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Arda",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/bd7fb0dd66913517812ea3e0f7bccd5909336267e78a2d9ada0482f63402a9b9.jpeg",
+    "size": 4383869,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_4182.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eADJFfug%L_2xvVD8yIC9FNYG7-Vb;g2IVR$xcxv.7-pROD*R7RiM}",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 35,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "Say hi!",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "Check in for event": [
+    156,
+    158,
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "aaridici90",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    10,
+    21,
+    3
+  ],
+  "Check in for places": [
+    10,
+    21,
+    3
+  ],
+  "created_at": "2025-04-08T15:28:35.956Z",
+  "updated_at": "2025-05-30T23:30:31.066Z",
+  "downloadedAt": "2025-06-27T18:30:43.162Z"
+}

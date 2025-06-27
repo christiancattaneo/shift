@@ -1,0 +1,20 @@
+{
+  "id": 95,
+  "email": "ihmcguinness@gmail.com",
+  "firstName": "Ian",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/87747c67bb4075c99d79f30eb274279442151c15eb0391702354de1c3754fa28.JPG",
+    "filename": "CC0176F5-9E70-42CF-8BF9-9CD5CA96635B.JPG",
+    "size": 5162201,
+    "width": 3088,
+    "height": 2316
+  },
+  "createdAt": "2025-02-14T05:31:01.718Z",
+  "updatedAt": "2025-02-14T05:31:01.718Z"
+}

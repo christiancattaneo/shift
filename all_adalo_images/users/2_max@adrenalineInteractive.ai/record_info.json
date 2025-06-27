@@ -1,0 +1,59 @@
+{
+  "id": 6,
+  "collectionType": "users",
+  "Email": "max@adrenalineInteractive.ai",
+  "Password": "[hidden]",
+  "Username": "maxvwalbert",
+  "Full Name": null,
+  "First Name": "max",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/829d768697a9b76efd33b6f65da8651718ebdc543dfc0221334afc3b4846d28f.jpg",
+    "size": 1593221,
+    "width": 3088,
+    "height": 2316,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 3088,
+      "height": 2316,
+      "blurHash": "eMEVKRxvtmEl%1~qt8?HogkCJ5R*=_$$t7,mW=xWNGxa$KxaozR-kD",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "fashion, travel, food, yoga",
+  "Age": 28,
+  "City": {
+    "placeId": "ChIJv-P7lk2wPIgRX29Fxey2BHc",
+    "coordinates": {
+      "latitude": 42.2622331,
+      "longitude": -83.7931303
+    },
+    "fullAddress": "3216 Bellflower Ct, Ann Arbor, MI 48103, USA",
+    "addressElements": {
+      "city": "Ann Arbor",
+      "region": "Michigan",
+      "country": "United States",
+      "address1": "3216 Bellflower Court",
+      "address2": "",
+      "postalCode": "48103"
+    }
+  },
+  "How to Approach Me": "just ask",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": true,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2024-12-28T00:32:40.707Z",
+  "updated_at": "2024-12-28T00:37:42.749Z",
+  "downloadedAt": "2025-06-27T18:30:18.516Z"
+}

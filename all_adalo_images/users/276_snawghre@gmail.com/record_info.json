@@ -1,0 +1,68 @@
+{
+  "id": 346,
+  "collectionType": "users",
+  "Email": "snawghre@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Sharvill9",
+  "Full Name": null,
+  "First Name": "Sharvill",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/79901c5f0a2eebf33604206ed9695e430cdf45f78959846f750618b30f5b95f4.jpeg",
+    "size": 3042226,
+    "width": 5712,
+    "height": 4284,
+    "filename": "IMG_3692.jpeg",
+    "metadata": {
+      "width": 5712,
+      "height": 4284,
+      "blurHash": "eOG]O4tR%M%MIB.AWXV@offkx{WERjfQtQIUR+axfkofD%RkWVj?oL",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 30,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "tell me I have a stain then boop me",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "sharvillnawghre",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    4,
+    6
+  ],
+  "Check in for places": [
+    4,
+    6
+  ],
+  "created_at": "2025-04-13T03:03:50.254Z",
+  "updated_at": "2025-04-13T03:10:11.277Z",
+  "downloadedAt": "2025-06-27T18:30:48.815Z"
+}

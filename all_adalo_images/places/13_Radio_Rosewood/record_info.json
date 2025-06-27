@@ -1,0 +1,42 @@
+{
+  "id": 14,
+  "collectionType": "places",
+  "Place Name": "Radio Rosewood",
+  "Place Locatioon": {
+    "name": "1115 E 11th St",
+    "placeId": "ChIJnXRMBbu1RIYR3Zswdg5eD3w",
+    "coordinates": {
+      "latitude": 30.2688122,
+      "longitude": -97.7287539
+    },
+    "fullAddress": "1115 E 11th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1115 East 11th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/47a14395978acb33559af04f90243acdfe5254286bb3adef2273a3df7f5ea2c1.jpg",
+    "size": 2306807,
+    "width": 4032,
+    "height": 3024,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "efD0[sI8t7RkWByGV=R*ofaxM|t7f5kCayVWWXs;WBogI8V@bcf5kC",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    503
+  ],
+  "created_at": "2025-04-12T22:16:02.610Z",
+  "updated_at": "2025-05-26T19:35:29.153Z",
+  "downloadedAt": "2025-06-27T18:31:58.593Z"
+}

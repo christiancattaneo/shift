@@ -1,0 +1,62 @@
+{
+  "id": 522,
+  "collectionType": "users",
+  "Email": "dark.child1985@live.com",
+  "Password": "[hidden]",
+  "Username": "Duncan ",
+  "Full Name": null,
+  "First Name": "chris",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/45971ab46b76f355684167c09541af5ef7a79b6ab2ce1ad203a793530aa968ad.jpg",
+    "size": 1685604,
+    "width": 1387,
+    "height": 3008,
+    "filename": "02.jpg",
+    "metadata": {
+      "width": 1387,
+      "height": 3008,
+      "blurHash": "eEGtpO-nO--:xB#8TJJ7W;k=1aO?^Os,o~Lf-n$fOX$f5QnNM~aw$z",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 39,
+  "City": {
+    "placeId": "ChIJBV7Pu-i3RIYRPLlEcMYmPgQ",
+    "coordinates": {
+      "latitude": 30.2930565,
+      "longitude": -97.62858330000002
+    },
+    "fullAddress": "8403 Riverstone Dr, Austin, TX 78724, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "8403 Riverstone Drive",
+      "address2": "",
+      "postalCode": "78724"
+    }
+  },
+  "How to Approach Me": "text me  7087030739 and find out",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": true,
+  "Instagram Handle": "duncez85",
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-30T21:24:13.163Z",
+  "updated_at": "2025-06-01T23:53:53.566Z",
+  "downloadedAt": "2025-06-27T18:31:02.483Z"
+}

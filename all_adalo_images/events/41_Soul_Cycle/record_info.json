@@ -1,0 +1,33 @@
+{
+  "id": 61,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Soul Cycle",
+  "Event Location": {
+    "name": "SoulCycle Downtown Austin",
+    "placeId": "ChIJeW6KOQi1RIYROPVkFgNH5rs",
+    "coordinates": {
+      "latitude": 30.2667525,
+      "longitude": -97.7430418
+    },
+    "fullAddress": "401 Congress Ave., Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "401 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:19:30.643Z",
+  "updated_at": "2025-01-03T06:19:30.643Z",
+  "downloadedAt": "2025-06-27T18:31:36.627Z"
+}

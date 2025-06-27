@@ -1,0 +1,60 @@
+{
+  "id": 818,
+  "collectionType": "users",
+  "Email": "glideann000@gmail.com",
+  "Password": "[hidden]",
+  "Username": "kglide12",
+  "Full Name": null,
+  "First Name": "Kate",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/e8c3cb4915446dcd629fc11a1592c2aa9d0d22837c053c0220f9d0fb36bb0db8.jpeg",
+    "size": 2112348,
+    "width": 3648,
+    "height": 2432,
+    "filename": "IMG_9293.jpeg",
+    "metadata": {
+      "width": 3648,
+      "height": 2432,
+      "blurHash": "eA9@F_~T9qe+-@xo${x{W@rnENWB$eRkI:t9oIV?WES$X8bJjEe-ju",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 26,
+  "City": {
+    "name": "New Braunfels",
+    "placeId": "ChIJHQnM4-6bXIYRZzUSSiOc7Vk",
+    "coordinates": {
+      "latitude": 29.702566,
+      "longitude": -98.12406349999999
+    },
+    "fullAddress": "New Braunfels, TX, USA",
+    "addressElements": {
+      "city": "New Braunfels",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "just say hey lolol",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@asdfghjkatel_",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-20T17:30:28.719Z",
+  "updated_at": "2025-06-20T17:31:51.615Z",
+  "downloadedAt": "2025-06-27T18:31:27.724Z"
+}

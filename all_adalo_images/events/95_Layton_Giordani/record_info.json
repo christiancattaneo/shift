@@ -1,0 +1,33 @@
+{
+  "id": 115,
+  "collectionType": "events",
+  "Event Name": "Layton Giordani",
+  "Venue Name": "Kingdom",
+  "Event Location": {
+    "name": "Kingdom",
+    "placeId": "ChIJEfwQNAi1RIYRcFuYculxRwM",
+    "coordinates": {
+      "latitude": 30.2672791,
+      "longitude": -97.7375539
+    },
+    "fullAddress": "505 E 7th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "505 East 7th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-03-02T04:00:00.000Z",
+  "Event End Time": "2025-03-02T08:00:00.000Z",
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-25T18:18:09.789Z",
+  "updated_at": "2025-02-25T18:18:09.789Z",
+  "downloadedAt": "2025-06-27T18:31:36.975Z"
+}

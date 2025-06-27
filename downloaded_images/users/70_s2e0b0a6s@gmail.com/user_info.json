@@ -1,0 +1,20 @@
+{
+  "id": 97,
+  "email": "s2e0b0a6s@gmail.com",
+  "firstName": "Sebastian",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/63fc98c31f03b5706b0eb687af37e49ed4f984f846b7f2b35bf9a6db37c18992.jpeg",
+    "filename": "IMG_7573.jpeg",
+    "size": 3537718,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-02-14T17:06:22.631Z",
+  "updatedAt": "2025-05-25T05:29:33.006Z"
+}

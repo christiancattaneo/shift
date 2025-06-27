@@ -1,0 +1,60 @@
+{
+  "id": 779,
+  "collectionType": "users",
+  "Email": "erikfreitag@ymail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Erik",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/4add9b34b22e7ffb2addfa68c1c205d2809949a1b77d6df9c2fb96e70e04a2a2.jpeg",
+    "size": 443360,
+    "width": 1170,
+    "height": 1170,
+    "filename": "IMG_5558.jpeg",
+    "metadata": {
+      "width": 1170,
+      "height": 1170,
+      "blurHash": "ehIrZ=%gxoS2xa.TNzsmkDNGEnS7VsbItQX9RQoIWFe.t7adjEkCjF",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 32,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-16T03:28:56.543Z",
+  "updated_at": "2025-06-16T03:31:44.752Z",
+  "downloadedAt": "2025-06-27T18:31:24.220Z"
+}

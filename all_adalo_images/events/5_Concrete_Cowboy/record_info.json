@@ -1,0 +1,33 @@
+{
+  "id": 24,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Concrete Cowboy",
+  "Event Location": {
+    "name": "Willow Country Bar",
+    "placeId": "ChIJKaRM1w21RIYRBtxtFXO9iEM",
+    "coordinates": {
+      "latitude": 30.2700776,
+      "longitude": -97.75042619999999
+    },
+    "fullAddress": "719 W 6th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "719 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T05:09:27.764Z",
+  "updated_at": "2025-01-03T05:09:27.764Z",
+  "downloadedAt": "2025-06-27T18:31:36.619Z"
+}

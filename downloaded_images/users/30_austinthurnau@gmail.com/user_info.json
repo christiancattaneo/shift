@@ -1,0 +1,20 @@
+{
+  "id": 43,
+  "email": "austinthurnau@gmail.com",
+  "firstName": "Austin ",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/39c8b961b3033cd1288d9926ce14c3436e601c790556abf10e16ee043d1fd175.jpeg",
+    "filename": "C17041A2-B108-4BEB-928D-836D22DCF3A1.jpeg",
+    "size": 5094020,
+    "width": 2904,
+    "height": 3533
+  },
+  "createdAt": "2025-01-16T16:57:07.547Z",
+  "updatedAt": "2025-01-16T16:57:07.547Z"
+}

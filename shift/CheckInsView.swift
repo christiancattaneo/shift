@@ -1,13 +1,8 @@
 import SwiftUI
-import MapKit // Import MapKit
+import MapKit
+import Combine
 
-// Placeholder data structure for events/places
-struct EventPlace: Identifiable {
-    let id = UUID()
-    let name: String
-    let address: String
-    // Add coordinate later if needed for map annotations
-}
+
 
 struct CheckInsView: View {
     // Use MapCameraPosition for iOS 17+
@@ -19,135 +14,168 @@ struct CheckInsView: View {
     )
     
     @State private var searchText = ""
-
-    // Placeholder data
-    let places: [EventPlace] = [
-        EventPlace(name: "Space Cowboy", address: "1917 East 7th Street"),
-        EventPlace(name: "Museum of Modern Art", address: "11 W 53rd St"),
-        EventPlace(name: "Central Park", address: "New York, NY")
-    ]
+    @StateObject private var eventsService = FirebaseEventsService()
+    @StateObject private var checkInsService = FirebaseCheckInsService()
+    
+    // Filter events based on search
+    var filteredEvents: [FirebaseEvent] {
+        if searchText.isEmpty {
+            return eventsService.events
+        } else {
+            return eventsService.events.filter { event in
+                event.name.localizedCaseInsensitiveContains(searchText) ||
+                (event.address?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+    }
 
     var body: some View {
-        // Wrap content in NavigationView to enable NavigationLinks
         NavigationView {
             VStack(spacing: 0) {
                 // Custom Header
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(spacing: 15) {
                     HStack {
-                        Text("Check Ins")
+                        Text("Check-Ins")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         Spacer()
-                        Image("shiftlogo") // Assuming logo is in assets
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 30)
                     }
-                    Text("Meet singles near you")
-                        .foregroundColor(.secondary)
+                    
+                    // Search Bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        
+                        TextField("Search places", text: $searchText)
+                            .textFieldStyle(PlainTextFieldStyle())
+                    }
+                    .padding(10)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 10)
-
-                // Map View - Use newer initializer
-                Map(position: $region)
-                    .frame(height: 250) 
-
-                // Events & Places Section
-                VStack(spacing: 15) {
-                    // Section Header
-                    HStack {
-                        Text("Events & Places")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        Spacer()
-                        Button {
-                            // TODO: Add action for adding event/place
-                            print("Add Event/Place Tapped")
-                        } label: {
-                            Text("+ ADD")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 15)
-                                .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .cornerRadius(8)
-                        }
-                    }
-
-                    // Search Bar Placeholder
-                    TextField("Search...", text: $searchText)
-                        .padding(10)
-                        .padding(.horizontal, 25) 
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .overlay(
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.gray)
-                                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                                    .padding(.leading, 8)
-                                
-                                if !searchText.isEmpty {
-                                    Button(action: { self.searchText = "" }) {
-                                        Image(systemName: "multiply.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 8)
-                                    }
-                                }
-                            }
-                        )
-
-                    // List of Places/Events
-                    List {
-                        ForEach(places) { place in
-                            // Wrap row in NavigationLink
-                            NavigationLink(destination: EventDetailView(place: place)) {
-                                EventPlaceRow(place: place)
-                            }
-                            .listRowInsets(EdgeInsets()) // Apply to link if needed
-                            .listRowSeparator(.hidden)
-                            .padding(.vertical, 5)
-                        }
-                    }
-                    .listStyle(.plain) // Use plain style to remove default List background/styling
-                    .padding(.top, -8) // Reduce space above list from search bar
-                }
-                .padding()
+                .padding(.top, 10)
                 
-                Spacer() 
+                // Map View
+                Map(position: $region)
+                    .frame(height: 250)
+                    .cornerRadius(15)
+                    .padding(.horizontal)
+                
+                // Events/Places List
+                if eventsService.isLoading {
+                    Spacer()
+                    ProgressView("Loading events...")
+                    Spacer()
+                } else if filteredEvents.isEmpty {
+                    Spacer()
+                    VStack(spacing: 15) {
+                        Image(systemName: "mappin.slash")
+                            .font(.system(size: 50))
+                            .foregroundColor(.secondary)
+                        Text("No events nearby")
+                            .font(.title2)
+                            .fontWeight(.medium)
+                        Text("Check back later for events in your area!")
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                } else {
+                    List {
+                        ForEach(filteredEvents) { event in
+                            NavigationLink(
+                                destination: FirebaseEventDetailView(event: event)
+                            ) {
+                                EventRow(event: event)
+                            }
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 5, leading: 20, bottom: 5, trailing: 20))
+                        }
+                    }
+                    .listStyle(PlainListStyle())
+                }
             }
-            .navigationBarHidden(true) // Hide default nav bar
+            .navigationBarHidden(true)
         }
-        .accentColor(.blue) // Set accent for potential navigation elements
+        .onAppear {
+            eventsService.fetchEvents()
+            checkInsService.fetchCheckIns()
+        }
     }
 }
 
-// Row View for each event/place
-struct EventPlaceRow: View {
-    let place: EventPlace
-
+// Updated to use FirebaseEvent
+struct EventRow: View {
+    let event: FirebaseEvent
+    @StateObject private var checkInsService = FirebaseCheckInsService()
+    @State private var isCheckedIn = false
+    
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(place.name)
-                    .font(.headline)
-                Text(place.address)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            Spacer()
-            Image(systemName: "mappin.circle.fill") // Example icon
-                .foregroundColor(.gray)
-                .padding(.trailing, 5)
-            Image(systemName: "chevron.right")
+        HStack(spacing: 15) {
+            // Event icon
+            Image(systemName: "mappin.circle.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 50, height: 50)
                 .foregroundColor(.blue)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(event.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                
+                if let address = event.address {
+                    Text(address)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+                
+                if let venueName = event.venueName {
+                    Text(venueName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            
+            Spacer()
+            
+            // Check-in button
+            Button(action: {
+                if isCheckedIn {
+                    // Check out logic would go here
+                    isCheckedIn = false
+                } else {
+                    // Check in
+                    if let currentUser = FirebaseUserSession.shared.currentUser,
+                       let userId = currentUser.id,
+                       let eventId = event.id {
+                        checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
+                            if success {
+                                isCheckedIn = true
+                            }
+                        }
+                    }
+                }
+            }) {
+                Text(isCheckedIn ? "Check Out" : "Check In")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(isCheckedIn ? .black : .white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(isCheckedIn ? Color.yellow : Color.blue)
+                    .cornerRadius(8)
+            }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
+        .padding(.vertical, 8)
     }
 }
+
+
+
+
 
 #Preview {
     CheckInsView()

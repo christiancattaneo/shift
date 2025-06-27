@@ -1,0 +1,36 @@
+{
+  "id": 30,
+  "email": "ryan@q6.media",
+  "firstName": "Ryan",
+  "gender": "Male",
+  "age": 26,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "a riddle, a joke or just start a staring contest without saying a word",
+  "instagramHandle": "@o.m.a.l.l.e.y",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/66af115ea40f2e976b0b302166aad422ea6a29d02d1388722a71bbf50df0e933.jpeg",
+    "filename": "IMG_2725.jpeg",
+    "size": 2615362,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-01-07T00:03:13.320Z",
+  "updatedAt": "2025-05-09T03:21:53.348Z"
+}

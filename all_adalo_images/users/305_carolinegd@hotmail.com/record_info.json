@@ -1,0 +1,60 @@
+{
+  "id": 381,
+  "collectionType": "users",
+  "Email": "carolinegd@hotmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "caroline",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/fc620d8dbb69fdf285fa63a8f9a5ae5aba55dc287493f8ac539835b695a1b267.jpeg",
+    "size": 473251,
+    "width": 1435,
+    "height": 2148,
+    "filename": "IMG_3987.jpeg",
+    "metadata": {
+      "width": 1435,
+      "height": 2148,
+      "blurHash": "eKFreG02.8IVXS%yxct8%gt7_M%fRV-o%L.7NH-p%Lt7_2s=s;X9of",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 28,
+  "City": {
+    "name": "Dallas",
+    "placeId": "ChIJS5dFe_cZTIYRj2dH9qSb7Lk",
+    "coordinates": {
+      "latitude": 32.7766642,
+      "longitude": -96.79698789999999
+    },
+    "fullAddress": "Dallas, TX, USA",
+    "addressElements": {
+      "city": "Dallas",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "Don’t be a republican",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@carolineduncan_",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-20T03:39:19.007Z",
+  "updated_at": "2025-04-20T03:40:40.471Z",
+  "downloadedAt": "2025-06-27T18:30:51.350Z"
+}

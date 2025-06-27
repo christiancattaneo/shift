@@ -1,0 +1,60 @@
+{
+  "id": 375,
+  "collectionType": "users",
+  "Email": "muaries1996@gmail.com",
+  "Password": "[hidden]",
+  "Username": "leon",
+  "Full Name": null,
+  "First Name": "leo",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/884ef1af67becfea475dd54e730fe11702be3bcb6d8099c8d3263e955ce27975.jpeg",
+    "size": 632084,
+    "width": 1638,
+    "height": 2048,
+    "filename": "071e62f7-52c9-4180-a61d-2505b39c3763.jpeg",
+    "metadata": {
+      "width": 1638,
+      "height": 2048,
+      "blurHash": "eXKJ_O~COYw]?H_NtSE1WBxa.Sxu-Vf+S$-;M_%2NGX8xts9jEkWae",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male ",
+  "Attracted to": "female",
+  "Age": 30,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, Texas, EE. UU.",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "Estados Unidos",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "say hola o hello 😌",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "leo arioria ",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-19T10:49:45.980Z",
+  "updated_at": "2025-04-19T10:52:34.366Z",
+  "downloadedAt": "2025-06-27T18:30:51.029Z"
+}

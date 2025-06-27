@@ -1,0 +1,49 @@
+{
+  "id": 167,
+  "collectionType": "events",
+  "Event Name": "Mushroom Cowboy June 5th",
+  "Venue Name": "South Congress Hotel",
+  "Event Location": {
+    "name": "South Congress Hotel",
+    "placeId": "ChIJh91qhvy0RIYRtJ71kCXMjsc",
+    "coordinates": {
+      "latitude": 30.2472958,
+      "longitude": -97.7503382
+    },
+    "fullAddress": "1603 S Congress Ave, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1603 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Event Start Time": "2025-06-06T01:00:00.000Z",
+  "Event End Time": "2025-06-06T03:00:00.000Z",
+  "Users": [
+    634,
+    291
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/2883ab6d5305c244c6d62766a23dd7416d53e648e627c88e22b2a456de259e1f.jpeg",
+    "size": 1791240,
+    "width": 1284,
+    "height": 1586,
+    "filename": "DBA67379-5FA1-4B65-9C30-201CF2574DEF.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1586,
+      "blurHash": "eLD]C-oLD*R+j]~pa}IUoJay_2oLIUWCR*?af6xaazWCW.WBozays.",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-04T19:48:01.436Z",
+  "updated_at": "2025-06-06T17:30:38.689Z",
+  "downloadedAt": "2025-06-27T18:31:45.693Z"
+}

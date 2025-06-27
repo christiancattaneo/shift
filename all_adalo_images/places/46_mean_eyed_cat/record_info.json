@@ -1,0 +1,30 @@
+{
+  "id": 79,
+  "collectionType": "places",
+  "Place Name": "mean eyed cat",
+  "Place Locatioon": {
+    "name": "Mean Eyed Cat",
+    "placeId": "ChIJXf5VdUC1RIYRFRyCTCRvTZw",
+    "coordinates": {
+      "latitude": 30.27450199999999,
+      "longitude": -97.765019
+    },
+    "fullAddress": "1621 W 5th St, Austin, TX 78703, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1621 West 5th Street",
+      "address2": "",
+      "postalCode": "78703"
+    }
+  },
+  "Place Image": null,
+  "is place free": null,
+  "Users": [
+    762
+  ],
+  "created_at": "2025-06-20T23:48:50.936Z",
+  "updated_at": "2025-06-21T16:13:13.834Z",
+  "downloadedAt": "2025-06-27T18:32:08.130Z"
+}

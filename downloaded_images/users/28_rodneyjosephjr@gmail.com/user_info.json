@@ -1,0 +1,36 @@
+{
+  "id": 41,
+  "email": "rodneyjosephjr@gmail.com",
+  "firstName": "Rodney",
+  "gender": "Male",
+  "age": 27,
+  "city": {
+    "name": "Round Rock",
+    "placeId": "ChIJ5yIt7aTRRIYREEvg7VlyIQc",
+    "coordinates": {
+      "latitude": 30.5082551,
+      "longitude": -97.678896
+    },
+    "fullAddress": "Round Rock, TX, USA",
+    "addressElements": {
+      "city": "Round Rock",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "Be yourself! Im a chill guy lol",
+  "instagramHandle": "rodjo_",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/de2db9a14b8f8711e84d122cd11e2a3777ee1e329e98798f04f6ac1a4551dc9d.jpeg",
+    "filename": "IMG_3363.jpeg",
+    "size": 1786297,
+    "width": 2316,
+    "height": 3088
+  },
+  "createdAt": "2025-01-16T03:43:14.635Z",
+  "updatedAt": "2025-06-06T19:26:16.299Z"
+}

@@ -1,0 +1,27 @@
+{
+  "id": 27,
+  "collectionType": "places",
+  "Place Name": "LifeTime Alliance",
+  "Place Locatioon": {
+    "name": "Life Time",
+    "placeId": "ChIJK9XepQzZTYYRJI5LEx7dHW8",
+    "coordinates": {
+      "latitude": 32.9302623,
+      "longitude": -97.3146336
+    },
+    "fullAddress": "10761 Founders Wy, Fort Worth, TX 76177, USA",
+    "addressElements": {
+      "city": "Fort Worth",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "10761 Founders Way",
+      "address2": "",
+      "postalCode": "76177"
+    }
+  },
+  "Place Image": null,
+  "is place free": null,
+  "created_at": "2025-05-19T23:44:22.807Z",
+  "updated_at": "2025-05-19T23:44:22.807Z",
+  "downloadedAt": "2025-06-27T18:32:02.927Z"
+}

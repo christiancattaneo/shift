@@ -1,0 +1,20 @@
+{
+  "id": 28,
+  "email": "havinbradley@gmail.com",
+  "firstName": "Havin",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/2408416209e65a7b5d8a220184bf523c5fae311f1d8f94b3308c4f67aa2af8ab.jpeg",
+    "filename": "IMG_8546.jpeg",
+    "size": 2604458,
+    "width": 3024,
+    "height": 4032
+  },
+  "createdAt": "2025-01-03T04:18:59.125Z",
+  "updatedAt": "2025-05-10T06:47:58.579Z"
+}

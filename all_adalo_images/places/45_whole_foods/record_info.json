@@ -1,0 +1,42 @@
+{
+  "id": 78,
+  "collectionType": "places",
+  "Place Name": "whole foods",
+  "Place Locatioon": {
+    "placeId": "ChIJf5QJFBK1RIYRjjfxZz9Z0O0",
+    "coordinates": {
+      "latitude": 30.2706339,
+      "longitude": -97.753587
+    },
+    "fullAddress": "525 N Lamar Blvd, Austin, TX 78703, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "525 North Lamar Boulevard",
+      "address2": "",
+      "postalCode": "78703"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/3ff5923266e98c8474f67abc7699226147ed084ca641a8f69d9741d5c87837d3.jpeg",
+    "size": 1072393,
+    "width": 1320,
+    "height": 984,
+    "filename": "IMG_9301.jpeg",
+    "metadata": {
+      "width": 1320,
+      "height": 984,
+      "blurHash": "eoGS.inMt3jEs+cIV?s7oHjEM~bJWBf5WAjEbJa$j?axxsobozWYj[",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    725,
+    855
+  ],
+  "created_at": "2025-06-19T02:00:10.921Z",
+  "updated_at": "2025-06-24T20:17:05.092Z",
+  "downloadedAt": "2025-06-27T18:32:07.857Z"
+}

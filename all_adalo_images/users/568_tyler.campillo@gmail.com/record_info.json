@@ -1,0 +1,70 @@
+{
+  "id": 733,
+  "collectionType": "users",
+  "Email": "tyler.campillo@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Tyler",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/9fee0ae12edfe4fcfb0c5c1a2c6673b811b26fee0939b1be7c79d771bc7a3f39.jpg",
+    "size": 770060,
+    "width": 1289,
+    "height": 2698,
+    "filename": "ef71ec41-c456-41c4-ac76-be71c439f628-1_all_4503.jpg",
+    "metadata": {
+      "width": 1289,
+      "height": 2698,
+      "blurHash": "eBE.nbia4nxZt7={IAbvnO%L01RPk?Mxxu_3MxNGn$xu?vNGRjMxt7",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 36,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    177,
+    212
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "tyler.campillo",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    74
+  ],
+  "Check in for places": [
+    74
+  ],
+  "created_at": "2025-06-12T23:13:09.220Z",
+  "updated_at": "2025-06-12T23:25:41.569Z",
+  "downloadedAt": "2025-06-27T18:31:18.460Z"
+}

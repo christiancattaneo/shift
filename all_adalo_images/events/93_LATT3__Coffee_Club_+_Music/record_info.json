@@ -1,0 +1,38 @@
+{
+  "id": 113,
+  "collectionType": "events",
+  "Event Name": "LATT3: Coffee Club + Music",
+  "Venue Name": "Fareground Austin",
+  "Event Location": {
+    "name": "Fareground Austin",
+    "placeId": "ChIJQ1AaxQe1RIYRoCgJZk6oZ5c",
+    "coordinates": {
+      "latitude": 30.26351859999999,
+      "longitude": -97.74358
+    },
+    "fullAddress": "111 Congress Ave., Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "111 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-02-23T16:00:00.000Z",
+  "Event End Time": "2025-02-23T20:00:00.000Z",
+  "Users": [
+    125,
+    156,
+    5
+  ],
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-23T18:52:51.898Z",
+  "updated_at": "2025-02-25T18:03:23.714Z",
+  "downloadedAt": "2025-06-27T18:31:36.975Z"
+}

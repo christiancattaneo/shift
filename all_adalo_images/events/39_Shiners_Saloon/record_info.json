@@ -1,0 +1,33 @@
+{
+  "id": 59,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Shiners Saloon",
+  "Event Location": {
+    "name": "Shiner's Saloon",
+    "placeId": "ChIJUamqTQi1RIYRBTp6RAHO_kU",
+    "coordinates": {
+      "latitude": 30.267085,
+      "longitude": -97.7434988
+    },
+    "fullAddress": "422 Congress Ave. D, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "422 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:18:44.203Z",
+  "updated_at": "2025-01-03T06:18:44.203Z",
+  "downloadedAt": "2025-06-27T18:31:36.627Z"
+}

@@ -33,6 +33,8 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Profile", systemImage: "person.crop.circle.fill")
                 }
+            
+            // Removed Adalo test tab after migration to Firebase
         }
         // Use accent color for the selected tab item
         .accentColor(.blue)

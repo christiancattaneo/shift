@@ -1,0 +1,59 @@
+{
+  "id": 573,
+  "collectionType": "users",
+  "Email": "drewrolo25@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Drew",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/a5731866ca357d10ecb421ce9d8f05654e57cae7766074670cf9cb537b2860b5.jpeg",
+    "size": 329548,
+    "width": 1170,
+    "height": 2532,
+    "filename": "IMG_0048.jpeg",
+    "metadata": {
+      "width": 1170,
+      "height": 2532,
+      "blurHash": "eEFOoryX={^jkr_2t7I=I;jF01=FRjIpwc,?I:xDw]NGJCEkM|RjSh",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 23,
+  "City": {
+    "placeId": "ChIJEctrB_C3RIYRxn23iwhd4oM",
+    "coordinates": {
+      "latitude": 30.2943804,
+      "longitude": -97.6218318
+    },
+    "fullAddress": "7307 1/2 Decker Ln, Austin, TX 78724, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "7307 1/2 Decker Lane",
+      "address2": "",
+      "postalCode": "78724"
+    }
+  },
+  "How to Approach Me": "rock paper scissors ",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "the_rollins25",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-31T21:53:26.865Z",
+  "updated_at": "2025-05-31T21:54:24.189Z",
+  "downloadedAt": "2025-06-27T18:31:05.935Z"
+}

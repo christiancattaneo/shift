@@ -1,0 +1,36 @@
+{
+  "id": 105,
+  "email": "r.william89@yahoo.com",
+  "firstName": "William Rodriguez",
+  "gender": "Male",
+  "age": 23,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "Tell me about your passions",
+  "instagramHandle": "war512",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/418df7a46d94e1adce41ad15e3026ae556f939422a2f84a011fd44d94ea1df0d.jpeg",
+    "filename": "IMG_5177.jpeg",
+    "size": 381752,
+    "width": 1170,
+    "height": 1512
+  },
+  "createdAt": "2025-02-15T03:49:31.971Z",
+  "updatedAt": "2025-02-15T03:52:48.817Z"
+}

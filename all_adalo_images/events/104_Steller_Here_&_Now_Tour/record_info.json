@@ -1,0 +1,33 @@
+{
+  "id": 125,
+  "collectionType": "events",
+  "Event Name": "Steller Here & Now Tour",
+  "Venue Name": "Vulcan Gas Company",
+  "Event Location": {
+    "name": "Vulcan Gas Company",
+    "placeId": "ChIJcfSfUaa1RIYRZb58dz2-xaw",
+    "coordinates": {
+      "latitude": 30.267078,
+      "longitude": -97.7385013
+    },
+    "fullAddress": "418 E 6th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "418 East 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-05-18T03:00:00.000Z",
+  "Event End Time": "2025-05-18T07:00:00.000Z",
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-26T01:55:09.541Z",
+  "updated_at": "2025-02-26T01:55:09.541Z",
+  "downloadedAt": "2025-06-27T18:31:36.977Z"
+}

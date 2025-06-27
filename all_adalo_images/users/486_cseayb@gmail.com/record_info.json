@@ -1,0 +1,47 @@
+{
+  "id": 600,
+  "collectionType": "users",
+  "Email": "cseayb@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Chloe",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/d75c3f0f3edb9a36f34ec849576fea0679ec1af94eed64c052663e789786df48.jpeg",
+    "size": 1807537,
+    "width": 3088,
+    "height": 2316,
+    "filename": "IMG_0885.jpeg",
+    "metadata": {
+      "width": 3088,
+      "height": 2316,
+      "blurHash": "eHFg;aF~0%ibOUIkM@ofn-NY5kt8#rovNK?J%2IpEf#qInw4x?SiRi",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": null,
+  "City": null,
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-01T03:44:30.789Z",
+  "updated_at": "2025-06-01T03:44:58.821Z",
+  "downloadedAt": "2025-06-27T18:31:07.882Z"
+}

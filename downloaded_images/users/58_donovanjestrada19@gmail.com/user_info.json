@@ -1,0 +1,36 @@
+{
+  "id": 82,
+  "email": "donovanjestrada19@gmail.com",
+  "firstName": "Donovan",
+  "gender": "Male",
+  "age": 25,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "Tell me your most bold pick up line.",
+  "instagramHandle": "_durmio",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/fac5e99a5f172ae92f9c1222cf6d2def4ae239fb20004ebf7cc09b65fe09d781.jpeg",
+    "filename": "slept_4.jpeg",
+    "size": 249639,
+    "width": 1108,
+    "height": 1968
+  },
+  "createdAt": "2025-02-13T10:02:36.666Z",
+  "updatedAt": "2025-06-24T07:12:57.651Z"
+}

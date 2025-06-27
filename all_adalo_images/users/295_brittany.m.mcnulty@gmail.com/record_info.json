@@ -1,0 +1,59 @@
+{
+  "id": 370,
+  "collectionType": "users",
+  "Email": "brittany.m.mcnulty@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Brittany",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/cb1448faf651add88b05511957da153df5459b22ffa029ea40749340d41884fe.jpeg",
+    "size": 745562,
+    "width": 1170,
+    "height": 2080,
+    "filename": "030ADC46-A2DB-4DDF-AFC5-4DE8138CECB2.jpeg",
+    "metadata": {
+      "width": 1170,
+      "height": 2080,
+      "blurHash": "eIHULX^*?HRPtRTy0eT0$*I:TLD%%2WBf6Eg9F-pJ7xCNZR5f+ayV@",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 33,
+  "City": {
+    "placeId": "ChIJg3fRpMS1RIYROwjB0Cw-7P8",
+    "coordinates": {
+      "latitude": 30.2713967,
+      "longitude": -97.709965
+    },
+    "fullAddress": "2401 1/2 Rosewood Ave, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "2401 1/2 Rosewood Avenue",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-18T23:02:34.655Z",
+  "updated_at": "2025-04-18T23:03:54.438Z",
+  "downloadedAt": "2025-06-27T18:30:50.699Z"
+}

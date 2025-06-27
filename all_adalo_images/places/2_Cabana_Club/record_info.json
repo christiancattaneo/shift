@@ -1,0 +1,44 @@
+{
+  "id": 2,
+  "collectionType": "places",
+  "Place Name": "Cabana Club",
+  "Place Locatioon": {
+    "name": "Cabana Club",
+    "placeId": "ChIJMeTR8eq3RIYRUW0daGjq6nU",
+    "coordinates": {
+      "latitude": 30.25429080000001,
+      "longitude": -97.6978561
+    },
+    "fullAddress": "5012 E 7th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "5012 East 7th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/39972b2dfb5e7bfeeb77c1ba0ec4e6fb8478233bf48cea03b2226ebf767ef0c7.jpg",
+    "size": 142786,
+    "width": 680,
+    "height": 454,
+    "filename": "cabana clb.jpg",
+    "metadata": {
+      "width": 680,
+      "height": 454,
+      "blurHash": "eKHVu5_N^i8^R4}8+uInWTMcC8yDELM_WS-pw]xbV?f5mQwb%MkBRi",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    488,
+    499,
+    503
+  ],
+  "created_at": "2025-04-01T07:35:56.986Z",
+  "updated_at": "2025-05-26T19:34:30.672Z",
+  "downloadedAt": "2025-06-27T18:31:54.485Z"
+}

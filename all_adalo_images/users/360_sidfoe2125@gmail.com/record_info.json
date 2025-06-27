@@ -1,0 +1,60 @@
+{
+  "id": 453,
+  "collectionType": "users",
+  "Email": "sidfoe2125@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Sydney",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/56621ba370604823d95118a872b7151246c6c3806d02cd70f52ac18e7b04d2b1.jpeg",
+    "size": 2630300,
+    "width": 3088,
+    "height": 2316,
+    "filename": "IMG_7732.jpeg",
+    "metadata": {
+      "width": 3088,
+      "height": 2316,
+      "blurHash": "eOHL6qn$~pV@M|Inxt9G%Ls:xusoxaNGt7-pM{%MW.M|9ZWCIURjWB",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": "Men",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-16T13:07:59.892Z",
+  "updated_at": "2025-06-15T19:25:50.487Z",
+  "downloadedAt": "2025-06-27T18:30:56.748Z"
+}

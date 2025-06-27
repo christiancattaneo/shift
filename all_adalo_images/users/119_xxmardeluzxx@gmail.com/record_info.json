@@ -1,0 +1,60 @@
+{
+  "id": 157,
+  "collectionType": "users",
+  "Email": "xxmardeluzxx@gmail.com",
+  "Password": "[hidden]",
+  "Username": "lu",
+  "Full Name": null,
+  "First Name": "Lulu",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/8b6bc0f3ab53eb138fcf1c3c56ea66dd8e21f74581a185675ffbbffb796db378.jpeg",
+    "size": 4676872,
+    "width": 3024,
+    "height": 4032,
+    "filename": "IMG_1072_Original.jpeg",
+    "metadata": {
+      "width": 3024,
+      "height": 4032,
+      "blurHash": "eEHBexwF%MkCVs~AoIRlj]t7-:IqIVWBX89Gt7-ot3xa?afQR*RkV[",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female",
+  "Attracted to": "female",
+  "Age": 23,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": ".",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "heyoitslulu",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-22T19:26:38.082Z",
+  "updated_at": "2025-02-25T02:44:25.674Z",
+  "downloadedAt": "2025-06-27T18:30:30.816Z"
+}

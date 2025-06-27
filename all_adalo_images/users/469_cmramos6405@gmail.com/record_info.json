@@ -1,0 +1,60 @@
+{
+  "id": 582,
+  "collectionType": "users",
+  "Email": "cmramos6405@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Ramos ",
+  "Full Name": null,
+  "First Name": "Cristian",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/618d48c890849d22df8c94263ca83ba5da4d3ed1483dcef7d46777be7dbe03a9.jpg",
+    "size": 2192039,
+    "width": 3264,
+    "height": 2448,
+    "filename": "1000005181.jpg",
+    "metadata": {
+      "width": 3264,
+      "height": 2448,
+      "blurHash": "ekG033kutR%NMxyZXUaJofRkM|jqMwV@tSkXafn$oMkDt8bIbHf6ay",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Pussy",
+  "Age": 20,
+  "City": {
+    "name": "Omaha",
+    "placeId": "ChIJ7fwMtciNk4cRBLY3rk9NQkY",
+    "coordinates": {
+      "latitude": 41.2565369,
+      "longitude": -95.9345034
+    },
+    "fullAddress": "Omaha, NE, USA",
+    "addressElements": {
+      "city": "Omaha",
+      "region": "Nebraska",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "\"let's fuck!\"",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-31T22:46:14.251Z",
+  "updated_at": "2025-05-31T22:47:26.378Z",
+  "downloadedAt": "2025-06-27T18:31:06.288Z"
+}

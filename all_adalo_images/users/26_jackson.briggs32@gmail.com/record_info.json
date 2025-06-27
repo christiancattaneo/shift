@@ -1,0 +1,60 @@
+{
+  "id": 39,
+  "collectionType": "users",
+  "Email": "jackson.briggs32@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Briggs",
+  "Full Name": null,
+  "First Name": "Briggs",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/8e9e45d97fe65be63073ac5a1144992f94b53a376f4c40230c335df0bf812c8c.png",
+    "size": 1071712,
+    "width": 1008,
+    "height": 1235,
+    "filename": "1000022518.png",
+    "metadata": {
+      "width": 1008,
+      "height": 1235,
+      "blurHash": "eID9n[E10K~Wt7V@NGt7-;M{M{RjRPM{M{IooMxuIUj[M{t7xufkt7",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male ",
+  "Attracted to": "Female",
+  "Age": 28,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "Challenge me to a dance off 🎉",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-01-16T01:15:57.148Z",
+  "updated_at": "2025-02-27T07:45:01.532Z",
+  "downloadedAt": "2025-06-27T18:30:20.437Z"
+}

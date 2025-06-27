@@ -1,0 +1,35 @@
+{
+  "id": 6,
+  "email": "max@adrenalineInteractive.ai",
+  "firstName": "max",
+  "gender": "male",
+  "age": 28,
+  "city": {
+    "placeId": "ChIJv-P7lk2wPIgRX29Fxey2BHc",
+    "coordinates": {
+      "latitude": 42.2622331,
+      "longitude": -83.7931303
+    },
+    "fullAddress": "3216 Bellflower Ct, Ann Arbor, MI 48103, USA",
+    "addressElements": {
+      "city": "Ann Arbor",
+      "region": "Michigan",
+      "country": "United States",
+      "address1": "3216 Bellflower Court",
+      "address2": "",
+      "postalCode": "48103"
+    }
+  },
+  "attractedTo": "fashion, travel, food, yoga",
+  "howToApproachMe": "just ask",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/829d768697a9b76efd33b6f65da8651718ebdc543dfc0221334afc3b4846d28f.jpg",
+    "filename": "image.jpg",
+    "size": 1593221,
+    "width": 3088,
+    "height": 2316
+  },
+  "createdAt": "2024-12-28T00:32:40.707Z",
+  "updatedAt": "2024-12-28T00:37:42.749Z"
+}

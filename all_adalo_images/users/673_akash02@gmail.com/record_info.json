@@ -1,0 +1,73 @@
+{
+  "id": 855,
+  "collectionType": "users",
+  "Email": "akash02@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Akash",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/b960b490fa220aae613516110a2439cea1daa8ba40a54c7f87b51b8cf82562e1.jpeg",
+    "size": 1231248,
+    "width": 1170,
+    "height": 2408,
+    "filename": "IMG_1217.jpeg",
+    "metadata": {
+      "width": 1170,
+      "height": 2408,
+      "blurHash": "eTH_Ja-oI:xtRjMHxUR%oJoz-;%LxDafofb_Rjxabbj[9Ft6s:WXay",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 40,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "Check in for event": [
+    143
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "Check out for places": [
+    20,
+    78,
+    9
+  ],
+  "Check in for places": [
+    20,
+    78,
+    9
+  ],
+  "created_at": "2025-06-24T04:17:06.802Z",
+  "updated_at": "2025-06-26T19:08:23.762Z",
+  "downloadedAt": "2025-06-27T18:31:31.739Z"
+}

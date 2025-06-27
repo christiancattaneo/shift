@@ -1,0 +1,46 @@
+{
+  "id": 17,
+  "collectionType": "places",
+  "Place Name": "Equinox",
+  "Place Locatioon": {
+    "name": "Equinox Austin",
+    "placeId": "ChIJg858GFO1RIYROWiSqWkllNU",
+    "coordinates": {
+      "latitude": 30.253956,
+      "longitude": -97.7477392
+    },
+    "fullAddress": "1007 S Congress Ave Ste 100, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1007 South Congress Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/717fbef99e47106b49fe2720c7d3ae183a06774c79a99456cc4c07f55964ddd5.jpg",
+    "size": 2587710,
+    "width": 4032,
+    "height": 3024,
+    "filename": "image.jpg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eOGIDj~V=|-:%M%1MxM{oKoJt6%Mt7WDj[D%ozxuazWBIUs.WBM|ay",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    424,
+    503,
+    745,
+    748,
+    725
+  ],
+  "created_at": "2025-04-14T12:03:28.125Z",
+  "updated_at": "2025-06-26T04:18:51.116Z",
+  "downloadedAt": "2025-06-27T18:31:59.222Z"
+}

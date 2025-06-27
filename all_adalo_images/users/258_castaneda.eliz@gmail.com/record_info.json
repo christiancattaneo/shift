@@ -1,0 +1,60 @@
+{
+  "id": 324,
+  "collectionType": "users",
+  "Email": "castaneda.eliz@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Lizzy ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/6f86d2fb8a8d7ff39bbdf0364a0e25111570e272c1b0b33f7bdc75cda9593014.png",
+    "size": 1537466,
+    "width": 892,
+    "height": 1238,
+    "filename": "inbound7666608618489986197.png",
+    "metadata": {
+      "width": 892,
+      "height": 1238,
+      "blurHash": "eCI#Z6N3x_M|4oGJ.8.8kVox9b-oxasA-:~VNZE1IVNG~AM{MxWBM|",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female ",
+  "Attracted to": "male",
+  "Age": 39,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-11T02:27:09.700Z",
+  "updated_at": "2025-04-18T20:35:00.770Z",
+  "downloadedAt": "2025-06-27T18:30:47.118Z"
+}

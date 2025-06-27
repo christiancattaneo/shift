@@ -1,0 +1,60 @@
+{
+  "id": 117,
+  "collectionType": "users",
+  "Email": "raamtexas@gmail.com",
+  "Password": "[hidden]",
+  "Username": "Raameen",
+  "Full Name": null,
+  "First Name": "Raameen",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/cd1ba43ffe696a5465f125c33df2fa875b74a9bb539e3f2403772823180f2913.jpeg",
+    "size": 693329,
+    "width": 1023,
+    "height": 1034,
+    "filename": "IMG_1718.jpeg",
+    "metadata": {
+      "width": 1023,
+      "height": 1034,
+      "blurHash": "eBDI?.?Gx]~VOrV@Ki9]]%-p-orq-Uk=Na0yo#%1NGr=Ip-p$zENj[",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Female",
+  "Age": 31,
+  "City": {
+    "name": "Dallas",
+    "placeId": "ChIJS5dFe_cZTIYRj2dH9qSb7Lk",
+    "coordinates": {
+      "latitude": 32.7766642,
+      "longitude": -96.79698789999999
+    },
+    "fullAddress": "Dallas, TX, USA",
+    "addressElements": {
+      "city": "Dallas",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "just approach me, and say a compliment ",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": null,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-18T22:13:02.416Z",
+  "updated_at": "2025-02-18T22:14:41.749Z",
+  "downloadedAt": "2025-06-27T18:30:27.910Z"
+}

@@ -1,0 +1,63 @@
+{
+  "id": 154,
+  "collectionType": "users",
+  "Email": "nicklvitellaro@gmail.com",
+  "Password": "[hidden]",
+  "Username": "nick",
+  "Full Name": null,
+  "First Name": "nick",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/982988adee080088527a23b1af4e5d228c6ec5d9ebbc71a83266fd1fbef9dbd4.jpeg",
+    "size": 4587962,
+    "width": 4002,
+    "height": 6000,
+    "filename": "NICK_1.jpeg",
+    "metadata": {
+      "width": 4002,
+      "height": 6000,
+      "blurHash": "eA7c~jt75RsnoL$*S3NdxZs.0zR*=xoLWUEMxF-8EMJ8s:s.WUNcWr",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Women",
+  "Age": 31,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "headbutt me square in the nose ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    110
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "@Nickvitellaro",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-02-22T19:16:40.061Z",
+  "updated_at": "2025-03-29T19:26:46.620Z",
+  "downloadedAt": "2025-06-27T18:30:30.511Z"
+}

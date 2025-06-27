@@ -1,0 +1,36 @@
+{
+  "id": 27,
+  "email": "tori.teffeteller@gmail.com",
+  "firstName": "Tori",
+  "gender": "female ",
+  "age": 26,
+  "city": {
+    "name": "809 Bouldin Ave",
+    "placeId": "ChIJX1eZ9Ry1RIYRuoexel2o270",
+    "coordinates": {
+      "latitude": 30.2563116,
+      "longitude": -97.7552305
+    },
+    "fullAddress": "809 Bouldin Ave, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "809 Bouldin Avenue",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "attractedTo": "male ",
+  "howToApproachMe": "good eye contact ",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/39fb495c8bfc3372c6f9a7573026aed1b9b8f8c5424a0789224b718ec72f70b7.jpeg",
+    "filename": "IMG_2228.jpeg",
+    "size": 3963399,
+    "width": 5712,
+    "height": 4284
+  },
+  "createdAt": "2025-01-02T21:18:31.984Z",
+  "updatedAt": "2025-01-02T21:32:00.465Z"
+}

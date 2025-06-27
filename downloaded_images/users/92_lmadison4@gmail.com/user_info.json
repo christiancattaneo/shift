@@ -1,0 +1,36 @@
+{
+  "id": 125,
+  "email": "lmadison4@gmail.com",
+  "firstName": "Lo",
+  "gender": "Female",
+  "age": 34,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Male",
+  "howToApproachMe": "Walk toward me slowly with your hands up where I can see them.",
+  "instagramHandle": "@laurenemadison",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/e200c5fb208e66890be8755e4a65e4e8de38eb6046d1422e3d5d0d7c6208cc31.jpeg",
+    "filename": "IMG_0779_Original.jpeg",
+    "size": 652618,
+    "width": 1536,
+    "height": 2048
+  },
+  "createdAt": "2025-02-21T20:36:45.874Z",
+  "updatedAt": "2025-02-26T00:22:59.507Z"
+}

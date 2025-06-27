@@ -1,0 +1,60 @@
+{
+  "id": 366,
+  "collectionType": "users",
+  "Email": "cockrelljodi@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Jodi ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/9f9f938c2b0c1823220f7a9035aa7a257966c02965ff6fbfb16bb62ada2684bd.jpeg",
+    "size": 708096,
+    "width": 1242,
+    "height": 2208,
+    "filename": "IMG_7984.jpeg",
+    "metadata": {
+      "width": 1242,
+      "height": 2208,
+      "blurHash": "eiIEY4IoofaKoz_NWVRis:ayyEs:RPX8ae%NM{a#jsfkt7RQWXs:WB",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female ",
+  "Attracted to": "Male",
+  "Age": 31,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "with a glass of wine & a sense of humor ",
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-04-18T21:11:59.206Z",
+  "updated_at": "2025-04-18T22:56:52.957Z",
+  "downloadedAt": "2025-06-27T18:30:50.439Z"
+}

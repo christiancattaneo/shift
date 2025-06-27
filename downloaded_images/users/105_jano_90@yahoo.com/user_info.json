@@ -1,0 +1,36 @@
+{
+  "id": 141,
+  "email": "jano_90@yahoo.com",
+  "firstName": "MJ",
+  "gender": "Male",
+  "age": 34,
+  "city": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "attractedTo": "Female",
+  "howToApproachMe": "Hey MJ I’m…(Your Name dm me at @mj.tangonan",
+  "instagramHandle": "Mj.Tangonan ",
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/80cdee6f8f8ab4aa60c580ea9e002dcd248a74c38926c14c1f05fcf8790b176d.jpeg",
+    "filename": "IMG_1652.jpeg",
+    "size": 2911761,
+    "width": 6720,
+    "height": 4480
+  },
+  "createdAt": "2025-02-22T17:00:01.652Z",
+  "updatedAt": "2025-06-06T17:30:56.346Z"
+}

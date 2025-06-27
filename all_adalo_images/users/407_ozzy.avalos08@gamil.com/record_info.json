@@ -1,0 +1,60 @@
+{
+  "id": 509,
+  "collectionType": "users",
+  "Email": "ozzy.avalos08@gamil.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Ozzy",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/042eed6b27224099667521deab848af9e8ab8cf278b6dfcc50042714a0cf46fe.jpeg",
+    "size": 5038743,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_2068.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "emGlO|oHWBkCay?dxWaxj]j]x]xXWXj[j]e.oJbcaxaxsRofW?odf5",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": 27,
+  "City": {
+    "name": "Mueller Lake Park",
+    "placeId": "ChIJKYtScPm1RIYR3XNM9fOKrMY",
+    "coordinates": {
+      "latitude": 30.29677059999999,
+      "longitude": -97.70585229999999
+    },
+    "fullAddress": "4550 Mueller Blvd, Austin, TX 78723, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "4550 Mueller Boulevard",
+      "address2": "",
+      "postalCode": "78723"
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "ozzy.avalos",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-26T04:54:01.761Z",
+  "updated_at": "2025-05-26T04:57:36.917Z",
+  "downloadedAt": "2025-06-27T18:31:01.658Z"
+}

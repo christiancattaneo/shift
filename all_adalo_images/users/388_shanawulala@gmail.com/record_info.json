@@ -1,0 +1,63 @@
+{
+  "id": 489,
+  "collectionType": "users",
+  "Email": "shanawulala@gmail.com",
+  "Password": "[hidden]",
+  "Username": "BeautyMetropolis",
+  "Full Name": null,
+  "First Name": "Shana",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/4523058f795cb2e7120622e430bf6f66ef2ab416f984991aa2192eddc9c9c86b.jpeg",
+    "size": 9800220,
+    "width": 2268,
+    "height": 4032,
+    "filename": "IMG_4085.jpeg",
+    "metadata": {
+      "width": 2268,
+      "height": 4032,
+      "blurHash": "eCGRSK_20e?Hs:1$?Gs:bEt6veNa-oIoWVE3xZaeWERlIUS4tRoes:",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 42,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    160
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "BeautyMetropolis",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-24T15:56:16.190Z",
+  "updated_at": "2025-05-24T17:32:30.414Z",
+  "downloadedAt": "2025-06-27T18:30:59.206Z"
+}

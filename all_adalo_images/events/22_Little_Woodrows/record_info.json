@@ -1,0 +1,33 @@
+{
+  "id": 41,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Little Woodrows",
+  "Event Location": {
+    "name": "Little Woodrow's West 6th",
+    "placeId": "ChIJHa8koQ61RIYRDD-niQj3Y3w",
+    "coordinates": {
+      "latitude": 30.26975839999999,
+      "longitude": -97.7481007
+    },
+    "fullAddress": "520 W 6th St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "520 West 6th Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T05:53:52.355Z",
+  "updated_at": "2025-01-03T05:53:52.355Z",
+  "downloadedAt": "2025-06-27T18:31:36.623Z"
+}

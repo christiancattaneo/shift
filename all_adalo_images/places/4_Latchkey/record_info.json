@@ -1,0 +1,47 @@
+{
+  "id": 4,
+  "collectionType": "places",
+  "Place Name": "Latchkey",
+  "Place Locatioon": {
+    "name": "Latchkey",
+    "placeId": "ChIJ71DCZ7C1RIYRI3cGvUM87ak",
+    "coordinates": {
+      "latitude": 30.2640032,
+      "longitude": -97.7287525
+    },
+    "fullAddress": "1308 E 6th St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1308 East 6th Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/4922dc3501456c2c7c373e517e3dc7f3dbb24b4c12d34e1b7b5423139e49724f.jpeg",
+    "size": 59283,
+    "width": 348,
+    "height": 348,
+    "filename": "05A7F237-7222-4950-A7AA-922D843DF28D.jpeg",
+    "metadata": {
+      "width": 348,
+      "height": 348,
+      "blurHash": "eQF#%ZE0WXv|sE%joaNdnNS~O[ozW-sRNfwjOrV@nNogWHkDkVnNkC",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    309,
+    315,
+    346,
+    395,
+    503,
+    828
+  ],
+  "created_at": "2025-04-01T07:45:12.258Z",
+  "updated_at": "2025-06-26T11:51:36.966Z",
+  "downloadedAt": "2025-06-27T18:31:55.063Z"
+}

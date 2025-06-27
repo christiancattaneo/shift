@@ -1,156 +1,187 @@
 import SwiftUI
 
-// Placeholder data model for User Profile
-// Expand this later with actual data
-struct UserProfile: Identifiable {
-    let id = UUID()
-    var firstName: String
-    var age: Int
-    var city: String
-    var approachTip: String
-    var attractedTo: String
-    var instagramHandle: String?
-    var profileImageName: String? // For placeholder or actual image
-}
+
 
 struct ProfileView: View {
-    @Environment(\.dismiss) var dismiss // Although likely not used if it's a main tab
+    @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
+    @StateObject private var userSession = FirebaseUserSession.shared
+    @StateObject private var membersService = FirebaseMembersService()
+    @State private var userMember: FirebaseMember?
+    @State private var isLoading = true
     
-    // Example Profile Data - Replace with actual logged-in user data later
-    @State private var userProfile = UserProfile(
-        firstName: "Maria",
-        age: 28,
-        city: "Austin, TX",
-        approachTip: "Ask about my latest travel adventure!",
-        attractedTo: "Male",
-        instagramHandle: "maria_travels",
-        profileImageName: nil // Use nil to show placeholder initially
-    )
-
     var body: some View {
-        NavigationView { // Add NavigationView for the nav bar styling
+        NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Large Image Placeholder Area
-                    ZStack {
-                        Rectangle()
-                            .fill(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
-                            .aspectRatio(1.0, contentMode: .fit) // Square aspect ratio
-                            
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 100)
-                            .foregroundColor(.secondary)
+                VStack(spacing: 20) {
+                    // Profile Header Section
+                    VStack(spacing: 15) {
+                        // Profile Image
+                        if let profileImage = userSession.currentUser?.profilePhoto, !profileImage.isEmpty {
+                            AsyncImage(url: URL(string: profileImage)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .foregroundColor(.gray)
+                                .frame(width: 120, height: 120)
+                        }
                         
-                        // TODO: Add actual image loading here if userProfile.profileImageName != nil
+                        // User Name
+                        Text(userSession.currentUser?.firstName ?? "Unknown User")
+                            .font(.title)
+                            .fontWeight(.bold)
+                        
+                        // Age (if available from member profile)
+                        if let userMember = userMember, let age = userMember.age {
+                            Text("\(age)")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                        }
                     }
-                    .padding(.bottom, 15)
-
-                    // User Info Section
-                    VStack(alignment: .leading, spacing: 15) {
-                        // Name & Age
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(userProfile.firstName)
-                                .font(.largeTitle.weight(.bold))
-                            Spacer()
-                             HStack(spacing: 5) {
-                                Image(systemName: "birthday.cake") // Example icon for age
-                                Text("\(userProfile.age)")
-                             }
-                             .font(.title3)
-                             .foregroundColor(.secondary)
+                    .padding(.top, 20)
+                    
+                    // Profile Information Section
+                    if isLoading {
+                        ProgressView("Loading profile...")
+                            .padding()
+                    } else if let userMember = userMember {
+                        VStack(spacing: 15) {
+                            // City
+                            if let city = userMember.city {
+                                InfoRow(icon: "mappin.and.ellipse", label: "City", value: city)
+                            }
+                            
+                            // Approach Tip
+                            if let approachTip = userMember.approachTip {
+                                InfoRow(icon: "lightbulb.fill", label: "Tip to Approach Me", value: approachTip)
+                            }
+                            
+                            // Attracted To
+                            if let attractedTo = userMember.attractedTo {
+                                InfoRow(icon: "figure.dress.line.vertical.figure", label: "Attracted to", value: attractedTo)
+                            }
+                            
+                            // Instagram Handle
+                            if let handle = userMember.instagramHandle, !handle.isEmpty {
+                                InfoRow(icon: "camera.fill", label: "Instagram", value: handle)
+                            }
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        VStack(spacing: 15) {
+                            Text("Complete your profile")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                            Text("Add more details to help others connect with you!")
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
+                    }
+                    
+                    Spacer(minLength: 50)
+                    
+                    // Action Buttons
+                    VStack(spacing: 15) {
+                        // Edit Profile Button
+                        NavigationLink(destination: EditProfileView(userMember: userMember)) {
+                            HStack {
+                                Image(systemName: "pencil")
+                                Text(userMember == nil ? "Complete Profile" : "Edit Profile")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
                         }
                         
-                        Divider()
-
-                        // City
-                        InfoRow(icon: "mappin.and.ellipse", label: "City", value: userProfile.city)
-                        
-                        // Tip to Approach
-                        InfoRow(icon: "lightbulb.fill", label: "Tip to Approach Me", value: userProfile.approachTip)
-                        
-                        // Attracted To
-                        InfoRow(icon: "figure.dress.line.vertical.figure", label: "Attracted to", value: userProfile.attractedTo) // Adjust icon based on gender/preference?
-                        
-                        // Instagram (Optional)
-                        if let handle = userProfile.instagramHandle, !handle.isEmpty {
-                             InfoRow(icon: "at", label: "Instagram", value: handle)
+                        // Sign Out Button
+                        Button(action: {
+                            userSession.signOut()
+                        }) {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                Text("Sign Out")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
                         }
-                        
-                        Divider()
-                        
-                        // Add more sections as needed (e.g., Bio, Photos, Interests)
-                        
-                        Spacer() // Pushes content up if ScrollView is short
                     }
                     .padding(.horizontal)
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { // Use toolbar for navigation bar items
-                // Leading Item (Back Button - might not be needed in TabView)
-                // ToolbarItem(placement: .navigationBarLeading) {
-                //     Button { dismiss() } label: {
-                //         Image(systemName: "chevron.left")
-                //     }
-                // }
-                
-                // Principal Item (Title)
-                ToolbarItem(placement: .principal) {
-                    Text(userProfile.firstName)
-                        .font(.headline)
-                }
-                
-                // Trailing Item (Edit Button)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    // Wrap the Button's label in NavigationLink
-                    NavigationLink(destination: EditProfileView(profileToEdit: userProfile)) {
-                        Image(systemName: "pencil.circle") // Edit icon
-                            .font(.title2)
-                            // Ensure link doesn't override color
-                            .foregroundColor(.accentColor) 
-                    }
-                    
-                    // Original Button (if you want separate action vs navigation)
-                    // Button {
-                    //     // TODO: Navigate to Edit Profile Screen
-                    //     print("Edit Profile Tapped")
-                    // } label: {
-                    //     Image(systemName: "pencil.circle") // Edit icon
-                    //         .font(.title2)
-                    // }
-                }
-            }
-            // Optional: Set toolbar background color
-            // .toolbarBackground(colorScheme == .dark ? .black : .white, for: .navigationBar)
-            // .toolbarBackground(.visible, for: .navigationBar)
+            .navigationBarHidden(true)
         }
-        .accentColor(.blue) // Set accent color for toolbar items
+        .onAppear {
+            loadUserMemberProfile()
+        }
+    }
+    
+    private func loadUserMemberProfile() {
+        guard let currentUser = userSession.currentUser else {
+            isLoading = false
+            return
+        }
+        
+        // Fetch the user's member profile
+        membersService.fetchMembers()
+        
+        // Find the member profile for the current user
+        // This assumes you have a way to link users to members (by user ID or email)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            // For now, try to find by first name match
+            // In a real app, you'd want a proper user ID relationship
+            userMember = membersService.members.first { member in
+                member.firstName.lowercased() == currentUser.firstName?.lowercased()
+            }
+            isLoading = false
+        }
     }
 }
 
-// Reusable row for profile details
+// Info Row Component
 struct InfoRow: View {
     let icon: String
     let label: String
     let value: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .foregroundColor(.secondary)
-                    .frame(width: 20) // Align icons
+        HStack(spacing: 15) {
+            Image(systemName: icon)
+                .frame(width: 20)
+                .foregroundColor(.blue)
+            
+            VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.headline)
+                    .font(.caption)
                     .foregroundColor(.secondary)
+                Text(value)
+                    .font(.body)
             }
-            Text(value)
-                .font(.body)
-                .padding(.leading, 28) // Indent value below icon
+            
+            Spacer()
         }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
     }
 }
 

@@ -1,0 +1,20 @@
+{
+  "id": 119,
+  "email": "uhbigtex@yahoo.com",
+  "firstName": "Spencer ",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/fc22e87739ac7007a087293a148f5ecea9c83fa093360f09b630116c7e05c889.jpeg",
+    "filename": "IMG_2321.jpeg",
+    "size": 1472397,
+    "width": 3088,
+    "height": 2316
+  },
+  "createdAt": "2025-02-19T19:29:57.164Z",
+  "updatedAt": "2025-02-19T20:16:14.613Z"
+}

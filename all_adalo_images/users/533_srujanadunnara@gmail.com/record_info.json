@@ -1,0 +1,60 @@
+{
+  "id": 687,
+  "collectionType": "users",
+  "Email": "srujanadunnara@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Srujana",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/c017b27749ece65be3288a085b2b497cced3b7f22bd8fe15d843752a4b7e884f.jpeg",
+    "size": 363135,
+    "width": 1186,
+    "height": 1854,
+    "filename": "IMG_1352.jpeg",
+    "metadata": {
+      "width": 1186,
+      "height": 1854,
+      "blurHash": "e9Bf;H~AtNWBR:?axutSxZ%1krtlD$WXtR8_-;DiNdX9W,NLo#s.$$",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "female ",
+  "Attracted to": "male ",
+  "Age": 23,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-10T20:40:39.652Z",
+  "updated_at": "2025-06-10T20:58:19.052Z",
+  "downloadedAt": "2025-06-27T18:31:13.854Z"
+}

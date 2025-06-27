@@ -1,0 +1,55 @@
+rules_version='2'
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null; // Allow other users to read profiles
+    }
+    
+    // Events collection
+    match /events/{eventId} {
+      allow read: if request.auth != null; // All authenticated users can read events
+      allow write: if request.auth != null && isEventCreator();
+    }
+    
+    // Check-ins collection
+    match /checkIns/{checkInId} {
+      allow read: if request.auth != null; // All authenticated users can see check-ins
+      allow create: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Conversations collection
+    match /conversations/{conversationId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.participantOneId || 
+         request.auth.uid == resource.data.participantTwoId);
+      allow create: if request.auth != null && 
+        (request.auth.uid == request.resource.data.participantOneId || 
+         request.auth.uid == request.resource.data.participantTwoId);
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read: if request.auth != null && canAccessConversation(resource.data.conversationId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.senderId &&
+        canAccessConversation(request.resource.data.conversationId);
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.senderId;
+    }
+    
+    // Helper functions
+    function isEventCreator() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isEventCreator == true;
+    }
+    
+    function canAccessConversation(conversationId) {
+      let conversation = get(/databases/$(database)/documents/conversations/$(conversationId));
+      return request.auth.uid == conversation.data.participantOneId || 
+             request.auth.uid == conversation.data.participantTwoId;
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": 416,
+  "collectionType": "users",
+  "Email": "jasonshadersmith@gmail.com",
+  "Password": "[hidden]",
+  "Username": "jayshay",
+  "Full Name": null,
+  "First Name": "Jason",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/9b313bebd0abd56011a67f01bdaced0a53297d0a3ed3906801c3aabc1422a7a4.jpeg",
+    "size": 2262925,
+    "width": 1365,
+    "height": 2048,
+    "filename": "IMG_4822.jpeg",
+    "metadata": {
+      "width": 1365,
+      "height": 2048,
+      "blurHash": "eoJRjmt6IoofaK4TRjx]RjxuI:WVoJaxWBx]t7RPxuNGM{t7oLWCbI",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Male",
+  "Attracted to": "Male",
+  "Age": 30,
+  "City": {
+    "name": "Denver",
+    "placeId": "ChIJzxcfI6qAa4cR1jaKJ_j0jhE",
+    "coordinates": {
+      "latitude": 39.7392358,
+      "longitude": -104.990251
+    },
+    "fullAddress": "Denver, CO, USA",
+    "addressElements": {
+      "city": "Denver",
+      "region": "Colorado",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": null,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "jayzshay",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": null,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-02T21:57:47.219Z",
+  "updated_at": "2025-05-02T21:58:43.600Z",
+  "downloadedAt": "2025-06-27T18:30:54.524Z"
+}

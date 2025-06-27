@@ -1,0 +1,60 @@
+{
+  "id": 420,
+  "collectionType": "users",
+  "Email": "brwright45@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Bradly ",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/e1f3c65e968fc7b876c0de249d77cc30701faab6b4ccf1a004484010a9e35318.jpeg",
+    "size": 2412197,
+    "width": 4032,
+    "height": 3024,
+    "filename": "IMG_8008.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "ePK-LBIp~U?Zae-lM{?a?aRP?bxuIUj?oeRiWAV[WBWCIUM{ofWCRj",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "male",
+  "Attracted to": "female",
+  "Age": 26,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "stare awkwardly from across the room ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "bradlyrw",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-06T19:15:20.819Z",
+  "updated_at": "2025-05-28T12:45:46.867Z",
+  "downloadedAt": "2025-06-27T18:30:54.862Z"
+}

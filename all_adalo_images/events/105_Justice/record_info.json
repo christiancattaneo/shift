@@ -1,0 +1,33 @@
+{
+  "id": 126,
+  "collectionType": "events",
+  "Event Name": "Justice",
+  "Venue Name": "The Pavilion at Toyota Music Factory",
+  "Event Location": {
+    "name": "The Pavilion At Toyota Music Factory",
+    "placeId": "ChIJK6LQoZeCToYRQV_y4XUh6tc",
+    "coordinates": {
+      "latitude": 32.8734149,
+      "longitude": -96.9446358
+    },
+    "fullAddress": "300 W Las Colinas Blvd., Irving, TX 75039, USA",
+    "addressElements": {
+      "city": "Irving",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "300 West Las Colinas Boulevard",
+      "address2": "",
+      "postalCode": "75039"
+    }
+  },
+  "Event Start Time": "2025-03-06T00:30:00.000Z",
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-02-26T01:57:29.003Z",
+  "updated_at": "2025-02-26T01:57:29.003Z",
+  "downloadedAt": "2025-06-27T18:31:36.977Z"
+}

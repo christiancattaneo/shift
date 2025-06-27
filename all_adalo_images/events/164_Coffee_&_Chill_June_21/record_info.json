@@ -1,0 +1,50 @@
+{
+  "id": 219,
+  "collectionType": "events",
+  "Event Name": "Coffee & Chill June 21",
+  "Venue Name": "Central Machine Works",
+  "Event Location": {
+    "name": "Central Machine Works",
+    "placeId": "ChIJVVVlryu0RIYRUtTow1H3t8E",
+    "coordinates": {
+      "latitude": 30.2520287,
+      "longitude": -97.7015718
+    },
+    "fullAddress": "4824 E Cesar Chavez St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "4824 East Cesar Chavez Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "Event Start Time": "2025-06-21T15:00:00.000Z",
+  "Event End Time": "2025-06-21T05:00:00.000Z",
+  "Users": [
+    5,
+    819,
+    719
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/79e95c91c6e4414e4cdf0ffda36d77d1793c6989f42bbf25efbb0c5bd9b01b7e.jpeg",
+    "size": 413078,
+    "width": 1284,
+    "height": 1491,
+    "filename": "3ADA8F39-7905-428B-9548-8B4E1AE11BDB.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1491,
+      "blurHash": "eRPF.a?H?vt6x]8wxux]V@xu%#t7RPWBi_?wj[V@ayV?RPRjRjt6t7",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-20T16:38:50.844Z",
+  "updated_at": "2025-06-24T04:33:47.337Z",
+  "downloadedAt": "2025-06-27T18:31:51.428Z"
+}

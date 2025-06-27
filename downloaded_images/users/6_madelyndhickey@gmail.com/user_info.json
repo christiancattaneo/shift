@@ -1,0 +1,35 @@
+{
+  "id": 11,
+  "email": "madelyndhickey@gmail.com",
+  "firstName": "Madelyn",
+  "gender": "Female",
+  "age": 27,
+  "city": {
+    "placeId": "ChIJRw6SUVO0RIYRT9LFIxowjFs",
+    "coordinates": {
+      "latitude": 30.2523746,
+      "longitude": -97.73312089999999
+    },
+    "fullAddress": "15 Waller St, Austin, TX 78702, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "15 Waller Street",
+      "address2": "",
+      "postalCode": "78702"
+    }
+  },
+  "attractedTo": "Male",
+  "howToApproachMe": "Banter",
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/723e7521da14d97254037b583f317f79fd735d662c62f3aece3836cc7e2defba.jpeg",
+    "filename": "75A8EF66-B14C-4DEA-9CEE-5854D1150084.jpeg",
+    "size": 1774495,
+    "width": 1928,
+    "height": 2569
+  },
+  "createdAt": "2024-12-30T21:55:04.891Z",
+  "updatedAt": "2024-12-30T21:57:32.901Z"
+}

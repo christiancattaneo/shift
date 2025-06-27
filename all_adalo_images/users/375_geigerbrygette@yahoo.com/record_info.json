@@ -1,0 +1,60 @@
+{
+  "id": 470,
+  "collectionType": "users",
+  "Email": "geigerbrygette@yahoo.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Brygette",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/f3aa40c62113a46e19d875a2b1f1dac022c8fba4bc5f0b6927eeba8155c5b04e.jpeg",
+    "size": 1496529,
+    "width": 2316,
+    "height": 3088,
+    "filename": "IMG_9399.jpeg",
+    "metadata": {
+      "width": 2316,
+      "height": 3088,
+      "blurHash": "eGF5,7t69]bc=|~oRjxZoeayt,M|-o-pIo?GRkR-f5j?-:s.NGR+jZ",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Male",
+  "Age": 29,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "come say hi ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-22T17:24:37.066Z",
+  "updated_at": "2025-05-30T02:01:00.633Z",
+  "downloadedAt": "2025-06-27T18:30:57.719Z"
+}

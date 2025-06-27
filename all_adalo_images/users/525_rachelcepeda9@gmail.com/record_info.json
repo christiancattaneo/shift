@@ -1,0 +1,60 @@
+{
+  "id": 677,
+  "collectionType": "users",
+  "Email": "rachelcepeda9@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Rachel",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/b2d6d36e80a9243dff325fa2e372b0928382679436e4f02f5f54accc251a22c3.png",
+    "size": 6119433,
+    "width": 1170,
+    "height": 2532,
+    "filename": "IMG_3914.png",
+    "metadata": {
+      "width": 1170,
+      "height": 2532,
+      "blurHash": "eFC6Mj-oNdRQkC?aIqt7njWVM|RjxtofazE1s-V@kCxt0MM|M|oes.",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": "Female",
+  "Attracted to": "Men",
+  "Age": 32,
+  "City": {
+    "name": "Austin",
+    "placeId": "ChIJLwPMoJm1RIYRetVp1EtGm10",
+    "coordinates": {
+      "latitude": 30.267153,
+      "longitude": -97.7430608
+    },
+    "fullAddress": "Austin, TX, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "",
+      "address2": "",
+      "postalCode": ""
+    }
+  },
+  "How to Approach Me": "Say “Hey Rachel!” ",
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": false,
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": "rm.cepeda",
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": false,
+  "Is Place Attendee": false,
+  "Is Not Place Attendee": false,
+  "Is Place Creator?": null,
+  "created_at": "2025-06-07T21:30:40.787Z",
+  "updated_at": "2025-06-07T23:14:20.650Z",
+  "downloadedAt": "2025-06-27T18:31:12.587Z"
+}

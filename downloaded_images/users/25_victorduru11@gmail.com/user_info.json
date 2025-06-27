@@ -1,0 +1,20 @@
+{
+  "id": 37,
+  "email": "victorduru11@gmail.com",
+  "firstName": "Victor ",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/6e66c52c996124d0ea77afcd48f1b1b1e58ffd64e1b3a5814b4ced85659f8766.jpeg",
+    "filename": "IMG_0397.jpeg",
+    "size": 49848,
+    "width": 1195,
+    "height": 1625
+  },
+  "createdAt": "2025-01-15T16:22:05.255Z",
+  "updatedAt": "2025-06-11T12:59:27.001Z"
+}

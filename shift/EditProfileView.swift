@@ -1,236 +1,255 @@
 import SwiftUI
-import PhotosUI // For photo picker
+import PhotosUI
+import Combine
 
 struct EditProfileView: View {
-    // Use the existing UserProfile struct or adapt if needed
-    // We'll use @State to allow editing of a *copy* of the profile data
-    @State private var editableProfile: UserProfile 
-    
-    // State for photo picker
+    @State private var firstName: String
+    @State private var age: String
+    @State private var city: String
+    @State private var attractedTo: String
+    @State private var approachTip: String
+    @State private var instagramHandle: String
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
-    @State private var selectedImageData: Data? = nil // To hold new image data
+    @State private var selectedImageData: Data? = nil
+    @State private var isLoading = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
     
+    @StateObject private var membersService = FirebaseMembersService()
+    @StateObject private var userSession = FirebaseUserSession.shared
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
-    // Colors
-    let subscribeButtonColor = Color.pink
-    let signOutButtonColor = Color.secondary.opacity(0.4)
+    private let existingMember: FirebaseMember?
+    private let isCreatingNew: Bool
     
-    // Initializer to accept the profile data to edit
-    // In a real app, this would come from your data source (logged-in user)
-    init(profileToEdit: UserProfile) {
-        _editableProfile = State(initialValue: profileToEdit)
-        // TODO: If profileToEdit has existing image data, load it into selectedImageData
+    // Initializer for editing existing member
+    init(userMember: FirebaseMember?) {
+        self.existingMember = userMember
+        self.isCreatingNew = userMember == nil
+        
+        // Initialize state with existing data or empty values
+        _firstName = State(initialValue: userMember?.firstName ?? "")
+        _age = State(initialValue: userMember?.age?.description ?? "")
+        _city = State(initialValue: userMember?.city ?? "")
+        _attractedTo = State(initialValue: userMember?.attractedTo ?? "")
+        _approachTip = State(initialValue: userMember?.approachTip ?? "")
+        _instagramHandle = State(initialValue: userMember?.instagramHandle ?? "")
     }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // --- Profile Image Section ---
-                ZStack(alignment: .bottomTrailing) {
-                    // Image Placeholder/Display
-                    ZStack {
-                        Rectangle()
-                            .fill(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
-                            .aspectRatio(1.0, contentMode: .fit) // Square aspect ratio
-                        
+                // Profile Image Section
+                VStack(spacing: 15) {
+                    ZStack(alignment: .bottomTrailing) {
+                        // Image Display
                         if let imageData = selectedImageData, let uiImage = UIImage(data: imageData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
-                                .aspectRatio(1.0, contentMode: .fill) 
-                                .clipped()
+                                .frame(width: 120, height: 120)
+                                .clipShape(Circle())
+                        } else if let profileImage = existingMember?.profileImage, !profileImage.isEmpty {
+                            AsyncImage(url: URL(string: profileImage)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
                         } else {
-                            // Placeholder icon if no image
-                            Image(systemName: "photo.on.rectangle.angled")
+                            Image(systemName: "person.crop.circle.fill")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 100)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.gray)
+                                .frame(width: 120, height: 120)
                         }
-                    }
-                    
-                    // Photo Picker Button (overlayed)
-                    PhotosPicker(
-                         selection: $selectedPhotoItem,
-                         matching: .images,
-                         photoLibrary: .shared()
-                     ) {
-                         Image(systemName: "pencil.circle.fill")
-                             .font(.system(size: 30))
-                             .foregroundColor(.blue)
-                             .background(Color(.systemBackground).clipShape(Circle())) // Background for contrast
-                             .padding(5)
-                     }
-                     .onChange(of: selectedPhotoItem) { _, newItem in
-                         Task {
-                             if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                                 selectedImageData = data
-                             }
-                         }
-                     }
-                }
-                .padding(.bottom, 10)
-
-                // --- Name, Email, Subscribe ---
-                VStack {
-                    Text(editableProfile.firstName) // Display name, maybe not editable here?
-                        .font(.title.weight(.bold))
-                    Text("email@example.com") // Placeholder for email
-                        .font(.subheadline)
-                        .foregroundColor(.blue) // Style as a link?
-                    
-                    HStack(spacing: 15) {
-                         Button { /* TODO: Subscribe Action */ } label: {
-                             Text("+ SUBSCRIBE")
-                                 .font(.caption.weight(.bold))
-                                 .foregroundColor(.white)
-                                 .padding(.horizontal, 15)
-                                 .padding(.vertical, 8)
-                                 .background(subscribeButtonColor)
-                                 .clipShape(Capsule())
-                         }
-                        Button { /* TODO: Unsubscribe Action */ } label: {
-                             Text("UNSUBSCRIBE")
-                                 .font(.caption)
-                                 .foregroundColor(.secondary)
+                        
+                        // Photo Picker Button
+                        PhotosPicker(
+                            selection: $selectedPhotoItem,
+                            matching: .images,
+                            photoLibrary: .shared()
+                        ) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue)
+                                .background(Color(.systemBackground).clipShape(Circle()))
                         }
-                    }
-                    .padding(.top, 5)
-                }
-                
-                Divider().padding(.vertical, 10)
-
-                // --- Your Profile Section ---
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("Your Profile")
-                        .font(.title2.weight(.bold))
-                        .padding(.bottom, 5)
-                    
-                    // Reusable TextField Row Component
-                    ProfileTextField(label: "Username", placeholder: "Enter username...", text: .constant("")) // Use binding later
-                    ProfileTextField(label: "First Name", placeholder: "Enter first name...", text: $editableProfile.firstName)
-                    ProfileTextField(label: "City", placeholder: "Search by name or address...", icon: "mappin", text: $editableProfile.city)
-                    ProfileTextField(label: "Age", placeholder: "Enter age...", keyboardType: .numberPad, text: Binding( // Binding for Int
-                        get: { "\(editableProfile.age)" },
-                        set: { editableProfile.age = Int($0) ?? editableProfile.age }
-                    ))
-                    
-                    // Photo Section (Different style here)
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Photo")
-                            .foregroundColor(.primary)
-                            .font(.subheadline)
-                        // This reuses the picker logic/display from above essentially
-                        // In a real app, you'd likely have a more complex photo management grid here
-                         PhotosPicker(
-                             selection: $selectedPhotoItem,
-                             matching: .images, 
-                             photoLibrary: .shared()
-                         ) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6)) 
-                                    .frame(height: 150)
-                                
-                                if let imageData = selectedImageData, let uiImage = UIImage(data: imageData) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(height: 150)
-                                        .cornerRadius(10)
-                                        .clipped()
-                                } else {
-                                    Text("Choose Photo")
-                                        .foregroundColor(.blue)
-                                        .font(.headline)
+                        .onChange(of: selectedPhotoItem) { _, newItem in
+                            Task {
+                                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                                    selectedImageData = data
                                 }
                             }
-                         }
+                        }
                     }
                     
-                    ProfileTextField(label: "Gender", placeholder: "Enter gender... (Male, Female, Nonbinary)", text: .constant("")) // Add binding
-                    ProfileTextField(label: "Attracted to", placeholder: "Enter attracted to... (Female, Male, Nonbinary)", text: $editableProfile.attractedTo)
-                    ProfileTextField(label: "Tip to Approach Me", placeholder: "Enter tip to approach me...", text: $editableProfile.approachTip)
-                    ProfileTextField(label: "Instagram Handle", placeholder: "Enter instagram handle...", text: Binding( // Optional Binding
-                        get: { editableProfile.instagramHandle ?? "" },
-                        set: { editableProfile.instagramHandle = $0.isEmpty ? nil : $0 }
-                    ))
+                    Text(isCreatingNew ? "Complete Your Profile" : "Edit Profile")
+                        .font(.title2)
+                        .fontWeight(.bold)
                 }
+                .padding(.top, 20)
+
+                // Profile Form
+                VStack(spacing: 15) {
+                    ProfileTextField(
+                        label: "First Name",
+                        placeholder: "Enter your first name",
+                        text: $firstName
+                    )
+                    
+                    ProfileTextField(
+                        label: "Age",
+                        placeholder: "Enter your age",
+                        keyboardType: .numberPad,
+                        text: $age
+                    )
+                    
+                    ProfileTextField(
+                        label: "City",
+                        placeholder: "Enter your city",
+                        icon: "mappin",
+                        text: $city
+                    )
+                    
+                    ProfileTextField(
+                        label: "Attracted To",
+                        placeholder: "e.g., Male, Female, Non-binary",
+                        text: $attractedTo
+                    )
+                    
+                    ProfileTextField(
+                        label: "Approach Tip",
+                        placeholder: "How should someone approach you?",
+                        isMultiline: true,
+                        text: $approachTip
+                    )
+                    
+                    ProfileTextField(
+                        label: "Instagram Handle",
+                        placeholder: "@username (optional)",
+                        text: $instagramHandle
+                    )
+                }
+                .padding(.horizontal)
                 
                 Spacer(minLength: 30)
 
-                // --- Action Buttons ---
+                // Action Buttons
                 VStack(spacing: 15) {
-                    Button {
-                        // TODO: Implement Update Profile Logic (save editableProfile)
-                        print("Update Profile Tapped")
-                        dismiss() // Dismiss after update
-                    } label: {
-                        Text("UPDATE PROFILE")
-                            .font(.headline.weight(.semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                    Button(action: saveProfile) {
+                        HStack {
+                            if isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .foregroundColor(.white)
+                            }
+                            Text(isCreatingNew ? "Create Profile" : "Update Profile")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(isLoading ? Color.gray : Color.blue)
+                        .cornerRadius(10)
                     }
+                    .disabled(isLoading || firstName.isEmpty)
                     
-                    Button {
-                        // TODO: Implement Sign Out Logic
-                        print("Sign Out Tapped")
-                        // Need to dismiss all the way back to auth screen? Requires different state management.
-                    } label: {
-                         Text("SIGN OUT")
-                            .font(.headline.weight(.semibold))
-                            .foregroundColor(.primary)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(signOutButtonColor)
-                            .cornerRadius(10)
-                    }
-                    
-                     Button {
-                        // TODO: Implement Delete Account Logic (with confirmation)
-                        print("Delete Account Tapped")
-                    } label: {
-                        Text("DELETE ACCOUNT")
-                            .font(.footnote)
-                            .foregroundColor(.red) // Destructive action color
-                    }
-                    .padding(.top, 10)
-                    
-                    Divider().padding(.vertical, 10)
-                    
-                    Text("For Support or Feedback: Info@shift.dating")
-                        .font(.caption)
+                    if !isCreatingNew {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .font(.headline)
                         .foregroundColor(.secondary)
+                    }
                 }
-
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
-            .padding(.bottom) // Padding at the very bottom
         }
-        .navigationTitle("Profile")
+        .navigationTitle(isCreatingNew ? "Complete Profile" : "Edit Profile")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(false) // Use default back button
-        .toolbar {
-             // Keep the default back button, remove custom leading item
-             // Add trailing save button if needed instead of UPDATE PROFILE button below
-             // ToolbarItem(placement: .navigationBarTrailing) {
-             //     Button("Save") { /* Save logic */ dismiss() } 
-             // }
+        .alert("Profile Update", isPresented: $showingAlert) {
+            Button("OK") {
+                if alertMessage.contains("success") {
+                    dismiss()
+                }
+            }
+        } message: {
+            Text(alertMessage)
         }
+    }
+    
+    private func saveProfile() {
+        guard !firstName.isEmpty else {
+            alertMessage = "First name is required"
+            showingAlert = true
+            return
+        }
+        
+        isLoading = true
+        
+        let ageInt = Int(age)
+        
+        // Use Firebase user session to get current user ID
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id else {
+            alertMessage = "User not authenticated"
+            showingAlert = true
+            return
+        }
+        
+        let member = FirebaseMember(
+            id: existingMember?.id ?? userId,
+            userId: userId,
+            firstName: firstName,
+            age: ageInt,
+            city: city.isEmpty ? nil : city,
+            attractedTo: attractedTo.isEmpty ? nil : attractedTo,
+            approachTip: approachTip.isEmpty ? nil : approachTip,
+            instagramHandle: instagramHandle.isEmpty ? nil : instagramHandle,
+            profileImage: nil // TODO: Handle image upload
+        )
+        
+        if isCreatingNew {
+            membersService.createMember(member) { success, error in
+                isLoading = false
+                if success {
+                    alertMessage = "Profile created successfully!"
+                } else {
+                    alertMessage = error ?? "Failed to create profile"
+                }
+                showingAlert = true
+            }
+        } else {
+            membersService.updateMember(member) { success, error in
+                isLoading = false
+                if success {
+                    alertMessage = "Profile updated successfully!"
+                } else {
+                    alertMessage = error ?? "Failed to update profile"
+                }
+                showingAlert = true
+            }
+        }
+        
+        // The actual Firebase call happens above with completion handlers
     }
 }
 
-// Reusable TextField Row Component for Edit Profile
+// Updated ProfileTextField to support multiline
 struct ProfileTextField: View {
     let label: String
     let placeholder: String
     var icon: String? = nil
     var keyboardType: UIKeyboardType = .default
+    var isMultiline: Bool = false
     @Binding var text: String
     @Environment(\.colorScheme) var colorScheme
 
@@ -239,43 +258,42 @@ struct ProfileTextField: View {
             Text(label)
                 .foregroundColor(.primary)
                 .font(.subheadline)
+                .fontWeight(.medium)
+            
             HStack {
                 if let iconName = icon {
                     Image(systemName: iconName)
                         .foregroundColor(.secondary)
                         .padding(.leading, 12)
                 }
-                TextField(placeholder, text: $text)
-                    .keyboardType(keyboardType)
-                    .padding(.vertical, 12)
-                    .padding(.leading, icon == nil ? 12 : 5)
-                    .padding(.trailing, 12)
+                
+                if isMultiline {
+                    TextField(placeholder, text: $text, axis: .vertical)
+                        .keyboardType(keyboardType)
+                        .lineLimit(3...6)
+                        .padding(.vertical, 12)
+                        .padding(.leading, icon == nil ? 12 : 5)
+                        .padding(.trailing, 12)
+                } else {
+                    TextField(placeholder, text: $text)
+                        .keyboardType(keyboardType)
+                        .padding(.vertical, 12)
+                        .padding(.leading, icon == nil ? 12 : 5)
+                        .padding(.trailing, 12)
+                }
             }
             .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
             .cornerRadius(10)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(colorScheme == .dark ? Color(.systemGray) : Color(.systemGray3), lineWidth: 1)
+                    .stroke(colorScheme == .dark ? Color(.systemGray4) : Color(.systemGray3), lineWidth: 1)
             )
         }
     }
 }
 
-
-// Preview needs setup
 #Preview {
-    // Create sample data for preview
-    let sampleProfile = UserProfile(
-        firstName: "Maria",
-        age: 28,
-        city: "Austin, TX",
-        approachTip: "Ask about my latest travel adventure!",
-        attractedTo: "Male",
-        instagramHandle: "maria_travels",
-        profileImageName: nil
-    )
-    // Wrap in NavigationView for toolbar display
     NavigationView {
-        EditProfileView(profileToEdit: sampleProfile)
+        EditProfileView(userMember: nil)
     }
 } 

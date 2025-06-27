@@ -1,0 +1,20 @@
+{
+  "id": 115,
+  "email": "sweber1@yahoo.com",
+  "firstName": "Sam",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/0723a884378582e7c893fc5da6d2cada74e66ed2f993d9beed11bfc971f7e120.jpeg",
+    "filename": "IMG_7664.jpeg",
+    "size": 950126,
+    "width": 1923,
+    "height": 2651
+  },
+  "createdAt": "2025-02-16T06:54:51.647Z",
+  "updatedAt": "2025-02-16T06:54:51.647Z"
+}

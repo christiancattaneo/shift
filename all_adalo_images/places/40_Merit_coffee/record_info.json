@@ -1,0 +1,42 @@
+{
+  "id": 73,
+  "collectionType": "places",
+  "Place Name": "Merit coffee",
+  "Place Locatioon": {
+    "name": "Merit Coffee",
+    "placeId": "ChIJjfUPadS1RIYRs9ZUJEwpDGg",
+    "coordinates": {
+      "latitude": 30.25527559999999,
+      "longitude": -97.7617465
+    },
+    "fullAddress": "1105 S Lamar Blvd, Austin, TX 78704, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "1105 South Lamar Boulevard",
+      "address2": "",
+      "postalCode": "78704"
+    }
+  },
+  "Place Image": {
+    "url": "https://adalo-uploads.imgix.net/1a36392ef91c2598dd74808f15ef60028ee92d0587807b7e59f76a55fa3dcea0.jpeg",
+    "size": 6798704,
+    "width": 4032,
+    "height": 3024,
+    "filename": "DC6F307C-02D1-4FC9-A371-9D00D59A96D0.jpeg",
+    "metadata": {
+      "width": 4032,
+      "height": 3024,
+      "blurHash": "eFE{a|XTMv#jw}0enhIqJ:XR^*IVxuofbbJCX7k8VrwerqVsxvtRSz",
+      "blurHashWidth": 32
+    }
+  },
+  "is place free": null,
+  "Users": [
+    730
+  ],
+  "created_at": "2025-06-12T15:38:19.786Z",
+  "updated_at": "2025-06-12T19:29:08.443Z",
+  "downloadedAt": "2025-06-27T18:32:06.434Z"
+}

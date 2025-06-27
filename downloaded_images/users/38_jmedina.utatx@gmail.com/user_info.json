@@ -1,0 +1,20 @@
+{
+  "id": 52,
+  "email": "jmedina.utatx@gmail.com",
+  "firstName": "Joey ",
+  "gender": null,
+  "age": null,
+  "city": null,
+  "attractedTo": null,
+  "howToApproachMe": null,
+  "instagramHandle": null,
+  "photo": {
+    "originalUrl": "https://adalo-uploads.imgix.net/091ff9df7885eb2433032f35bc3f51d925ac2ea34e329493590c2c2eef77fa89.jpeg",
+    "filename": "IMG_8885.jpeg",
+    "size": 3415508,
+    "width": 4032,
+    "height": 3024
+  },
+  "createdAt": "2025-01-25T15:34:35.701Z",
+  "updatedAt": "2025-01-25T15:34:35.701Z"
+}

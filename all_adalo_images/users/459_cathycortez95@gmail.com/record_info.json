@@ -1,0 +1,47 @@
+{
+  "id": 568,
+  "collectionType": "users",
+  "Email": "cathycortez95@gmail.com",
+  "Password": "[hidden]",
+  "Username": null,
+  "Full Name": null,
+  "First Name": "Cathy",
+  "Photo": {
+    "url": "https://adalo-uploads.imgix.net/cf964aac685813c2f0723d3e20c28ecdd841920edebb83229998b0a09a604335.jpeg",
+    "size": 2240287,
+    "width": 3000,
+    "height": 4000,
+    "filename": "10A82AAD-D25C-4EC9-B8B7-3F18C2643B5A.jpeg",
+    "metadata": {
+      "width": 3000,
+      "height": 4000,
+      "blurHash": "eNIOa{RkX8?HoL.8t7IpR*WBlUozj?NHWB00IpxZn%oLnOa#bHoeWW",
+      "blurHashWidth": 32
+    }
+  },
+  "Gender": null,
+  "Attracted to": null,
+  "Age": null,
+  "City": null,
+  "How to Approach Me": null,
+  "Is Event Creator": null,
+  "Is Event Attendee": false,
+  "Is Message Sender": null,
+  "Is Message Receiver": null,
+  "Is Not Event Attendee": null,
+  "Check in for event": [
+    127
+  ],
+  "User Agrees to Terms & Conditions & rivacy Policy": true,
+  "Subscribed": null,
+  "Instagram Handle": null,
+  "Show face dismissed": true,
+  "admin": null,
+  "wants to look at event?": true,
+  "Is Place Attendee": null,
+  "Is Not Place Attendee": null,
+  "Is Place Creator?": null,
+  "created_at": "2025-05-31T21:26:07.927Z",
+  "updated_at": "2025-05-31T23:51:10.934Z",
+  "downloadedAt": "2025-06-27T18:31:05.655Z"
+}

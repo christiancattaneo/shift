@@ -1,0 +1,49 @@
+{
+  "id": 177,
+  "collectionType": "events",
+  "Event Name": "Alex Warren \"Cheaper than Therapy\" Concert",
+  "Venue Name": "Stubbs Waller Creek Amphitheater",
+  "Event Location": {
+    "name": "Stubb's Bar-B-Q",
+    "placeId": "ChIJSVyqJ6S1RIYRdx8PPPRl9Is",
+    "coordinates": {
+      "latitude": 30.2684932,
+      "longitude": -97.7362565
+    },
+    "fullAddress": "801 Red River St, Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "801 Red River Street",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": "2025-06-11T00:00:00.000Z",
+  "Event End Time": null,
+  "Users": [
+    45,
+    733
+  ],
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/71e78292cca6a02a557c7f3bf28215a064bf59f651f2e6410cd49d2e31ecd698.jpeg",
+    "size": 152367,
+    "width": 935,
+    "height": 1324,
+    "filename": "1CA6ED72-ABE2-47C8-A52E-7459C30D666C.jpeg",
+    "metadata": {
+      "width": 935,
+      "height": 1324,
+      "blurHash": "egGIZWx]-;s9R*~qkDxuRPRjM{WBRjRjayM{o0aet8s:tRoLaxa}j@",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-04T20:02:01.727Z",
+  "updated_at": "2025-06-12T23:18:59.513Z",
+  "downloadedAt": "2025-06-27T18:31:49.041Z"
+}

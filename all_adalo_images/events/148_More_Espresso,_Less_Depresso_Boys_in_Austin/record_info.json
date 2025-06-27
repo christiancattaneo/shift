@@ -1,0 +1,45 @@
+{
+  "id": 171,
+  "collectionType": "events",
+  "Event Name": "More Espresso, Less Depresso Boys in Austin",
+  "Venue Name": "Ani's Day & Night",
+  "Event Location": {
+    "name": "Ani's Day & Night",
+    "placeId": "ChIJ463t9Gu3RIYRTvENJaT-w6I",
+    "coordinates": {
+      "latitude": 30.2209898,
+      "longitude": -97.6956141
+    },
+    "fullAddress": "7107 E Riverside Dr, Austin, TX 78741, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "7107 East Riverside Drive",
+      "address2": "",
+      "postalCode": "78741"
+    }
+  },
+  "Event Start Time": "2025-06-07T15:00:00.000Z",
+  "Event End Time": "2025-06-07T19:00:00.000Z",
+  "Image": {
+    "url": "https://adalo-uploads.imgix.net/2985c13a682709a33cf3dc0c42a9baf4e80a219d6abf963915e4d249238903a9.jpeg",
+    "size": 1095965,
+    "width": 1284,
+    "height": 1631,
+    "filename": "91F0207C-614C-49CA-ACA4-5146C17FD598.jpeg",
+    "metadata": {
+      "width": 1284,
+      "height": 1631,
+      "blurHash": "eGQ]cn-g~p?aWU-Ls+WAaextIVxuD*Rjxtxst6WXaf%Moyt7M{ofWB",
+      "blurHashWidth": 32
+    }
+  },
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-06-04T19:55:10.080Z",
+  "updated_at": "2025-06-11T04:33:53.113Z",
+  "downloadedAt": "2025-06-27T18:31:47.134Z"
+}

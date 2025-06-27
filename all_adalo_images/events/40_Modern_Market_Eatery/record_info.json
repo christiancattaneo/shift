@@ -1,0 +1,33 @@
+{
+  "id": 60,
+  "collectionType": "events",
+  "Event Name": null,
+  "Venue Name": "Modern Market Eatery",
+  "Event Location": {
+    "name": "Modern Market Eatery - Frost Tower",
+    "placeId": "ChIJqcqhOQi1RIYRIwwwiI-ViEQ",
+    "coordinates": {
+      "latitude": 30.26674749999999,
+      "longitude": -97.7430419
+    },
+    "fullAddress": "401 Congress Ave., Austin, TX 78701, USA",
+    "addressElements": {
+      "city": "Austin",
+      "region": "Texas",
+      "country": "United States",
+      "address1": "401 Congress Avenue",
+      "address2": "",
+      "postalCode": "78701"
+    }
+  },
+  "Event Start Time": null,
+  "Event End Time": null,
+  "Image": null,
+  "Is Event Free": null,
+  "Event Category": null,
+  "Event DATE": null,
+  "Place": null,
+  "created_at": "2025-01-03T06:19:14.838Z",
+  "updated_at": "2025-01-03T06:19:14.838Z",
+  "downloadedAt": "2025-06-27T18:31:36.627Z"
+}
