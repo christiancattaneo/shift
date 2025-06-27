@@ -139,6 +139,8 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
         self.approachTip = approachTip
         self.instagramHandle = instagramHandle
         self.profileImage = profileImage
+        self.profileImageUrl = nil  // Initialize new Firebase Storage fields
+        self.firebaseImageUrl = nil
         self.isActive = true
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
@@ -254,6 +256,8 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.eventStartTime = eventStartTime
         self.eventEndTime = eventEndTime
         self.image = nil
+        self.imageUrl = nil          // Initialize new Firebase Storage fields
+        self.firebaseImageUrl = nil
         self.isEventFree = nil
         self.eventCategory = nil
         self.eventDate = nil
