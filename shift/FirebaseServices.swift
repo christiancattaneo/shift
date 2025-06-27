@@ -59,12 +59,11 @@ class FirebaseUserSession: ObservableObject {
                 
                 // Create user document in Firestore
                 let newUser = FirebaseUser(
-                    id: uid,
                     email: email,
                     firstName: firstName
                 )
                 
-                self?.createUserDocument(user: newUser) { success, error in
+                self?.createUserDocument(user: newUser, uid: uid) { success, error in
                     completion(success, error)
                 }
             }
@@ -100,11 +99,7 @@ class FirebaseUserSession: ObservableObject {
         }
     }
     
-    private func createUserDocument(user: FirebaseUser, completion: @escaping (Bool, String?) -> Void) {
-        guard let uid = user.id else {
-            completion(false, "Invalid user ID")
-            return
-        }
+    private func createUserDocument(user: FirebaseUser, uid: String, completion: @escaping (Bool, String?) -> Void) {
         
         do {
             try db.collection("users").document(uid).setData(from: user) { error in
@@ -222,7 +217,7 @@ class FirebaseMembersService: ObservableObject {
                             guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
                             
                             return FirebaseMember(
-                                id: user.id,
+                                userId: user.id,
                                 firstName: firstName,
                                 age: user.age,
                                 city: user.city,
@@ -287,7 +282,6 @@ class FirebaseMembersService: ObservableObject {
     private func getMockMembers() -> [FirebaseMember] {
         return [
             FirebaseMember(
-                id: "1",
                 userId: "1",
                 firstName: "Sarah",
                 age: 28,
@@ -298,7 +292,6 @@ class FirebaseMembersService: ObservableObject {
                 profileImage: "https://picsum.photos/400/400?random=101"
             ),
             FirebaseMember(
-                id: "2",
                 userId: "2",
                 firstName: "Jake",
                 age: 32,
@@ -309,7 +302,6 @@ class FirebaseMembersService: ObservableObject {
                 profileImage: "https://picsum.photos/400/400?random=102"
             ),
             FirebaseMember(
-                id: "3",
                 userId: "3",
                 firstName: "Emma",
                 age: 26,
@@ -370,7 +362,6 @@ class FirebaseEventsService: ObservableObject {
     private func getMockEvents() -> [FirebaseEvent] {
         return [
             FirebaseEvent(
-                id: "1",
                 eventName: "Tech Meetup",
                 venueName: "WeWork",
                 eventLocation: "123 Main St, San Francisco, CA",
@@ -378,7 +369,6 @@ class FirebaseEventsService: ObservableObject {
                 eventEndTime: "9:00 PM"
             ),
             FirebaseEvent(
-                id: "2",
                 eventName: "Wine Tasting",
                 venueName: "The Wine Bar",
                 eventLocation: "456 Market St, San Francisco, CA",
@@ -538,19 +528,16 @@ class FirebaseConversationsService: ObservableObject {
     private func getMockConversations(for userId: String) -> [FirebaseConversation] {
         return [
             FirebaseConversation(
-                id: "1",
                 participantOneId: userId,
                 participantTwoId: "2",
                 lastMessage: "Hey! How was the event last night?"
             ),
             FirebaseConversation(
-                id: "2",
                 participantOneId: userId,
                 participantTwoId: "3",
                 lastMessage: "Thanks for the book recommendation!"
             ),
             FirebaseConversation(
-                id: "3",
                 participantOneId: "4",
                 participantTwoId: userId,
                 lastMessage: "Let's grab coffee sometime this week?"
@@ -639,13 +626,11 @@ class FirebaseMessagesService: ObservableObject {
     private func getMockMessages(for conversationId: String) -> [FirebaseMessage] {
         return [
             FirebaseMessage(
-                id: "1",
                 conversationId: conversationId,
                 senderId: "2",
                 messageText: "Hey! How was the event last night?"
             ),
             FirebaseMessage(
-                id: "2",
                 conversationId: conversationId,
                 senderId: "123",
                 messageText: "It was amazing! The live music was incredible 🎵"

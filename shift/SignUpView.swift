@@ -27,7 +27,6 @@ struct SignUpView: View {
                 // Update user profile with image URL
                 if let currentUser = FirebaseUserSession.shared.currentUser {
                     let updatedUser = FirebaseUser(
-                        id: currentUser.id,
                         email: currentUser.email,
                         firstName: currentUser.firstName,
                         fullName: currentUser.fullName,

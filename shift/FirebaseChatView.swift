@@ -162,7 +162,6 @@ struct FirebaseChatView: View {
     NavigationView {
         FirebaseChatView(
             conversation: FirebaseConversation(
-                id: "1",
                 participantOneId: "user1",
                 participantTwoId: "user2",
                 lastMessage: "Hello!"

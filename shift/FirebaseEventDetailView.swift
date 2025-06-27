@@ -164,7 +164,6 @@ struct FirebaseEventDetailView: View {
     NavigationView {
         FirebaseEventDetailView(
             event: FirebaseEvent(
-                id: "1",
                 eventName: "Tech Meetup",
                 venueName: "WeWork",
                 eventLocation: "123 Main St, San Francisco, CA",

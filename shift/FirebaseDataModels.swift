@@ -23,8 +23,8 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer for local use
-    init(id: String? = nil, email: String, firstName: String?, fullName: String? = nil, profilePhoto: String? = nil, username: String? = nil, gender: String? = nil, attractedTo: String? = nil, age: Int? = nil, city: String? = nil, howToApproachMe: String? = nil, isEventCreator: Bool? = nil, instagramHandle: String? = nil) {
-        self.id = id
+    init(email: String, firstName: String?, fullName: String? = nil, profilePhoto: String? = nil, username: String? = nil, gender: String? = nil, attractedTo: String? = nil, age: Int? = nil, city: String? = nil, howToApproachMe: String? = nil, isEventCreator: Bool? = nil, instagramHandle: String? = nil) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.email = email
         self.username = username
         self.fullName = fullName
@@ -60,8 +60,8 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer
-    init(id: String? = nil, userId: String? = nil, firstName: String, age: Int? = nil, city: String? = nil, attractedTo: String? = nil, approachTip: String? = nil, instagramHandle: String? = nil, profileImage: String? = nil) {
-        self.id = id
+    init(userId: String? = nil, firstName: String, age: Int? = nil, city: String? = nil, attractedTo: String? = nil, approachTip: String? = nil, instagramHandle: String? = nil, profileImage: String? = nil) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.userId = userId
         self.firstName = firstName
         self.age = age
@@ -93,8 +93,8 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer
-    init(id: String? = nil, eventName: String, venueName: String? = nil, eventLocation: String? = nil, eventStartTime: String? = nil, eventEndTime: String? = nil) {
-        self.id = id
+    init(eventName: String, venueName: String? = nil, eventLocation: String? = nil, eventStartTime: String? = nil, eventEndTime: String? = nil) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.eventName = eventName
         self.venueName = venueName
         self.eventLocation = eventLocation
@@ -121,8 +121,8 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer
-    init(id: String? = nil, placeName: String, placeLocation: String? = nil, placeImage: String? = nil) {
-        self.id = id
+    init(placeName: String, placeLocation: String? = nil, placeImage: String? = nil) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.placeName = placeName
         self.placeLocation = placeLocation
         self.placeImage = placeImage
@@ -144,8 +144,8 @@ struct FirebaseConversation: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer
-    init(id: String? = nil, participantOneId: String?, participantTwoId: String?, lastMessage: String? = nil) {
-        self.id = id
+    init(participantOneId: String?, participantTwoId: String?, lastMessage: String? = nil) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.participantOneId = participantOneId
         self.participantTwoId = participantTwoId
         self.lastMessage = lastMessage
@@ -167,8 +167,8 @@ struct FirebaseMessage: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer
-    init(id: String? = nil, conversationId: String?, senderId: String?, messageText: String) {
-        self.id = id
+    init(conversationId: String?, senderId: String?, messageText: String) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.conversationId = conversationId
         self.senderId = senderId
         self.messageText = messageText
@@ -199,8 +199,8 @@ struct FirebaseCheckIn: Identifiable, Codable, Hashable {
     let updatedAt: Timestamp?
     
     // Convenience initializer
-    init(id: String? = nil, userId: String?, eventId: String?) {
-        self.id = id
+    init(userId: String?, eventId: String?) {
+        // Don't set self.id - @DocumentID is managed by Firestore
         self.userId = userId
         self.eventId = eventId
         self.checkedInAt = Timestamp()

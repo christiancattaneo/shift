@@ -175,7 +175,6 @@ struct MemberRow: View {
     NewMessageRecipientView(
         members: [
             FirebaseMember(
-                id: "1",
                 firstName: "Caroline",
                 age: 25,
                 city: "Austin",
@@ -183,7 +182,6 @@ struct MemberRow: View {
                 instagramHandle: "caroline_atx"
             ),
             FirebaseMember(
-                id: "2",
                 firstName: "Marin",
                 age: 24,
                 city: "Austin",

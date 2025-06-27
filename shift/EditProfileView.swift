@@ -206,7 +206,6 @@ struct EditProfileView: View {
         }
         
         let member = FirebaseMember(
-            id: existingMember?.id ?? userId,
             userId: userId,
             firstName: firstName,
             age: ageInt,
