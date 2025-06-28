@@ -391,14 +391,29 @@ class FirebaseMembersService: ObservableObject {
                                     return nil // This should be rare now due to the query filter
                                 }
                                 
-                                // Check for profileImageUrl directly from document data
+                                // Check for ALL possible image fields directly from document data
                                 let data = document.data()
                                 let profileImageUrl = data["profileImageUrl"] as? String
                                 let firebaseImageUrl = data["firebaseImageUrl"] as? String
+                                let profilePhoto = data["profilePhoto"] as? String
+                                let profilePicture = data["profilePicture"] as? String
+                                let imageUrl = data["imageUrl"] as? String
+                                let photoUrl = data["photoUrl"] as? String
                                 
-                                print("🔍 User \(firstName): profileImageUrl=\(profileImageUrl ?? "nil"), profilePhoto=\(user.profilePhoto ?? "nil")")
+                                print("🔍 === IMAGE DATA FOR \(firstName) ===")
+                                print("🔍 profileImageUrl: \(profileImageUrl ?? "nil")")
+                                print("🔍 firebaseImageUrl: \(firebaseImageUrl ?? "nil")")
+                                print("🔍 profilePhoto: \(profilePhoto ?? "nil")")
+                                print("🔍 profilePicture: \(profilePicture ?? "nil")")
+                                print("🔍 imageUrl: \(imageUrl ?? "nil")")
+                                print("🔍 photoUrl: \(photoUrl ?? "nil")")
+                                print("🔍 user.profilePhoto: \(user.profilePhoto ?? "nil")")
+                                print("🔍 =====================================")
                                 
-                                return FirebaseMember(
+                                // Use the first available image URL
+                                let bestImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto ?? profilePicture ?? imageUrl ?? photoUrl ?? user.profilePhoto
+                                
+                                let member = FirebaseMember(
                                     userId: user.id,
                                     firstName: firstName,
                                     age: user.age,
@@ -406,10 +421,18 @@ class FirebaseMembersService: ObservableObject {
                                     attractedTo: user.attractedTo,
                                     approachTip: user.howToApproachMe,
                                     instagramHandle: user.instagramHandle,
-                                    profileImage: user.profilePhoto,
+                                    profileImage: bestImageUrl,
                                     profileImageUrl: profileImageUrl,
                                     firebaseImageUrl: firebaseImageUrl
                                 )
+                                
+                                if let bestImageUrl = bestImageUrl {
+                                    print("✅ FOUND IMAGE FOR \(firstName): \(bestImageUrl)")
+                                } else {
+                                    print("❌ NO IMAGE FOUND FOR \(firstName)")
+                                }
+                                
+                                return member
                             } catch {
                                 // Log error but continue processing
                                 print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")

@@ -26,6 +26,9 @@ struct MembersView: View {
     var body: some View {
         ScrollView {
                 VStack(alignment: .leading, spacing: 15) {
+                    // Test Image View - TEMPORARY FOR DEBUGGING
+                    TestFirebaseImageView()
+                    
                     // Header
                     HStack {
                         Text("Members")
@@ -340,9 +343,6 @@ struct MemberCardView: View {
                             .font(.system(size: 40))
                             .foregroundColor(.gray)
                     }
-                    .onAppear {
-                        print("❓ Unknown AsyncImage phase for \(member.firstName)")
-                    }
                 }
             }
             
@@ -441,6 +441,113 @@ struct MemberCardView: View {
         .onTapGesture {
             print("👥 MEMBER CARD BACKGROUND TAPPED: \(member.firstName) - UI should be responsive")
         }
+    }
+}
+
+// MARK: - TEST IMAGE VIEW
+struct TestFirebaseImageView: View {
+    // Test with multiple image URLs
+    let testImageURL = URL(string: "https://picsum.photos/400/400?random=1")
+    let firebaseTestURL = URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-9c8f5.appspot.com/o/profile_images%2Ftest_image.jpg?alt=media")
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("🧪 IMAGE LOADING TESTS")
+                .font(.headline)
+                .foregroundColor(.blue)
+            
+            HStack(spacing: 15) {
+                // Test 1: Generic working image
+                VStack {
+                    Text("Generic Test")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    
+                    AsyncImage(url: testImageURL) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 80, height: 80)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                                .cornerRadius(8)
+                                .onAppear {
+                                    print("✅ GENERIC TEST IMAGE LOADED!")
+                                }
+                        case .failure(let error):
+                            VStack {
+                                Image(systemName: "xmark.circle")
+                                    .foregroundColor(.red)
+                                Text("Failed")
+                                    .font(.caption2)
+                            }
+                            .frame(width: 80, height: 80)
+                            .onAppear {
+                                print("❌ Generic test failed: \(error)")
+                            }
+                        @unknown default:
+                            Rectangle()
+                                .fill(Color.gray)
+                                .frame(width: 80, height: 80)
+                        }
+                    }
+                }
+                
+                // Test 2: Firebase Storage pattern
+                VStack {
+                    Text("Firebase Test")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    
+                    AsyncImage(url: firebaseTestURL) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 80, height: 80)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                                .cornerRadius(8)
+                                .onAppear {
+                                    print("✅ FIREBASE TEST IMAGE LOADED!")
+                                }
+                        case .failure(let error):
+                            VStack {
+                                Image(systemName: "xmark.circle")
+                                    .foregroundColor(.red)
+                                Text("Failed")
+                                    .font(.caption2)
+                            }
+                            .frame(width: 80, height: 80)
+                            .onAppear {
+                                print("❌ Firebase test failed: \(error)")
+                            }
+                        @unknown default:
+                            Rectangle()
+                                .fill(Color.gray)
+                                .frame(width: 80, height: 80)
+                        }
+                    }
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Generic: \(testImageURL?.absoluteString ?? "nil")")
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+                Text("Firebase: \(firebaseTestURL?.absoluteString ?? "nil")")
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding()
+        .background(Color.yellow.opacity(0.2))
+        .cornerRadius(10)
     }
 }
 
