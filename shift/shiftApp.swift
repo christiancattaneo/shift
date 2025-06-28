@@ -63,9 +63,6 @@ struct shiftApp: App {
         WindowGroup {
             SplashView()
                 .environmentObject(userSession)
-                .onAppear {
-                    userSession.loadSavedUser()
-                }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                     // Handle app becoming active
                     print("📱 App became active")
