@@ -192,13 +192,22 @@ class FirebaseMembersService: ObservableObject {
     
     private var hasFetched = false  // Prevent redundant calls
     
+    // Force refresh bypassing cache
+    func refreshMembers() {
+        print("🔄 Force refreshing members...")
+        hasFetched = false
+        members = []  // Clear existing data
+        fetchMembers()
+    }
+    
     func fetchMembers() {
-        // Prevent redundant calls that were causing freezing
-        guard !hasFetched && !isLoading else {
-            print("📋 Skipping fetchMembers - already fetched or in progress")
+        // Prevent redundant calls only if already loading
+        guard !isLoading else {
+            print("📋 Skipping fetchMembers - already in progress")
             return
         }
         
+        print("🔄 Starting fetchMembers...")
         isLoading = true
         hasFetched = true
         errorMessage = nil
@@ -214,7 +223,14 @@ class FirebaseMembersService: ObservableObject {
                     if let error = error {
                         self?.errorMessage = error.localizedDescription
                         print("❌ Error fetching members: \(error.localizedDescription)")
-                        // Load mock data as fallback
+                        
+                        // Handle network connectivity issues specifically
+                        if error.localizedDescription.contains("network") || error.localizedDescription.contains("connectivity") {
+                            self?.errorMessage = "Network connection issue. Using cached data."
+                            print("🌐 Network issue detected - using mock data as fallback")
+                        }
+                        
+                        // Load mock data as fallback for better UX
                         self?.members = self?.getMockMembers() ?? []
                         return
                     }

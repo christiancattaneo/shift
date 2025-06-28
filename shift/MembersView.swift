@@ -33,6 +33,14 @@ struct MembersView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         Spacer()
+                        
+                        // Debug refresh button
+                        Button("🔄") {
+                            print("🔄 Manual refresh triggered")
+                            membersService.refreshMembers()
+                        }
+                        .font(.title2)
+                        
                         Image("shiftlogo") // Assuming logo is in assets
                             .resizable()
                             .scaledToFit()
@@ -111,12 +119,19 @@ struct MembersView: View {
                         }
                         
                         // Data source indicator
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Loaded \(filteredMembers.count) members from Firebase")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        VStack(spacing: 5) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Loaded \(filteredMembers.count) members from Firebase")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // Debug info
+                            Text("Total in service: \(membersService.members.count) • Loading: \(membersService.isLoading)")
+                                .font(.caption2)
+                                .foregroundColor(.blue)
                         }
                         .padding(.top, 10)
                     }
@@ -136,7 +151,7 @@ struct MembersView: View {
                                 .foregroundColor(.red)
                             
                             Button("Retry") {
-                                membersService.fetchMembers()
+                                membersService.refreshMembers()
                             }
                             .padding(.top, 5)
                             .buttonStyle(.bordered)
@@ -155,7 +170,7 @@ struct MembersView: View {
             membersService.fetchMembers()
         }
         .refreshable {
-            membersService.fetchMembers()
+            membersService.refreshMembers()
         }
     }
 }
