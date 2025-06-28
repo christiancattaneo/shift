@@ -14,17 +14,37 @@ struct SplashView: View {
     @State private var didCompleteLogin = false // State for login completion
     @State private var needsSignUp = false // Controls presentation of SignUpView modal/sheet style
     @State private var showMainApp = false // Controls showing MainTabView
+    @State private var isCheckingAuth = true // Track if we're checking authentication
+    @EnvironmentObject var userSession: FirebaseUserSession // Access to authentication state
     @Environment(\.colorScheme) var colorScheme // Add environment variable for color scheme
     // @State private var size = 0.8 // No longer needed for this animation
     // @State private var opacity = 0.5 // No longer needed for this animation
 
     var body: some View {
         // Determine the root view based on state
-        if showMainApp {
-            // User just signed up OR logged in 
+        if showMainApp || userSession.isLoggedIn {
+            // User is authenticated (either just signed up/in OR was already signed in)
             // Show subscription modal only if they just signed up
             MainTabView(showSubscriptionModalInitially: didCompleteSignUp)
                 .transition(.opacity) 
+        } else if isCheckingAuth {
+            // Show loading state while checking authentication
+            ZStack {
+                Color(.systemBackground).ignoresSafeArea()
+                VStack(spacing: 20) {
+                    Image("shiftlogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150, height: 150)
+                    
+                    ProgressView()
+                        .scaleEffect(1.2)
+                    
+                    Text("Loading...")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+            }
         } else {
             // Use NavigationStack for modern navigation APIs
             NavigationStack {
@@ -101,13 +121,18 @@ struct SplashView: View {
 
                 }
                 .onAppear {
-                    // Start splash animation timer only once
-                    guard !isActive else { return }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        withAnimation(.easeInOut(duration: 0.7)) {
-                            self.isActive = true // Mark splash animation phase done
-                            self.showAuthUI = true // Show the auth UI elements
+                    checkAuthenticationState()
+                }
+                .onReceive(userSession.$isLoggedIn) { isLoggedIn in
+                    print("🔐 Auth state changed - isLoggedIn: \(isLoggedIn)")
+                    if isLoggedIn {
+                        // User is now authenticated, transition to main app
+                        withAnimation {
+                            showMainApp = true
                         }
+                    } else if !isCheckingAuth {
+                        // User is not authenticated and we're not checking auth, show auth UI
+                        startSplashAnimation()
                     }
                 }
                 // Watch for sign-up completion
@@ -136,6 +161,41 @@ struct SplashView: View {
                             LoginView(didCompleteLogin: $didCompleteLogin, needsSignUp: $needsSignUp)
                     }
                 }
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    private func checkAuthenticationState() {
+        print("🔍 Checking authentication state...")
+        
+        // Give Firebase a moment to restore authentication state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isCheckingAuth = false
+            
+            if userSession.isLoggedIn {
+                print("✅ User is already authenticated")
+                // User is already signed in, go directly to main app
+                withAnimation {
+                    showMainApp = true
+                }
+            } else {
+                print("❌ User not authenticated, showing auth UI")
+                // User needs to authenticate, show auth UI
+                startSplashAnimation()
+            }
+        }
+    }
+    
+    private func startSplashAnimation() {
+        // Start splash animation timer only once
+        guard !isActive else { return }
+        print("🎬 Starting splash animation...")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.7)) {
+                self.isActive = true // Mark splash animation phase done
+                self.showAuthUI = true // Show the auth UI elements
             }
         }
     }

@@ -23,12 +23,27 @@ class FirebaseUserSession: ObservableObject {
         authStateListener = auth.addStateDidChangeListener { [weak self] _, user in
             DispatchQueue.main.async {
                 if let user = user {
+                    print("🔐 Firebase auth state: User signed in (\(user.uid))")
                     self?.loadUserData(uid: user.uid)
                 } else {
+                    print("🔐 Firebase auth state: User signed out")
                     self?.currentUser = nil
                     self?.isLoggedIn = false
                 }
             }
+        }
+        
+        // Check current auth state immediately
+        checkCurrentAuthState()
+    }
+    
+    private func checkCurrentAuthState() {
+        if let currentUser = auth.currentUser {
+            print("🔐 Found existing authenticated user: \(currentUser.uid)")
+            loadUserData(uid: currentUser.uid)
+        } else {
+            print("🔐 No existing authenticated user found")
+            isLoggedIn = false
         }
     }
     
@@ -119,23 +134,29 @@ class FirebaseUserSession: ObservableObject {
     }
     
     private func loadUserData(uid: String) {
+        print("📋 Loading user data for UID: \(uid)")
+        
         db.collection("users").document(uid).getDocument { [weak self] document, error in
             DispatchQueue.main.async {
                 if let error = error {
+                    print("❌ Error loading user data: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
                     return
                 }
                 
                 guard let document = document, document.exists else {
+                    print("❌ User document not found for UID: \(uid)")
                     self?.errorMessage = "User document not found"
                     return
                 }
                 
                 do {
                     let user = try document.data(as: FirebaseUser.self)
+                    print("✅ User data loaded successfully: \(user.firstName ?? "Unknown")")
                     self?.currentUser = user
                     self?.isLoggedIn = true
                 } catch {
+                    print("❌ Error decoding user data: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
                 }
             }
@@ -177,8 +198,18 @@ class FirebaseUserSession: ObservableObject {
     }
     
     func loadSavedUser() {
-        // Firebase Auth automatically handles persistence
-        // The auth state listener will be triggered on app launch
+        print("🔄 loadSavedUser() called - checking Firebase Auth persistence...")
+        
+        // Firebase Auth automatically handles persistence, but let's be explicit
+        if let currentUser = auth.currentUser {
+            print("📱 Firebase Auth found persisted user: \(currentUser.uid)")
+            loadUserData(uid: currentUser.uid)
+        } else {
+            print("📱 No persisted Firebase Auth user found")
+            isLoggedIn = false
+        }
+        
+        // The auth state listener will also be triggered and handle state changes
     }
 }
 
