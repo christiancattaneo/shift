@@ -525,7 +525,7 @@ extension FirebaseEvent {
         return eventName ?? venueName ?? "Unnamed Event"
     }
     
-    // Helper to get event image URL from Firebase Storage  
+    // Helper to get event image URL from Firebase Storage
     var imageURL: URL? {
         // PRIORITY 1: Try Firebase Storage URLs first (these work!)
         if let firebaseUrl = imageUrl ?? firebaseImageUrl, !firebaseUrl.isEmpty {

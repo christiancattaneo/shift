@@ -17,6 +17,7 @@ class FirebaseUserSession: ObservableObject {
     private let db = Firestore.firestore()
     private var cancellables = Set<AnyCancellable>()
     private var authStateListener: AuthStateDidChangeListenerHandle?
+    private var isLoadingUserData = false  // Prevent redundant user data loads
     
     private init() {
         // Listen for auth state changes
@@ -24,11 +25,12 @@ class FirebaseUserSession: ObservableObject {
             DispatchQueue.main.async {
                 if let user = user {
                     print("🔐 Firebase auth state: User signed in (\(user.uid))")
-                    self?.loadUserData(uid: user.uid)
+                    self?.loadUserDataIfNeeded(uid: user.uid)
                 } else {
                     print("🔐 Firebase auth state: User signed out")
                     self?.currentUser = nil
                     self?.isLoggedIn = false
+                    self?.isLoadingUserData = false
                 }
             }
         }
@@ -40,7 +42,7 @@ class FirebaseUserSession: ObservableObject {
     private func checkCurrentAuthState() {
         if let currentUser = auth.currentUser {
             print("🔐 Found existing authenticated user: \(currentUser.uid)")
-            loadUserData(uid: currentUser.uid)
+            loadUserDataIfNeeded(uid: currentUser.uid)
         } else {
             print("🔐 No existing authenticated user found")
             isLoggedIn = false
@@ -133,31 +135,50 @@ class FirebaseUserSession: ObservableObject {
         }
     }
     
-    private func loadUserData(uid: String) {
+    private func loadUserDataIfNeeded(uid: String) {
+        // Prevent redundant calls if already loading or user data already exists
+        guard !isLoadingUserData else {
+            print("📋 Skipping loadUserData - already in progress")
+            return
+        }
+        
+        // If we already have user data for this UID, don't reload
+        if let currentUser = currentUser, currentUser.id == uid {
+            print("📋 User data already loaded for UID: \(uid)")
+            isLoggedIn = true
+            return
+        }
+        
+        isLoadingUserData = true
         print("📋 Loading user data for UID: \(uid)")
         
-        db.collection("users").document(uid).getDocument { [weak self] document, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("❌ Error loading user data: \(error.localizedDescription)")
-                    self?.errorMessage = error.localizedDescription
-                    return
-                }
-                
-                guard let document = document, document.exists else {
-                    print("❌ User document not found for UID: \(uid)")
-                    self?.errorMessage = "User document not found"
-                    return
-                }
-                
-                do {
-                    let user = try document.data(as: FirebaseUser.self)
-                    print("✅ User data loaded successfully: \(user.firstName ?? "Unknown")")
-                    self?.currentUser = user
-                    self?.isLoggedIn = true
-                } catch {
-                    print("❌ Error decoding user data: \(error.localizedDescription)")
-                    self?.errorMessage = error.localizedDescription
+        // Load in background to prevent UI blocking
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.db.collection("users").document(uid).getDocument { [weak self] document, error in
+                DispatchQueue.main.async {
+                    self?.isLoadingUserData = false
+                    
+                    if let error = error {
+                        print("❌ Error loading user data: \(error.localizedDescription)")
+                        self?.errorMessage = error.localizedDescription
+                        return
+                    }
+                    
+                    guard let document = document, document.exists else {
+                        print("❌ User document not found for UID: \(uid)")
+                        self?.errorMessage = "User document not found"
+                        return
+                    }
+                    
+                    do {
+                        let user = try document.data(as: FirebaseUser.self)
+                        print("✅ User data loaded successfully: \(user.firstName ?? "Unknown")")
+                        self?.currentUser = user
+                        self?.isLoggedIn = true
+                    } catch {
+                        print("❌ Error decoding user data: \(error.localizedDescription)")
+                        self?.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }
@@ -200,16 +221,15 @@ class FirebaseUserSession: ObservableObject {
     func loadSavedUser() {
         print("🔄 loadSavedUser() called - checking Firebase Auth persistence...")
         
-        // Firebase Auth automatically handles persistence, but let's be explicit
+        // Firebase Auth automatically handles persistence
         if let currentUser = auth.currentUser {
             print("📱 Firebase Auth found persisted user: \(currentUser.uid)")
-            loadUserData(uid: currentUser.uid)
+            // Don't call loadUserData here - the auth state listener will handle it
+            print("📱 Auth state listener will handle user data loading")
         } else {
             print("📱 No persisted Firebase Auth user found")
             isLoggedIn = false
         }
-        
-        // The auth state listener will also be triggered and handle state changes
     }
 }
 
@@ -221,90 +241,107 @@ class FirebaseMembersService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private var hasFetched = false  // Prevent redundant calls
+    private var hasFetched = false
+    private var cachedMembers: [FirebaseMember] = []
+    private var cacheTimestamp: Date?
+    private let cacheValidDuration: TimeInterval = 300 // 5 minutes cache
     
     // Force refresh bypassing cache
     func refreshMembers() {
         print("🔄 Force refreshing members...")
         hasFetched = false
-        members = []  // Clear existing data
+        cachedMembers = []
+        cacheTimestamp = nil
+        members = []
         fetchMembers()
     }
     
     func fetchMembers() {
-        // Prevent redundant calls only if already loading
+        // Prevent redundant calls
         guard !isLoading else {
             print("📋 Skipping fetchMembers - already in progress")
             return
         }
         
+        // Check cache first
+        if let cacheTimestamp = cacheTimestamp,
+           Date().timeIntervalSince(cacheTimestamp) < cacheValidDuration,
+           !cachedMembers.isEmpty {
+            print("📋 Using cached members (\(cachedMembers.count) items)")
+            members = cachedMembers
+            return
+        }
+        
         print("🔄 Starting fetchMembers...")
         isLoading = true
-        hasFetched = true
         errorMessage = nil
         
-        // Use one-time fetch instead of real-time listener to prevent blocking
-        // Add pagination to avoid loading 1336 documents at once
-        db.collection("users")
-            .limit(to: 200)  // Limit to first 200 users to prevent freezing
-            .getDocuments { [weak self] querySnapshot, error in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    
-                    if let error = error {
-                        self?.errorMessage = error.localizedDescription
-                        print("❌ Error fetching members: \(error.localizedDescription)")
+        // Fetch in background to prevent UI blocking
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            // Use optimized query - only get users with firstName (non-null/non-empty)
+            // This dramatically reduces the documents we need to process
+            self?.db.collection("users")
+                .whereField("firstName", isNotEqualTo: "")  // More efficient than client-side filtering
+                .limit(to: 50)  // Much smaller batch size to prevent blocking
+                .getDocuments { [weak self] querySnapshot, error in
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                        self?.hasFetched = true
                         
-                        // Handle network connectivity issues specifically
-                        if error.localizedDescription.contains("network") || error.localizedDescription.contains("connectivity") {
-                            self?.errorMessage = "Network connection issue. Using cached data."
-                            print("🌐 Network issue detected - using mock data as fallback")
-                        }
-                        
-                        // Load mock data as fallback for better UX
-                        self?.members = self?.getMockMembers() ?? []
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        self?.members = []
-                        return
-                    }
-                    
-                    var skippedUsersCount = 0
-                    let members = documents.compactMap { document -> FirebaseMember? in
-                        do {
-                            let user = try document.data(as: FirebaseUser.self)
-                            guard let firstName = user.firstName, !firstName.isEmpty else { 
-                                skippedUsersCount += 1
-                                return nil 
-                            }
+                        if let error = error {
+                            self?.errorMessage = error.localizedDescription
+                            print("❌ Error fetching members: \(error.localizedDescription)")
                             
-                            return FirebaseMember(
-                                userId: user.id,
-                                firstName: firstName,
-                                age: user.age,
-                                city: user.city,
-                                attractedTo: user.attractedTo,
-                                approachTip: user.howToApproachMe,
-                                instagramHandle: user.instagramHandle,
-                                profileImage: user.profilePhoto  // This will be constructed into Firebase Storage URL by the decoder
-                            )
-                        } catch {
-                            print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")
-                            // Continue processing other users instead of failing completely
-                            return nil
+                            // Use cached data if available during error
+                            if !(self?.cachedMembers.isEmpty ?? true) {
+                                print("🔄 Using cached data during network error")
+                                self?.members = self?.cachedMembers ?? []
+                            } else {
+                                // Load mock data as fallback
+                                self?.members = self?.getMockMembers() ?? []
+                            }
+                            return
                         }
-                    }
-                    
-                    self?.members = members
-                    if skippedUsersCount > 0 {
-                        print("✅ Successfully loaded \(members.count) members from \(documents.count) user documents (skipped \(skippedUsersCount) users without firstName)")
-                    } else {
+                        
+                        guard let documents = querySnapshot?.documents else {
+                            self?.members = []
+                            return
+                        }
+                        
+                        // Process documents efficiently
+                        let members = documents.compactMap { document -> FirebaseMember? in
+                            do {
+                                let user = try document.data(as: FirebaseUser.self)
+                                guard let firstName = user.firstName, !firstName.isEmpty else { 
+                                    return nil // This should be rare now due to the query filter
+                                }
+                                
+                                return FirebaseMember(
+                                    userId: user.id,
+                                    firstName: firstName,
+                                    age: user.age,
+                                    city: user.city,
+                                    attractedTo: user.attractedTo,
+                                    approachTip: user.howToApproachMe,
+                                    instagramHandle: user.instagramHandle,
+                                    profileImage: user.profilePhoto
+                                )
+                            } catch {
+                                // Log error but continue processing
+                                print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")
+                                return nil
+                            }
+                        }
+                        
+                        // Update cache
+                        self?.cachedMembers = members
+                        self?.cacheTimestamp = Date()
+                        self?.members = members
+                        
                         print("✅ Successfully loaded \(members.count) members from \(documents.count) user documents")
                     }
                 }
-            }
+        }
     }
     
     func createMember(_ member: FirebaseMember, completion: @escaping (Bool, String?) -> Void) {
@@ -393,7 +430,10 @@ class FirebaseEventsService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private var hasFetched = false  // Prevent redundant calls
+    private var hasFetched = false
+    private var cachedEvents: [FirebaseEvent] = []
+    private var cacheTimestamp: Date?
+    private let cacheValidDuration: TimeInterval = 600 // 10 minutes cache for events
     
     func fetchEvents() {
         // Prevent redundant calls
@@ -402,52 +442,86 @@ class FirebaseEventsService: ObservableObject {
             return
         }
         
+        // Check cache first
+        if let cacheTimestamp = cacheTimestamp,
+           Date().timeIntervalSince(cacheTimestamp) < cacheValidDuration,
+           !cachedEvents.isEmpty {
+            print("📋 Using cached events (\(cachedEvents.count) items)")
+            events = cachedEvents
+            hasFetched = true
+            return
+        }
+        
+        print("🔄 Starting fetchEvents...")
         isLoading = true
-        hasFetched = true
         errorMessage = nil
         
-        // Use one-time fetch for initial load to prevent freezing
-        db.collection("events")
-            .order(by: "createdAt", descending: true)
-            .limit(to: 100)  // Limit events to prevent blocking
-            .getDocuments { [weak self] querySnapshot, error in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    
-                    if let error = error {
-                        self?.errorMessage = error.localizedDescription
-                        // Load mock data as fallback
-                        self?.events = self?.getMockEvents() ?? []
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        self?.events = []
-                        return
-                    }
-                    
-                    var eventDecodingErrors = 0
-                    let events = documents.compactMap { document -> FirebaseEvent? in
-                        do {
-                            return try document.data(as: FirebaseEvent.self)
-                        } catch {
-                            eventDecodingErrors += 1
-                            // Only log first few errors to avoid spam
-                            if eventDecodingErrors <= 3 {
-                                print("⚠️ Error decoding event \(document.documentID): \(error)")
+        // Fetch in background to prevent UI blocking
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.db.collection("events")
+                .order(by: "createdAt", descending: true)
+                .limit(to: 30)  // Reduced from 100 to prevent blocking
+                .getDocuments { [weak self] querySnapshot, error in
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                        self?.hasFetched = true
+                        
+                        if let error = error {
+                            self?.errorMessage = error.localizedDescription
+                            print("❌ Error fetching events: \(error.localizedDescription)")
+                            
+                            // Use cached data if available during error
+                            if !(self?.cachedEvents.isEmpty ?? true) {
+                                print("🔄 Using cached events during network error")
+                                self?.events = self?.cachedEvents ?? []
+                            } else {
+                                // Load mock data as fallback
+                                self?.events = self?.getMockEvents() ?? []
                             }
-                            return nil
+                            return
+                        }
+                        
+                        guard let documents = querySnapshot?.documents else {
+                            self?.events = []
+                            return
+                        }
+                        
+                        var eventDecodingErrors = 0
+                        let events = documents.compactMap { document -> FirebaseEvent? in
+                            do {
+                                return try document.data(as: FirebaseEvent.self)
+                            } catch {
+                                eventDecodingErrors += 1
+                                // Only log first few errors to avoid spam
+                                if eventDecodingErrors <= 3 {
+                                    print("⚠️ Error decoding event \(document.documentID): \(error)")
+                                }
+                                return nil
+                            }
+                        }
+                        
+                        // Update cache
+                        self?.cachedEvents = events
+                        self?.cacheTimestamp = Date()
+                        self?.events = events
+                        
+                        if eventDecodingErrors > 0 {
+                            print("✅ Successfully loaded \(events.count) events from \(documents.count) event documents (skipped \(eventDecodingErrors) with decoding errors)")
+                        } else {
+                            print("✅ Successfully loaded \(events.count) events from \(documents.count) event documents")
                         }
                     }
-                    
-                    self?.events = events
-                    if eventDecodingErrors > 0 {
-                        print("✅ Successfully loaded \(events.count) events from \(documents.count) event documents (skipped \(eventDecodingErrors) with decoding errors)")
-                    } else {
-                        print("✅ Successfully loaded \(events.count) events from \(documents.count) event documents")
-                    }
                 }
-            }
+        }
+    }
+    
+    func refreshEvents() {
+        print("🔄 Force refreshing events...")
+        hasFetched = false
+        cachedEvents = []
+        cacheTimestamp = nil
+        events = []
+        fetchEvents()
     }
     
     private func getMockEvents() -> [FirebaseEvent] {
@@ -479,39 +553,45 @@ class FirebaseCheckInsService: ObservableObject {
     @Published var errorMessage: String?
     
     func fetchCheckIns() {
+        guard !isLoading else { return }
+        
         isLoading = true
         errorMessage = nil
         
-        // Use one-time fetch to prevent blocking
-        db.collection("checkIns")
-            .whereField("isActive", isEqualTo: true)
-            .limit(to: 50)  // Limit check-ins
-            .getDocuments { [weak self] querySnapshot, error in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    
-                    if let error = error {
-                        self?.errorMessage = error.localizedDescription
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        self?.checkIns = []
-                        return
-                    }
-                    
-                    let checkIns = documents.compactMap { document -> FirebaseCheckIn? in
-                        do {
-                            return try document.data(as: FirebaseCheckIn.self)
-                        } catch {
-                            print("Error decoding check-in: \(error)")
-                            return nil
+        // Fetch in background with smaller batch size
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.db.collection("checkIns")
+                .whereField("isActive", isEqualTo: true)
+                .limit(to: 20)  // Reduced from 50 to prevent blocking
+                .getDocuments { [weak self] querySnapshot, error in
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                        
+                        if let error = error {
+                            self?.errorMessage = error.localizedDescription
+                            print("❌ Error fetching check-ins: \(error.localizedDescription)")
+                            return
                         }
+                        
+                        guard let documents = querySnapshot?.documents else {
+                            self?.checkIns = []
+                            return
+                        }
+                        
+                        let checkIns = documents.compactMap { document -> FirebaseCheckIn? in
+                            do {
+                                return try document.data(as: FirebaseCheckIn.self)
+                            } catch {
+                                print("⚠️ Error decoding check-in: \(error)")
+                                return nil
+                            }
+                        }
+                        
+                        self?.checkIns = checkIns
+                        print("✅ Successfully loaded \(checkIns.count) check-ins")
                     }
-                    
-                    self?.checkIns = checkIns
                 }
-            }
+        }
     }
     
     func checkIn(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
@@ -547,42 +627,47 @@ class FirebaseConversationsService: ObservableObject {
     @Published var errorMessage: String?
     
     func fetchConversations(for userId: String) {
+        guard !isLoading else { return }
+        
         isLoading = true
         errorMessage = nil
         
-        // Use single optimized query instead of two separate listeners
-        db.collection("conversations")
-            .whereField("participantIds", arrayContains: userId)  // Assumes participantIds array field
-            .limit(to: 50)  // Limit conversations to prevent blocking
-            .getDocuments { [weak self] querySnapshot, error in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    
-                    if let error = error {
-                        self?.errorMessage = error.localizedDescription
-                        self?.conversations = self?.getMockConversations(for: userId) ?? []
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        self?.conversations = []
-                        return
-                    }
-                    
-                    let conversations = documents.compactMap { document -> FirebaseConversation? in
-                        do {
-                            return try document.data(as: FirebaseConversation.self)
-                        } catch {
-                            print("Error decoding conversation: \(error)")
-                            return nil
+        // Fetch in background with smaller batch size
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.db.collection("conversations")
+                .whereField("participantIds", arrayContains: userId)
+                .limit(to: 20)  // Reduced from 50 to prevent blocking
+                .getDocuments { [weak self] querySnapshot, error in
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                        
+                        if let error = error {
+                            self?.errorMessage = error.localizedDescription
+                            print("❌ Error fetching conversations: \(error.localizedDescription)")
+                            self?.conversations = self?.getMockConversations(for: userId) ?? []
+                            return
                         }
+                        
+                        guard let documents = querySnapshot?.documents else {
+                            self?.conversations = []
+                            return
+                        }
+                        
+                        let conversations = documents.compactMap { document -> FirebaseConversation? in
+                            do {
+                                return try document.data(as: FirebaseConversation.self)
+                            } catch {
+                                print("⚠️ Error decoding conversation: \(error)")
+                                return nil
+                            }
+                        }
+                        
+                        self?.conversations = conversations
+                        print("✅ Successfully loaded \(conversations.count) conversations")
                     }
-                    
-                    self?.conversations = conversations
                 }
-            }
+        }
     }
-
     
     func createConversation(participantOneId: String, participantTwoId: String, completion: @escaping (Bool, String?) -> Void) {
         let conversation = FirebaseConversation(
@@ -635,42 +720,48 @@ class FirebaseMessagesService: ObservableObject {
     @Published var errorMessage: String?
     
     func fetchMessages(for conversationId: String) {
+        guard !isLoading else { return }
+        
         isLoading = true
         errorMessage = nil
         
-        // Use one-time fetch for initial load to prevent blocking
-        db.collection("messages")
-            .whereField("conversationId", isEqualTo: conversationId)
-            .order(by: "createdAt", descending: false)
-            .limit(to: 100)  // Limit messages to most recent 100
-            .getDocuments { [weak self] querySnapshot, error in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    
-                    if let error = error {
-                        self?.errorMessage = error.localizedDescription
-                        // Load mock data as fallback
-                        self?.messages = self?.getMockMessages(for: conversationId) ?? []
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        self?.messages = []
-                        return
-                    }
-                    
-                    let messages = documents.compactMap { document -> FirebaseMessage? in
-                        do {
-                            return try document.data(as: FirebaseMessage.self)
-                        } catch {
-                            print("Error decoding message: \(error)")
-                            return nil
+        // Fetch in background with smaller batch size
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.db.collection("messages")
+                .whereField("conversationId", isEqualTo: conversationId)
+                .order(by: "createdAt", descending: false)
+                .limit(to: 50)  // Reduced from 100 to prevent blocking
+                .getDocuments { [weak self] querySnapshot, error in
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                        
+                        if let error = error {
+                            self?.errorMessage = error.localizedDescription
+                            print("❌ Error fetching messages: \(error.localizedDescription)")
+                            // Load mock data as fallback
+                            self?.messages = self?.getMockMessages(for: conversationId) ?? []
+                            return
                         }
+                        
+                        guard let documents = querySnapshot?.documents else {
+                            self?.messages = []
+                            return
+                        }
+                        
+                        let messages = documents.compactMap { document -> FirebaseMessage? in
+                            do {
+                                return try document.data(as: FirebaseMessage.self)
+                            } catch {
+                                print("⚠️ Error decoding message: \(error)")
+                                return nil
+                            }
+                        }
+                        
+                        self?.messages = messages
+                        print("✅ Successfully loaded \(messages.count) messages")
                     }
-                    
-                    self?.messages = messages
                 }
-            }
+        }
     }
     
     func sendMessage(conversationId: String, senderId: String, messageText: String, completion: @escaping (Bool, String?) -> Void) {

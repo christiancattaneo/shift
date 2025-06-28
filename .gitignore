@@ -91,11 +91,7 @@ iOSInjectionProject/
 
 # Environment Configuration
 # SECURITY: Always protect production configuration files
-Config-Release.xcconfig
-Config-Production.xcconfig
-
-# Keep development config for team sharing (uncomment next line if you want to protect it too)
-# Config-Debug.xcconfig
+# Note: Configuration files have been removed as app now uses Firebase exclusively
 
 # API Keys and Sensitive Data
 .env
