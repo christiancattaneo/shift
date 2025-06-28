@@ -18,7 +18,45 @@ struct MainTabView: View {
         let _ = print("🎯 MainTabView body: selectedTab=\(selectedTab), showModal=\(showSubscriptionModal)")
         let _ = print("🎯 MainTabView body: Thread=MAIN")
         
-        TabView(selection: $selectedTab) {
+        VStack(spacing: 0) {
+            // Debug tab selector overlay
+            HStack {
+                Button("Members(0)") {
+                    print("🔄 DEBUG: Manually setting tab to 0")
+                    selectedTab = 0
+                }
+                .background(selectedTab == 0 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+                
+                Button("Check-Ins(1)") {
+                    print("🔄 DEBUG: Manually setting tab to 1")
+                    selectedTab = 1
+                }
+                .background(selectedTab == 1 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+                
+                Button("Messages(2)") {
+                    print("🔄 DEBUG: Manually setting tab to 2")
+                    selectedTab = 2
+                }
+                .background(selectedTab == 2 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+                
+                Button("Profile(3)") {
+                    print("🔄 DEBUG: Manually setting tab to 3")
+                    selectedTab = 3
+                }
+                .background(selectedTab == 3 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+            }
+            .background(Color.yellow.opacity(0.3))
+            .padding(.top, 50) // Below status bar
+            
+            TabView(selection: $selectedTab) {
             NavigationStack {
                 MembersView()
                     .onAppear {
@@ -33,9 +71,6 @@ struct MainTabView: View {
                 Label("Members", systemImage: "person.2.fill")
             }
             .tag(0)
-            .onTapGesture {
-                print("👥 MEMBERS TAB ITEM TAPPED - should switch to tab 0")
-            }
 
             NavigationStack {
                 CheckInsView()
@@ -51,9 +86,6 @@ struct MainTabView: View {
                 Label("Check-Ins", systemImage: "mappin.and.ellipse")
             }
             .tag(1)
-            .onTapGesture {
-                print("📍 CHECKINS TAB ITEM TAPPED - should switch to tab 1")
-            }
 
             NavigationStack {
                 ConversationsListView()
@@ -69,9 +101,6 @@ struct MainTabView: View {
                 Label("Message", systemImage: "message.fill")
             }
             .tag(2)
-            .onTapGesture {
-                print("💬 MESSAGES TAB ITEM TAPPED - should switch to tab 2")
-            }
 
             NavigationStack {
                 ProfileView()
@@ -87,14 +116,18 @@ struct MainTabView: View {
                 Label("Profile", systemImage: "person.crop.circle.fill")
             }
             .tag(3)
-            .onTapGesture {
-                print("👤 PROFILE TAB ITEM TAPPED - should switch to tab 3")
-            }
         }
         .accentColor(.blue)
         .onChange(of: selectedTab) { oldValue, newValue in
-            print("🔄 Tab changed from \(oldValue) to \(newValue)")
+            print("🔄 🎯 TAB SELECTION CHANGED: \(oldValue) → \(newValue)")
             print("🔄 Tab change: Thread=MAIN")
+            switch newValue {
+            case 0: print("🔄 Now showing: Members tab")
+            case 1: print("🔄 Now showing: Check-Ins tab")
+            case 2: print("🔄 Now showing: Messages tab")
+            case 3: print("🔄 Now showing: Profile tab")
+            default: print("🔄 Unknown tab: \(newValue)")
+            }
         }
         .onAppear {
             print("🎯 MainTabView body appeared - modal state: \(showSubscriptionModal)")
@@ -108,16 +141,20 @@ struct MainTabView: View {
                     print("💰 SubscriptionModalView appeared")
                 }
         }
-        .onTapGesture {
-            print("🎯 MAIN TAB VIEW BACKGROUND TAPPED - UI should be responsive")
-        }
-        .gesture(
-            // Add a drag gesture to detect if gestures are working
-            DragGesture(minimumDistance: 20)
-                .onEnded { value in
-                    print("🎯 DRAG GESTURE DETECTED on MainTabView - direction: \(value.translation)")
+        .simultaneousGesture(
+            TapGesture()
+                .onEnded { _ in
+                    print("🎯 TABVIEW RECEIVED TAP - selectedTab is: \(selectedTab)")
                 }
         )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    print("🎯 DRAG GESTURE on TabView - direction: \(value.translation)")
+                                         print("🎯 Current selectedTab: \(selectedTab)")
+                  }
+          )
+        } // Close VStack
     }
 }
 

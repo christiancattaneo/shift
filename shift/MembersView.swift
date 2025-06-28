@@ -293,35 +293,65 @@ struct MemberCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Profile Image
-            AsyncImage(url: member.profileImageURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 150)
-                    .clipped()
-                    .onTapGesture {
-                        print("👥 MEMBER IMAGE TAPPED: \(member.firstName) - UI should be responsive")
-                    }
-            } placeholder: {
-                ZStack {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 150)
-                        .onTapGesture {
-                            print("👥 MEMBER PLACEHOLDER TAPPED: \(member.firstName) - UI should be responsive")
+            // Profile Image with detailed logging
+            AsyncImage(url: member.profileImageURL) { phase in
+                switch phase {
+                case .empty:
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 150)
+                        VStack {
+                            Image(systemName: "person.crop.circle")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray)
+                            Text("Loading...")
+                                .font(.caption)
+                                .foregroundColor(.gray)
                         }
-                    
-                    VStack {
-                        Image(systemName: "person.crop.circle")
+                    }
+                    .onAppear {
+                        print("🖼️ Image loading started for \(member.firstName)")
+                        print("🖼️ URL: \(member.profileImageURL?.absoluteString ?? "nil")")
+                    }
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 150)
+                        .clipped()
+                        .onAppear {
+                            print("✅ Image loaded successfully for \(member.firstName)")
+                        }
+                case .failure(let error):
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.red.opacity(0.2))
+                            .frame(height: 150)
+                        VStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 40))
+                                .foregroundColor(.red)
+                            Text("Failed to load")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .onAppear {
+                        print("❌ Image failed to load for \(member.firstName): \(error.localizedDescription)")
+                        print("❌ Failed URL: \(member.profileImageURL?.absoluteString ?? "nil")")
+                    }
+                @unknown default:
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 150)
+                        Image(systemName: "questionmark")
                             .font(.system(size: 40))
                             .foregroundColor(.gray)
-                        Text("Loading...")
-                            .font(.caption)
-                            .foregroundColor(.gray)
                     }
-                    .onTapGesture {
-                        print("👥 MEMBER LOADING PLACEHOLDER TAPPED: \(member.firstName) - UI should be responsive")
+                    .onAppear {
+                        print("❓ Unknown AsyncImage phase for \(member.firstName)")
                     }
                 }
             }

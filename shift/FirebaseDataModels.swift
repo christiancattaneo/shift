@@ -196,17 +196,20 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     var uniqueID: String {
         // Use Firebase document ID first (most stable)
         if let id = id, !id.isEmpty {
+            print("🆔 Using Firebase document ID for \(firstName): \(id)")
             return id
         }
         
         // Use userId if available
         if let userId = userId, !userId.isEmpty {
+            print("🆔 Using userId for \(firstName): \(userId)")
             return userId
         }
         
-        // Create a consistent fallback ID based on member data
-        // This will be the same every time for the same member
-        return "\(firstName.lowercased())_\(age ?? 0)_\(city?.lowercased().prefix(3) ?? "")_\(createdAt?.seconds ?? 0)"
+        // Create a more unique fallback ID to prevent collisions
+        let fallbackID = "\(firstName.lowercased())_\(age ?? 0)_\(city?.lowercased().prefix(3) ?? "none")_\(createdAt?.seconds ?? 0)_\(hashValue)"
+        print("🆔 Generated fallback ID for \(firstName): \(fallbackID)")
+        return fallbackID
     }
     
     // Convenience initializer
