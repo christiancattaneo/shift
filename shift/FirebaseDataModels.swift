@@ -194,7 +194,19 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     
     // Computed property to ensure unique ID for SwiftUI ForEach
     var uniqueID: String {
-        return id ?? userId ?? "\(firstName)_\(age ?? 0)_\(UUID().uuidString.prefix(8))"
+        // Use Firebase document ID first (most stable)
+        if let id = id, !id.isEmpty {
+            return id
+        }
+        
+        // Use userId if available
+        if let userId = userId, !userId.isEmpty {
+            return userId
+        }
+        
+        // Create a consistent fallback ID based on member data
+        // This will be the same every time for the same member
+        return "\(firstName.lowercased())_\(age ?? 0)_\(city?.lowercased().prefix(3) ?? "")_\(createdAt?.seconds ?? 0)"
     }
     
     // Convenience initializer
@@ -236,7 +248,22 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     
     // Computed property to ensure unique ID for SwiftUI ForEach
     var uniqueID: String {
-        return id ?? eventName ?? venueName ?? UUID().uuidString
+        // Use Firebase document ID first (most stable)
+        if let id = id, !id.isEmpty {
+            return id
+        }
+        
+        // Create a consistent fallback ID based on event data
+        if let eventName = eventName, !eventName.isEmpty {
+            return "\(eventName.lowercased())_\(venueName?.lowercased() ?? "")_\(createdAt?.seconds ?? 0)"
+        }
+        
+        if let venueName = venueName, !venueName.isEmpty {
+            return "\(venueName.lowercased())_\(createdAt?.seconds ?? 0)"
+        }
+        
+        // Last resort: use timestamp
+        return "event_\(createdAt?.seconds ?? 0)"
     }
     
     // Custom initializer for handling Firebase data
