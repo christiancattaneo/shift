@@ -18,45 +18,7 @@ struct MainTabView: View {
         let _ = print("🎯 MainTabView body: selectedTab=\(selectedTab), showModal=\(showSubscriptionModal)")
         let _ = print("🎯 MainTabView body: Thread=MAIN")
         
-        VStack(spacing: 0) {
-            // Debug tab selector overlay
-            HStack {
-                Button("Members(0)") {
-                    print("🔄 DEBUG: Manually setting tab to 0")
-                    selectedTab = 0
-                }
-                .background(selectedTab == 0 ? Color.blue : Color.gray)
-                .foregroundColor(.white)
-                .padding(4)
-                
-                Button("Check-Ins(1)") {
-                    print("🔄 DEBUG: Manually setting tab to 1")
-                    selectedTab = 1
-                }
-                .background(selectedTab == 1 ? Color.blue : Color.gray)
-                .foregroundColor(.white)
-                .padding(4)
-                
-                Button("Messages(2)") {
-                    print("🔄 DEBUG: Manually setting tab to 2")
-                    selectedTab = 2
-                }
-                .background(selectedTab == 2 ? Color.blue : Color.gray)
-                .foregroundColor(.white)
-                .padding(4)
-                
-                Button("Profile(3)") {
-                    print("🔄 DEBUG: Manually setting tab to 3")
-                    selectedTab = 3
-                }
-                .background(selectedTab == 3 ? Color.blue : Color.gray)
-                .foregroundColor(.white)
-                .padding(4)
-            }
-            .background(Color.yellow.opacity(0.3))
-            .padding(.top, 50) // Below status bar
-            
-            TabView(selection: $selectedTab) {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 MembersView()
                     .onAppear {
@@ -151,10 +113,9 @@ struct MainTabView: View {
             DragGesture(minimumDistance: 20)
                 .onEnded { value in
                     print("🎯 DRAG GESTURE on TabView - direction: \(value.translation)")
-                                         print("🎯 Current selectedTab: \(selectedTab)")
-                  }
-          )
-        } // Close VStack
+                    print("🎯 Current selectedTab: \(selectedTab)")
+                }
+        )
     }
 }
 

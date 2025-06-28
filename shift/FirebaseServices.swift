@@ -376,13 +376,27 @@ class FirebaseMembersService: ObservableObject {
                             return
                         }
                         
-                        // Process documents efficiently
+                        // Process documents efficiently  
                         let members = documents.compactMap { document -> FirebaseMember? in
                             do {
+                                // First try to decode as FirebaseMember directly from the document
+                                // This will properly map all Firebase fields including profileImageUrl
+                                if let member = try? document.data(as: FirebaseMember.self) {
+                                    return member
+                                }
+                                
+                                // Fallback: decode as FirebaseUser and convert
                                 let user = try document.data(as: FirebaseUser.self)
                                 guard let firstName = user.firstName, !firstName.isEmpty else { 
                                     return nil // This should be rare now due to the query filter
                                 }
+                                
+                                // Check for profileImageUrl directly from document data
+                                let data = document.data()
+                                let profileImageUrl = data["profileImageUrl"] as? String
+                                let firebaseImageUrl = data["firebaseImageUrl"] as? String
+                                
+                                print("🔍 User \(firstName): profileImageUrl=\(profileImageUrl ?? "nil"), profilePhoto=\(user.profilePhoto ?? "nil")")
                                 
                                 return FirebaseMember(
                                     userId: user.id,
@@ -392,7 +406,9 @@ class FirebaseMembersService: ObservableObject {
                                     attractedTo: user.attractedTo,
                                     approachTip: user.howToApproachMe,
                                     instagramHandle: user.instagramHandle,
-                                    profileImage: user.profilePhoto
+                                    profileImage: user.profilePhoto,
+                                    profileImageUrl: profileImageUrl,
+                                    firebaseImageUrl: firebaseImageUrl
                                 )
                             } catch {
                                 // Log error but continue processing

@@ -196,24 +196,25 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     var uniqueID: String {
         // Use Firebase document ID first (most stable)
         if let id = id, !id.isEmpty {
-            print("🆔 Using Firebase document ID for \(firstName): \(id)")
             return id
         }
         
         // Use userId if available
         if let userId = userId, !userId.isEmpty {
-            print("🆔 Using userId for \(firstName): \(userId)")
             return userId
         }
         
-        // Create a more unique fallback ID to prevent collisions
-        let fallbackID = "\(firstName.lowercased())_\(age ?? 0)_\(city?.lowercased().prefix(3) ?? "none")_\(createdAt?.seconds ?? 0)_\(hashValue)"
-        print("🆔 Generated fallback ID for \(firstName): \(fallbackID)")
-        return fallbackID
+        // Create a stable fallback ID without using hashValue
+        // This ensures the same member always gets the same ID
+        let nameHash = abs(firstName.lowercased().hashValue) % 10000
+        let cityHash = abs((city?.lowercased() ?? "").hashValue) % 1000
+        let timeHash = abs(Int(createdAt?.seconds ?? 0)) % 10000
+        
+        return "member_\(nameHash)_\(age ?? 0)_\(cityHash)_\(timeHash)"
     }
     
     // Convenience initializer
-    init(userId: String? = nil, firstName: String, age: Int? = nil, city: String? = nil, attractedTo: String? = nil, approachTip: String? = nil, instagramHandle: String? = nil, profileImage: String? = nil) {
+    init(userId: String? = nil, firstName: String, age: Int? = nil, city: String? = nil, attractedTo: String? = nil, approachTip: String? = nil, instagramHandle: String? = nil, profileImage: String? = nil, profileImageUrl: String? = nil, firebaseImageUrl: String? = nil) {
         // Don't set self.id - @DocumentID is managed by Firestore
         self.userId = userId
         self.firstName = firstName
@@ -223,8 +224,8 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
         self.approachTip = approachTip
         self.instagramHandle = instagramHandle
         self.profileImage = profileImage
-        self.profileImageUrl = nil  // Initialize new Firebase Storage fields
-        self.firebaseImageUrl = nil
+        self.profileImageUrl = profileImageUrl
+        self.firebaseImageUrl = firebaseImageUrl
         self.isActive = true
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()

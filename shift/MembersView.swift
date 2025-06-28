@@ -177,9 +177,6 @@ struct MembersView: View {
                                     .onTapGesture {
                                         print("👥 MEMBER CARD TAPPED: \(member.firstName) - UI should be responsive")
                                     }
-                                    .onAppear {
-                                        print("👥 Member card appeared: \(member.firstName)")
-                                    }
                             }
                         }
                         .onAppear {
@@ -310,19 +307,12 @@ struct MemberCardView: View {
                                 .foregroundColor(.gray)
                         }
                     }
-                    .onAppear {
-                        print("🖼️ Image loading started for \(member.firstName)")
-                        print("🖼️ URL: \(member.profileImageURL?.absoluteString ?? "nil")")
-                    }
                 case .success(let image):
                     image
                         .resizable()
                         .scaledToFill()
                         .frame(height: 150)
                         .clipped()
-                        .onAppear {
-                            print("✅ Image loaded successfully for \(member.firstName)")
-                        }
                 case .failure(let error):
                     ZStack {
                         Rectangle()
