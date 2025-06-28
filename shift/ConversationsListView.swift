@@ -89,7 +89,7 @@ struct ConversationsListView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Custom Header
                 VStack(spacing: 15) {
@@ -232,7 +232,6 @@ struct ConversationsListView: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationBarHidden(true)
         }
         .sheet(isPresented: $showingNewMessage) {
             NewMessageRecipientView(

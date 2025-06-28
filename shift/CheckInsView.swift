@@ -30,8 +30,7 @@ struct CheckInsView: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Custom Header
                 VStack(spacing: 15) {
                     HStack {
@@ -95,8 +94,6 @@ struct CheckInsView: View {
                     .listStyle(PlainListStyle())
                 }
             }
-            .navigationBarHidden(true)
-        }
         .onAppear {
             eventsService.fetchEvents()
             checkInsService.fetchCheckIns()

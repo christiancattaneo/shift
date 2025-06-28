@@ -11,7 +11,7 @@ struct ProfileView: View {
     @State private var isLoading = true
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Profile Header Section
@@ -128,7 +128,6 @@ struct ProfileView: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationBarHidden(true)
         }
         .onAppear {
             loadUserMemberProfile()

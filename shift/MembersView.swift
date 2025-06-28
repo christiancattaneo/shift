@@ -24,8 +24,7 @@ struct MembersView: View {
     ]
 
     var body: some View {
-        NavigationView { // Each tab can have its own NavigationView if needed
-            ScrollView {
+        ScrollView {
                 VStack(alignment: .leading, spacing: 15) {
                     // Header
                     HStack {
@@ -164,8 +163,6 @@ struct MembersView: View {
                 }
                 .padding()
             }
-            .navigationBarHidden(true) // Hide default nav bar for custom header
-        }
         .onAppear {
             membersService.fetchMembers()
         }
