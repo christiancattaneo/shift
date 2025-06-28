@@ -20,9 +20,15 @@ class FirebaseUserSession: ObservableObject {
     private var isLoadingUserData = false  // Prevent redundant user data loads
     
     private init() {
+        print("🔐 FirebaseUserSession init: Thread=MAIN")
+        
         // Listen for auth state changes
         authStateListener = auth.addStateDidChangeListener { [weak self] _, user in
+            print("🔐 Auth state changed: user=\(user?.uid ?? "nil")")
+            print("🔐 Auth state change: Thread=BACKGROUND")
+            
             DispatchQueue.main.async {
+                print("🔐 Processing auth state change on main thread")
                 if let user = user {
                     print("🔐 Firebase auth state: User signed in (\(user.uid))")
                     self?.loadUserDataIfNeeded(uid: user.uid)
@@ -36,10 +42,13 @@ class FirebaseUserSession: ObservableObject {
         }
         
         // Check current auth state immediately
+        print("🔐 Checking current auth state immediately")
         checkCurrentAuthState()
     }
     
     private func checkCurrentAuthState() {
+        print("🔐 checkCurrentAuthState: Thread=MAIN")
+        
         if let currentUser = auth.currentUser {
             print("🔐 Found existing authenticated user: \(currentUser.uid)")
             loadUserDataIfNeeded(uid: currentUser.uid)
@@ -50,29 +59,38 @@ class FirebaseUserSession: ObservableObject {
     }
     
     deinit {
+        print("🔐 FirebaseUserSession deinit")
         if let listener = authStateListener {
             auth.removeStateDidChangeListener(listener)
         }
     }
     
     func signUp(email: String, password: String, firstName: String, completion: @escaping (Bool, String?) -> Void) {
+        print("🔐 Starting signUp: Thread=MAIN")
         isLoading = true
         errorMessage = nil
         
         auth.createUser(withEmail: email, password: password) { [weak self] result, error in
+            print("🔐 SignUp auth response: Thread=BACKGROUND")
+            
             DispatchQueue.main.async {
+                print("🔐 Processing signUp response on main thread")
                 self?.isLoading = false
                 
                 if let error = error {
+                    print("🔐 SignUp error: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
                     completion(false, error.localizedDescription)
                     return
                 }
                 
                 guard let uid = result?.user.uid else {
+                    print("🔐 SignUp error: Failed to get user ID")
                     completion(false, "Failed to get user ID")
                     return
                 }
+                
+                print("🔐 SignUp success, creating user document for UID: \(uid)")
                 
                 // Create user document in Firestore
                 let newUser = FirebaseUser(
@@ -81,6 +99,7 @@ class FirebaseUserSession: ObservableObject {
                 )
                 
                 self?.createUserDocument(user: newUser, uid: uid) { success, error in
+                    print("🔐 User document creation result: success=\(success), error=\(error ?? "none")")
                     completion(success, error)
                 }
             }
@@ -88,42 +107,58 @@ class FirebaseUserSession: ObservableObject {
     }
     
     func signIn(email: String, password: String, completion: @escaping (Bool, String?) -> Void) {
+        print("🔐 Starting signIn: Thread=MAIN")
         isLoading = true
         errorMessage = nil
         
         auth.signIn(withEmail: email, password: password) { [weak self] result, error in
+            print("🔐 SignIn auth response: Thread=BACKGROUND")
+            
             DispatchQueue.main.async {
+                print("🔐 Processing signIn response on main thread")
                 self?.isLoading = false
                 
                 if let error = error {
+                    print("🔐 SignIn error: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
                     completion(false, error.localizedDescription)
                     return
                 }
                 
+                print("🔐 SignIn success")
                 completion(true, nil)
             }
         }
     }
     
     func signOut() {
+        print("🔐 Starting signOut: Thread=MAIN")
+        
         do {
             try auth.signOut()
+            print("🔐 SignOut success")
             currentUser = nil
             isLoggedIn = false
         } catch {
+            print("🔐 SignOut error: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
     
     private func createUserDocument(user: FirebaseUser, uid: String, completion: @escaping (Bool, String?) -> Void) {
+        print("🔐 Creating user document: uid=\(uid), Thread=MAIN")
         
         do {
             try db.collection("users").document(uid).setData(from: user) { error in
+                print("🔐 User document creation response: Thread=BACKGROUND")
+                
                 DispatchQueue.main.async {
+                    print("🔐 Processing user document creation on main thread")
                     if let error = error {
+                        print("🔐 User document creation error: \(error.localizedDescription)")
                         completion(false, error.localizedDescription)
                     } else {
+                        print("🔐 User document created successfully")
                         self.currentUser = user
                         self.isLoggedIn = true
                         completion(true, nil)
@@ -131,11 +166,14 @@ class FirebaseUserSession: ObservableObject {
                 }
             }
         } catch {
+            print("🔐 User document creation encoding error: \(error.localizedDescription)")
             completion(false, error.localizedDescription)
         }
     }
     
     private func loadUserDataIfNeeded(uid: String) {
+        print("🔐 loadUserDataIfNeeded: uid=\(uid), isLoading=\(isLoadingUserData), Thread=MAIN")
+        
         // Prevent redundant calls if already loading or user data already exists
         guard !isLoadingUserData else {
             print("📋 Skipping loadUserData - already in progress")
@@ -153,9 +191,15 @@ class FirebaseUserSession: ObservableObject {
         print("📋 Loading user data for UID: \(uid)")
         
         // Load in background to prevent UI blocking
+        print("🔐 Starting background user data fetch")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            print("🔐 Background user data fetch: Thread=BACKGROUND")
+            
             self?.db.collection("users").document(uid).getDocument { [weak self] document, error in
+                print("🔐 User data fetch response: Thread=BACKGROUND")
+                
                 DispatchQueue.main.async {
+                    print("🔐 Processing user data fetch response on main thread")
                     self?.isLoadingUserData = false
                     
                     if let error = error {
@@ -175,6 +219,7 @@ class FirebaseUserSession: ObservableObject {
                         print("✅ User data loaded successfully: \(user.firstName ?? "Unknown")")
                         self?.currentUser = user
                         self?.isLoggedIn = true
+                        print("🔐 Set isLoggedIn=true, should trigger UI update")
                     } catch {
                         print("❌ Error decoding user data: \(error.localizedDescription)")
                         self?.errorMessage = error.localizedDescription
@@ -185,33 +230,49 @@ class FirebaseUserSession: ObservableObject {
     }
     
     func updateUserProfile(_ user: FirebaseUser, completion: @escaping (Bool, String?) -> Void) {
+        print("🔐 Updating user profile: Thread=MAIN")
+        
         guard let uid = user.id else {
+            print("🔐 Update profile error: Invalid user ID")
             completion(false, "Invalid user ID")
             return
         }
         
         do {
             try db.collection("users").document(uid).setData(from: user, merge: true) { error in
+                print("🔐 Update profile response: Thread=BACKGROUND")
+                
                 DispatchQueue.main.async {
+                    print("🔐 Processing update profile response on main thread")
                     if let error = error {
+                        print("🔐 Update profile error: \(error.localizedDescription)")
                         completion(false, error.localizedDescription)
                     } else {
+                        print("🔐 Update profile success")
                         self.currentUser = user
                         completion(true, nil)
                     }
                 }
             }
         } catch {
+            print("🔐 Update profile encoding error: \(error.localizedDescription)")
             completion(false, error.localizedDescription)
         }
     }
     
     func resetPassword(email: String, completion: @escaping (Bool, String?) -> Void) {
+        print("🔐 Starting password reset: Thread=MAIN")
+        
         auth.sendPasswordReset(withEmail: email) { error in
+            print("🔐 Password reset response: Thread=BACKGROUND")
+            
             DispatchQueue.main.async {
+                print("🔐 Processing password reset response on main thread")
                 if let error = error {
+                    print("🔐 Password reset error: \(error.localizedDescription)")
                     completion(false, error.localizedDescription)
                 } else {
+                    print("🔐 Password reset success")
                     completion(true, nil)
                 }
             }
@@ -220,6 +281,7 @@ class FirebaseUserSession: ObservableObject {
     
     func loadSavedUser() {
         print("🔄 loadSavedUser() called - checking Firebase Auth persistence...")
+        print("🔄 loadSavedUser: Thread=MAIN")
         
         // Firebase Auth automatically handles persistence
         if let currentUser = auth.currentUser {
@@ -235,6 +297,8 @@ class FirebaseUserSession: ObservableObject {
 
 // MARK: - Firebase Members Service
 class FirebaseMembersService: ObservableObject {
+    static let shared = FirebaseMembersService()
+    
     private let db = Firestore.firestore()
     
     @Published var members: [FirebaseMember] = []
@@ -245,6 +309,10 @@ class FirebaseMembersService: ObservableObject {
     private var cachedMembers: [FirebaseMember] = []
     private var cacheTimestamp: Date?
     private let cacheValidDuration: TimeInterval = 300 // 5 minutes cache
+    
+    private init() {
+        print("👥 FirebaseMembersService singleton initialized")
+    }
     
     // Force refresh bypassing cache
     func refreshMembers() {

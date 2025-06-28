@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Untitled (282 x 421 px) (15).png",
+      "filename" : "shiftlogo.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "shiftlogo.png",
+      "filename" : "shiftlogo 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "shiftlogo 1.png",
+      "filename" : "shiftlogo 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

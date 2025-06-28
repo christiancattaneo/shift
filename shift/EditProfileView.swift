@@ -15,7 +15,7 @@ struct EditProfileView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
-    @StateObject private var membersService = FirebaseMembersService()
+    @ObservedObject private var membersService = FirebaseMembersService.shared
     @StateObject private var userSession = FirebaseUserSession.shared
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme

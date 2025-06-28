@@ -6,7 +6,7 @@ struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @StateObject private var userSession = FirebaseUserSession.shared
-    @StateObject private var membersService = FirebaseMembersService()
+    @ObservedObject private var membersService = FirebaseMembersService.shared
     @State private var userMember: FirebaseMember?
     @State private var isLoading = true
     

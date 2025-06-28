@@ -43,7 +43,7 @@ struct ConversationsListView: View {
     @State private var searchText = ""
     @State private var showingNewMessage = false
     @StateObject private var conversationsService = FirebaseConversationsService()
-    @StateObject private var membersService = FirebaseMembersService()
+    @ObservedObject private var membersService = FirebaseMembersService.shared
     @Environment(\.colorScheme) var colorScheme
     
     var filteredConversations: [FirebaseConversation] {
