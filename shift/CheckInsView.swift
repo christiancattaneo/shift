@@ -389,7 +389,7 @@ struct CheckInsView: View {
     
     private var eventsListSection: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 16) {
                 ForEach(filteredEvents, id: \.uniqueID) { event in
                     EventCardView(
                         event: event,
@@ -400,12 +400,15 @@ struct CheckInsView: View {
                             selectedEvent = event
                         }
                     )
+                    .id(event.uniqueID)
+                    .animation(.none, value: event.uniqueID)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 16)
         }
+        .clipped()
     }
     
     // MARK: - Helper Functions
@@ -442,7 +445,7 @@ struct EventCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Event Image Header
+            // Event Image Header - Only this should be tappable for card navigation
             ZStack(alignment: .topTrailing) {
                 CachedAsyncImage(url: event.imageURL) { image in
                     image
@@ -454,7 +457,9 @@ struct EventCardView: View {
                     eventImagePlaceholder
                 }
                 .cornerRadius(16, corners: [.topLeft, .topRight])
+                .contentShape(Rectangle()) // Ensure tap area is well-defined
                 .onTapGesture {
+                    print("🎯 Image tapped for event: \(event.name)")
                     onCardTap()
                 }
                 
@@ -475,8 +480,9 @@ struct EventCardView: View {
                 }
             }
             
-            // Event Details
+            // Event Details - No tap gesture here
             VStack(spacing: 12) {
+                // Event Info Section - Tappable area for navigation
                 VStack(alignment: .leading, spacing: 6) {
                     Text(event.name)
                         .font(.headline)
@@ -504,12 +510,17 @@ struct EventCardView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle()) // Ensure tap area is well-defined
                 .onTapGesture {
+                    print("🎯 Info section tapped for event: \(event.name)")
                     onCardTap()
                 }
                 
-                // Check-in Button  
-                Button(action: toggleCheckIn) {
+                // Check-in Button - Isolated with exclusive gesture
+                Button(action: {
+                    print("🎯 Check-in button tapped for event: \(event.name)")
+                    toggleCheckIn()
+                }) {
                     HStack(spacing: 6) {
                         if isProcessing {
                             ProgressView()
@@ -525,7 +536,7 @@ struct EventCardView: View {
                     }
                     .foregroundColor(isCheckedIn ? .white : .blue)
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
                     .background(
                         isCheckedIn ? 
                             LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing) :
@@ -536,8 +547,10 @@ struct EventCardView: View {
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(isCheckedIn ? Color.clear : Color.blue.opacity(0.3), lineWidth: 1)
                     )
-                    .disabled(isProcessing)
                 }
+                .disabled(isProcessing)
+                .buttonStyle(PlainButtonStyle()) // Prevents default button styling
+                .contentShape(RoundedRectangle(cornerRadius: 20)) // Ensure button tap area is exclusive
             }
             .padding(16)
         }
@@ -558,13 +571,18 @@ struct EventCardView: View {
             return
         }
         
-        guard !isProcessing else { return }
+        guard !isProcessing else { 
+            print("⚠️ Check-in already in progress")
+            return 
+        }
         
+        print("🎯 Starting check-in process for user \(userId) at event \(eventId)")
         Haptics.lightImpact()
         isProcessing = true
         
         if isCheckedIn {
             // Check out
+            print("🔄 Checking out...")
             checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
                 DispatchQueue.main.async {
                     self.isProcessing = false
@@ -581,6 +599,7 @@ struct EventCardView: View {
             }
         } else {
             // Check in
+            print("🔄 Checking in...")
             checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
                 DispatchQueue.main.async {
                     self.isProcessing = false
@@ -602,22 +621,28 @@ struct EventCardView: View {
         guard let currentUser = FirebaseUserSession.shared.currentUser,
               let userId = currentUser.id,
               let eventId = event.id else {
+            print("⚠️ Cannot check user check-in status: Missing user or event ID")
             return
         }
         
         checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { isCheckedIn in
             DispatchQueue.main.async {
                 self.isCheckedIn = isCheckedIn
+                print("📊 User check-in status loaded: \(isCheckedIn ? "checked in" : "not checked in")")
             }
         }
     }
     
     private func loadCheckInCount() {
-        guard let eventId = event.id else { return }
+        guard let eventId = event.id else { 
+            print("⚠️ Cannot load check-in count: Missing event ID")
+            return 
+        }
         
         checkInsService.getCheckInCount(for: eventId) { count in
             DispatchQueue.main.async {
                 self.checkInCount = count
+                print("📊 Check-in count loaded: \(count)")
             }
         }
     }
