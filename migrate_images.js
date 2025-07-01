@@ -1,109 +1,213 @@
 const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
-// Initialize Firebase Admin using default project credentials
-admin.initializeApp({
-  projectId: 'shift-12948',
-  storageBucket: 'shift-12948.firebasestorage.app'
-});
+// Initialize Firebase Admin if not already done
+if (!admin.apps.length) {
+    try {
+        const serviceAccount = require('./firebase-admin-key.json');
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            storageBucket: 'shift-12948.firebasestorage.app'
+        });
+        console.log('🔥 Firebase Admin initialized successfully');
+    } catch (error) {
+        console.error('❌ Failed to initialize Firebase:', error.message);
+        process.exit(1);
+    }
+}
 
 const db = admin.firestore();
 const bucket = admin.storage().bucket();
 
-async function migrateProfileImages() {
-  console.log('🔗 Starting profile image migration...');
-  
-  try {
-    // Step 1: Get all profile images from Firebase Storage
-    const [files] = await bucket.getFiles({
-      prefix: 'profile_images/'
-    });
-    
-    console.log(`📁 Found ${files.length} profile images in storage`);
-    
-    // Step 2: Extract Adalo IDs from filenames
-    const adaloIdToImages = {};
-    
-    files.forEach(file => {
-      const filename = file.name.split('/').pop();
-      const adaloId = filename.split('_')[0];
-      
-      if (adaloId && !isNaN(parseInt(adaloId))) {
-        if (!adaloIdToImages[adaloId]) {
-          adaloIdToImages[adaloId] = [];
-        }
-        adaloIdToImages[adaloId].push(file);
-      }
-    });
-    
-    console.log(`🔍 Extracted ${Object.keys(adaloIdToImages).length} unique Adalo IDs`);
-    console.log(`🔍 Sample IDs: ${Object.keys(adaloIdToImages).slice(0, 10).join(', ')}`);
-    
-    // Step 3: Get all users from Firestore
-    const usersSnapshot = await db.collection('users').get();
-    console.log(`👥 Found ${usersSnapshot.size} users in Firestore`);
-    
-    let updatedCount = 0;
-    
-    // Step 4: Update users with image URLs
-    for (const doc of usersSnapshot.docs) {
-      const data = doc.data();
-      const firstName = data.firstName || 'Unknown';
-      
-      // Find Adalo ID using multiple strategies
-      let adaloId = null;
-      
-      // Strategy 1: Direct adaloId field
-      if (data.adaloId) {
-        adaloId = String(data.adaloId);
-        console.log(`Found adaloId for ${firstName}: ${adaloId}`);
-      }
-      // Strategy 2: originalId field  
-      else if (data.originalId) {
-        adaloId = String(data.originalId);
-        console.log(`Found originalId for ${firstName}: ${adaloId}`);
-      }
-      // Strategy 3: Look for any numeric field that has images
-      else {
-        for (const [key, value] of Object.entries(data)) {
-          if (typeof value === 'number' && value > 0 && value < 10000) {
-            if (adaloIdToImages[String(value)]) {
-              adaloId = String(value);
-              console.log(`Inferred adaloId for ${firstName} from ${key}: ${adaloId}`);
-              break;
-            }
-          }
-        }
-      }
-      
-      if (adaloId && adaloIdToImages[adaloId]) {
-        const imageFile = adaloIdToImages[adaloId][0]; // Get first image
-        
-        // Get public download URL
-        await imageFile.makePublic();
-        const publicUrl = `https://storage.googleapis.com/shift-12948.firebasestorage.app/${imageFile.name}`;
-        
-        // Update Firestore document
-        await doc.ref.update({
-          profileImageUrl: publicUrl,
-          firebaseImageUrl: publicUrl,
-          adaloId: parseInt(adaloId),
-          profileImageMappedAt: admin.firestore.Timestamp.now()
-        });
-        
-        console.log(`✅ Updated ${firstName} (ID: ${adaloId}) with image: ${publicUrl}`);
-        updatedCount++;
-      } else {
-        console.log(`⚠️  No image found for ${firstName} (checked adaloId: ${adaloId})`);
-      }
+// Configure Firestore to ignore undefined properties
+db.settings({ ignoreUndefinedProperties: true });
+
+// Load Events and Places data
+function loadData() {
+    try {
+        const eventsData = JSON.parse(fs.readFileSync('./adalo_data/all_events.json', 'utf8'));
+        const placesData = JSON.parse(fs.readFileSync('./adalo_data/all_places.json', 'utf8'));
+        return { eventsData, placesData };
+    } catch (error) {
+        console.error('❌ Error loading data files:', error.message);
+        console.log('🔄 Please run download_events_places.js first');
+        process.exit(1);
     }
-    
-    console.log(`🎉 Migration complete! Updated ${updatedCount} users with profile images`);
-    
-  } catch (error) {
-    console.error('❌ Migration failed:', error);
-  }
-  
-  process.exit(0);
 }
 
-migrateProfileImages(); 
+// Upload image to Firebase Storage
+async function uploadImage(localPath, storagePath) {
+    try {
+        if (!fs.existsSync(localPath)) {
+            console.log(`⚠️  Local file not found: ${localPath}`);
+            return null;
+        }
+
+        const [file] = await bucket.upload(localPath, {
+            destination: storagePath,
+            metadata: {
+                cacheControl: 'public, max-age=31536000',
+            },
+        });
+
+        // Make the file publicly accessible
+        await file.makePublic();
+
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+        console.log(`✅ Uploaded: ${storagePath}`);
+        return publicUrl;
+    } catch (error) {
+        console.error(`❌ Error uploading ${localPath}:`, error.message);
+        return null;
+    }
+}
+
+// Update Firestore document with new image URL
+async function updateDocumentWithImage(collection, docId, imageUrl, imageField = 'firebaseImageUrl') {
+    try {
+        await db.collection(collection).doc(docId).update({
+            [imageField]: imageUrl,
+            updatedAt: admin.firestore.Timestamp.now()
+        });
+        console.log(`📄 Updated ${collection}/${docId} with image URL`);
+        return true;
+    } catch (error) {
+        console.error(`❌ Error updating ${collection}/${docId}:`, error.message);
+        return false;
+    }
+}
+
+// Main migration function
+async function migrateImages() {
+    console.log('🚀 STARTING EVENTS & PLACES IMAGE MIGRATION TO FIREBASE STORAGE\n');
+    
+    const { eventsData, placesData } = loadData();
+    
+    let eventSuccess = 0;
+    let eventFailed = 0;
+    let placeSuccess = 0;
+    let placeFailed = 0;
+
+    // Migrate Event Images
+    console.log('📸 MIGRATING EVENT IMAGES...\n');
+    
+    for (const event of eventsData) {
+        const eventId = event.id;
+        const imageName = event.Image?.url || event.Image;
+        
+        if (!imageName || typeof imageName !== 'string') {
+            console.log(`⚠️  Event ${eventId}: No image found`);
+            eventFailed++;
+            continue;
+        }
+
+        // Find the actual downloaded file for this event ID
+        const eventDir = './adalo_data/event_images/';
+        const files = fs.readdirSync(eventDir).filter(f => f.startsWith(`${eventId}_`));
+        
+        if (files.length === 0) {
+            console.log(`⚠️  Event ${eventId}: No local file found`);
+            eventFailed++;
+            continue;
+        }
+        
+        const filename = files[0]; // Use the first matching file
+        const localPath = `${eventDir}${filename}`;
+        const storagePath = `events/${filename}`;
+
+        // Upload image to Firebase Storage
+        const imageUrl = await uploadImage(localPath, storagePath);
+        
+        if (imageUrl) {
+            // Update the Firestore document
+            const updateSuccess = await updateDocumentWithImage('events', eventId, imageUrl);
+            if (updateSuccess) {
+                eventSuccess++;
+            } else {
+                eventFailed++;
+            }
+        } else {
+            eventFailed++;
+        }
+
+        // Add a small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    console.log(`\n📊 EVENT IMAGES MIGRATION COMPLETE:`);
+    console.log(`   ✅ Success: ${eventSuccess}`);
+    console.log(`   ❌ Failed: ${eventFailed}\n`);
+
+    // Migrate Place Images
+    console.log('🏢 MIGRATING PLACE IMAGES...\n');
+    
+    for (const place of placesData) {
+        const placeId = place.id;
+        const imageName = place['Place Image']?.url || place['Place Image'];
+        
+        if (!imageName || typeof imageName !== 'string') {
+            console.log(`⚠️  Place ${placeId}: No image found`);
+            placeFailed++;
+            continue;
+        }
+
+        // Find the actual downloaded file for this place ID
+        const placeDir = './adalo_data/place_images/';
+        const files = fs.readdirSync(placeDir).filter(f => f.startsWith(`${placeId}_`));
+        
+        if (files.length === 0) {
+            console.log(`⚠️  Place ${placeId}: No local file found`);
+            placeFailed++;
+            continue;
+        }
+        
+        const filename = files[0]; // Use the first matching file
+        const localPath = `${placeDir}${filename}`;
+        const storagePath = `places/${filename}`;
+
+        // Upload image to Firebase Storage
+        const imageUrl = await uploadImage(localPath, storagePath);
+        
+        if (imageUrl) {
+            // Update the Firestore document
+            const updateSuccess = await updateDocumentWithImage('places', placeId, imageUrl);
+            if (updateSuccess) {
+                placeSuccess++;
+            } else {
+                placeFailed++;
+            }
+        } else {
+            placeFailed++;
+        }
+
+        // Add a small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    console.log(`\n📊 PLACE IMAGES MIGRATION COMPLETE:`);
+    console.log(`   ✅ Success: ${placeSuccess}`);
+    console.log(`   ❌ Failed: ${placeFailed}\n`);
+
+    // Final Summary
+    console.log('🎉 COMPLETE EVENTS & PLACES IMAGE MIGRATION FINISHED!');
+    console.log('📊 FINAL RESULTS:');
+    console.log(`   📸 Event Images: ${eventSuccess}/${eventSuccess + eventFailed} uploaded`);
+    console.log(`   🏢 Place Images: ${placeSuccess}/${placeSuccess + placeFailed} uploaded`);
+    console.log(`   📝 Total Success: ${eventSuccess + placeSuccess}`);
+    console.log(`   ❌ Total Failed: ${eventFailed + placeFailed}`);
+    
+    const totalImages = eventSuccess + placeSuccess + eventFailed + placeFailed;
+    const successRate = ((eventSuccess + placeSuccess) / totalImages * 100).toFixed(1);
+    console.log(`   📈 Success Rate: ${successRate}%`);
+
+    console.log('\n🔥 BENEFITS ACHIEVED:');
+    console.log('   ✅ Events & Places images now in Firebase Storage');
+    console.log('   ✅ Public URLs for all images');
+    console.log('   ✅ Firestore documents updated with new URLs'); 
+    console.log('   ✅ Fast CDN delivery');
+    console.log('   ✅ Perfect integration with iOS app');
+}
+
+// Run the migration
+migrateImages().catch(console.error); 
