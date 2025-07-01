@@ -1,6 +1,5 @@
 import SwiftUI
-
-
+import FirebaseFirestore
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
@@ -9,6 +8,7 @@ struct ProfileView: View {
     @ObservedObject private var membersService = FirebaseMembersService.shared
     @State private var userMember: FirebaseMember?
     @State private var isLoading = true
+    @State private var currentUserImageUrl: String?
     
     var body: some View {
         NavigationStack {
@@ -16,9 +16,9 @@ struct ProfileView: View {
                 VStack(spacing: 20) {
                     // Profile Header Section
                     VStack(spacing: 15) {
-                        // Profile Image
-                        if let profileImage = userSession.currentUser?.profilePhoto, !profileImage.isEmpty {
-                            AsyncImage(url: URL(string: profileImage)) { image in
+                        // Profile Image - Now using migrated data
+                        if let imageUrl = currentUserImageUrl, !imageUrl.isEmpty {
+                            AsyncImage(url: URL(string: imageUrl)) { image in
                                 image
                                     .resizable()
                                     .scaledToFill()
@@ -30,12 +30,35 @@ struct ProfileView: View {
                             }
                             .frame(width: 120, height: 120)
                             .clipShape(Circle())
+                            .onAppear {
+                                print("🖼️ ProfileView: Loading image URL: \(imageUrl)")
+                            }
+                        } else if let legacyPhoto = userSession.currentUser?.profilePhoto, !legacyPhoto.isEmpty {
+                            // Fallback to legacy profile photo
+                            AsyncImage(url: URL(string: legacyPhoto)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
+                            .onAppear {
+                                print("🖼️ ProfileView: Using legacy photo: \(legacyPhoto)")
+                            }
                         } else {
                             Image(systemName: "person.crop.circle.fill")
                                 .resizable()
                                 .scaledToFit()
                                 .foregroundColor(.gray)
                                 .frame(width: 120, height: 120)
+                                .onAppear {
+                                    print("🖼️ ProfileView: No image URL available - currentUserImageUrl: \(currentUserImageUrl ?? "nil"), legacyPhoto: \(userSession.currentUser?.profilePhoto ?? "nil")")
+                                }
                         }
                         
                         // User Name
@@ -140,18 +163,76 @@ struct ProfileView: View {
             return
         }
         
+        print("🔍 ProfileView: Loading profile for user: \(currentUser.firstName ?? "Unknown")")
+        
+        // First, load the current user's updated document to get migrated image URL
+        Task {
+            await loadCurrentUserImageUrl()
+        }
+        
         // Fetch the user's member profile
         membersService.fetchMembers()
         
         // Find the member profile for the current user
-        // This assumes you have a way to link users to members (by user ID or email)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            // For now, try to find by first name match
-            // In a real app, you'd want a proper user ID relationship
-            userMember = membersService.members.first { member in
-                member.firstName.lowercased() == currentUser.firstName?.lowercased()
+            // Try to find by Firebase document ID first (most reliable)
+            if let userId = currentUser.id {
+                userMember = membersService.members.first { member in
+                    member.id == userId || member.userId == userId
+                }
             }
+            
+            // Fallback: find by first name match
+            if userMember == nil {
+                userMember = membersService.members.first { member in
+                    member.firstName.lowercased() == currentUser.firstName?.lowercased()
+                }
+            }
+            
+            print("🔍 ProfileView: Found user member: \(userMember?.firstName ?? "nil")")
+            if let userMember = userMember {
+                print("🔍 ProfileView: Member image URLs - profileImageUrl: \(userMember.profileImageUrl ?? "nil"), firebaseImageUrl: \(userMember.firebaseImageUrl ?? "nil")")
+                
+                // Use the member's image URL if current user doesn't have one
+                if currentUserImageUrl == nil {
+                    currentUserImageUrl = userMember.profileImageUrl ?? userMember.firebaseImageUrl
+                    print("🔍 ProfileView: Using member image URL: \(currentUserImageUrl ?? "nil")")
+                }
+            }
+            
             isLoading = false
+        }
+    }
+    
+    private func loadCurrentUserImageUrl() async {
+        guard let currentUser = userSession.currentUser,
+              let userId = currentUser.id else { return }
+        
+        print("🔍 ProfileView: Loading current user document for migrated image URL")
+        
+        // Load the user's document directly to get migrated fields
+        do {
+            let db = Firestore.firestore()
+            let document = try await db.collection("users").document(userId).getDocument()
+            
+            if document.exists {
+                let data = document.data()
+                let profileImageUrl = data?["profileImageUrl"] as? String
+                let firebaseImageUrl = data?["firebaseImageUrl"] as? String
+                let profilePhoto = data?["profilePhoto"] as? String
+                
+                print("🔍 ProfileView: Document data - profileImageUrl: \(profileImageUrl ?? "nil"), firebaseImageUrl: \(firebaseImageUrl ?? "nil"), profilePhoto: \(profilePhoto ?? "nil")")
+                
+                await MainActor.run {
+                    // Use the migrated URL first, fallback to legacy
+                    currentUserImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto
+                    print("🔍 ProfileView: Set currentUserImageUrl: \(currentUserImageUrl ?? "nil")")
+                }
+            } else {
+                print("🔍 ProfileView: User document does not exist")
+            }
+        } catch {
+            print("🔍 ProfileView: Error loading user document: \(error)")
         }
     }
 }
