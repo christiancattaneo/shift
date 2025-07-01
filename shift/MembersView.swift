@@ -20,25 +20,21 @@ struct MembersView: View {
     private let filters = ["Compatible", "Nearby", "All", "Online"]
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Header Section
-                headerSection
-                
-                // Content Section
-                if isRefreshing {
-                    loadingView
-                } else if displayedMembers.isEmpty {
-                    emptyStateView
-                } else {
-                    membersGridView
-                }
+        VStack(spacing: 0) {
+            // Custom Header with Title
+            customHeaderSection
+            
+            // Content Section
+            if isRefreshing {
+                loadingView
+            } else if displayedMembers.isEmpty {
+                emptyStateView
+            } else {
+                membersGridView
             }
-            .navigationTitle("Discover")
-            .navigationBarTitleDisplayMode(.large)
-            .refreshable {
-                await refreshMembers()
-            }
+        }
+        .refreshable {
+            await refreshMembers()
         }
         .onAppear {
             setupInitialState()
@@ -53,7 +49,26 @@ struct MembersView: View {
     
     // MARK: - UI Components
     
-    private var headerSection: some View {
+    private var customHeaderSection: some View {
+        VStack(spacing: 16) {
+            // Title Section
+            HStack {
+                Text("Discover")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            
+            // Search and Filter Section
+            searchAndFilterSection
+        }
+        .background(Color(.systemBackground))
+    }
+    
+    private var searchAndFilterSection: some View {
         VStack(spacing: 12) {
             // Search Bar
             HStack {
@@ -107,8 +122,7 @@ struct MembersView: View {
                 .padding(.horizontal, 16)
             }
         }
-        .padding(.vertical, 8)
-        .background(Color(.systemBackground))
+        .padding(.bottom, 12)
     }
     
     private var loadingView: some View {
