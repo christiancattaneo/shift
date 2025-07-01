@@ -81,11 +81,12 @@ struct ProfileView: View {
                 AsyncImage(url: URL(string: imageUrl)) { phase in
                     switch phase {
                     case .empty:
-                        let _ = print("🖼️ PROFILE: Starting to load image from: \(imageUrl)")
-                        return profileImagePlaceholder(isLoading: true)
+                        profileImagePlaceholder(isLoading: true)
+                            .onAppear {
+                                print("🖼️ PROFILE: Starting to load image from: \(imageUrl)")
+                            }
                     case .success(let image):
-                        let _ = print("✅ PROFILE: Image loaded successfully from: \(imageUrl)")
-                        return image
+                        image
                             .resizable()
                             .scaledToFill()
                             .frame(width: 140, height: 140)
@@ -95,18 +96,27 @@ struct ProfileView: View {
                                     .stroke(Color.blue.opacity(0.3), lineWidth: 4)
                             )
                             .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+                            .onAppear {
+                                print("✅ PROFILE: Image loaded successfully from: \(imageUrl)")
+                            }
                     case .failure(let error):
-                        let _ = print("❌ PROFILE: Image failed to load from: \(imageUrl)")
-                        let _ = print("❌ PROFILE: Error details: \(error.localizedDescription)")
-                        return profileImagePlaceholder(isLoading: false)
+                        profileImagePlaceholder(isLoading: false)
+                            .onAppear {
+                                print("❌ PROFILE: Image failed to load from: \(imageUrl)")
+                                print("❌ PROFILE: Error details: \(error.localizedDescription)")
+                            }
                     @unknown default:
-                        let _ = print("⚠️ PROFILE: Unknown image loading phase for: \(imageUrl)")
-                        return profileImagePlaceholder(isLoading: false)
+                        profileImagePlaceholder(isLoading: false)
+                            .onAppear {
+                                print("⚠️ PROFILE: Unknown image loading phase for: \(imageUrl)")
+                            }
                     }
                 }
             } else {
-                let _ = print("❌ PROFILE: No profile image URL available")
-                return profileImagePlaceholder(isLoading: false)
+                profileImagePlaceholder(isLoading: false)
+                    .onAppear {
+                        print("❌ PROFILE: No profile image URL available")
+                    }
             }
         }
     }
@@ -354,43 +364,47 @@ struct ProfileView: View {
     // MARK: - Helper Functions
     
     private func loadUserProfile() {
-        // Use Firebase Auth UID directly instead of relying on currentUser.id
+        // For migrated users, find the document by email since Firebase Auth UID != document ID
         guard let firebaseAuthUser = userSession.firebaseAuthUser else {
             print("❌ No Firebase Auth user found")
             isLoading = false
             return
         }
         
-        let userId = firebaseAuthUser.uid
-        print("🔐 Loading profile for authenticated user: \(userId)")
+        let userEmail = firebaseAuthUser.email ?? ""
+        print("🔐 Finding migrated user document by email: \(userEmail)")
         
         isLoading = true
         
         Task {
             do {
                 let db = Firestore.firestore()
-                let document = try await db.collection("users").document(userId).getDocument()
+                
+                // Search for user document by email (since migrated users have UUID document IDs)
+                let querySnapshot = try await db.collection("users")
+                    .whereField("email", isEqualTo: userEmail)
+                    .limit(to: 1)
+                    .getDocuments()
                 
                 await MainActor.run {
-                    if document.exists, let data = document.data() {
+                    if let document = querySnapshot.documents.first,
+                       let data = document.data() {
+                        print("✅ Found migrated user document: \(document.documentID)")
                         print("✅ User data loaded: \(data.keys.joined(separator: ", "))")
                         userData = data
                         
-                        // First check for stored image URLs, then construct UUID-based URL
-                        profileImageUrl = data["profileImageUrl"] as? String ??
-                                        data["firebaseImageUrl"] as? String ??
-                                        data["profilePhoto"] as? String
-                        
-                        // If no stored URL, try the new UUID-based system
-                        if profileImageUrl == nil || profileImageUrl!.isEmpty {
-                            let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(userId).jpg"
+                        // All migrated users have UUID v4 document IDs with matching images
+                        let documentId = document.documentID
+                        if documentId.contains("-") && documentId.count == 36 {
+                            let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(documentId).jpg"
                             profileImageUrl = uuidImageUrl
-                            print("🖼️ Using UUID-based image URL: \(uuidImageUrl)")
+                            print("🖼️ Using migrated user image URL: \(uuidImageUrl)")
                         } else {
-                            print("🖼️ Using stored image URL: \(profileImageUrl!)")
+                            profileImageUrl = nil
+                            print("🖼️ Unexpected document ID format: \(documentId)")
                         }
                     } else {
-                        print("❌ User document does not exist")
+                        print("❌ No user document found for email: \(userEmail)")
                         userData = [:]
                         profileImageUrl = nil
                     }
@@ -398,7 +412,7 @@ struct ProfileView: View {
                 }
             } catch {
                 await MainActor.run {
-                    print("❌ Error loading user profile: \(error)")
+                    print("❌ Error finding user profile: \(error)")
                     isLoading = false
                 }
             }

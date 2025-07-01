@@ -467,7 +467,7 @@ struct EditProfileView: View {
             return
         }
         
-        let userId = firebaseAuthUser.uid
+        let userEmail = firebaseAuthUser.email ?? ""
         
         isLoading = true
         Haptics.lightImpact()
@@ -497,16 +497,28 @@ struct EditProfileView: View {
                     updatedData["instagramHandle"] = trimmedInstagram
                 }
                 
-                // Handle image upload if new image is selected
-                if let imageData = selectedImageData {
-                    let imageUrl = try await uploadProfileImage(imageData, userId: userId)
-                    updatedData["profileImageUrl"] = imageUrl
-                    updatedData["firebaseImageUrl"] = imageUrl
+                // Find the user document by email first
+                let db = Firestore.firestore()
+                let querySnapshot = try await db.collection("users")
+                    .whereField("email", isEqualTo: userEmail)
+                    .limit(to: 1)
+                    .getDocuments()
+                
+                guard let userDocument = querySnapshot.documents.first else {
+                    throw NSError(domain: "UserNotFound", code: 404, userInfo: [NSLocalizedDescriptionKey: "User document not found"])
                 }
                 
-                // Save to Firestore
-                let db = Firestore.firestore()
-                try await db.collection("users").document(userId).updateData(updatedData)
+                let actualUserId = userDocument.documentID
+                
+                // Handle image upload if new image is selected
+                if let imageData = selectedImageData {
+                    let _ = try await uploadProfileImage(imageData, userId: actualUserId)
+                    // Don't store URLs in database - use pure UUID-based system
+                    updatedData["hasProfileImage"] = true
+                }
+                
+                // Save to Firestore using the actual document ID
+                try await userDocument.reference.updateData(updatedData)
                 
                 await MainActor.run {
                     isLoading = false

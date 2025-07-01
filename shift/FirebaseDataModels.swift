@@ -574,28 +574,20 @@ extension FirebaseMember {
         return approachTip ?? "Say hello"
     }
     
-    // Helper to get profile image URL from Firebase Storage
+    // Helper to get profile image URL from Firebase Storage - Mixed System
     var profileImageURL: URL? {
-        // PRIORITY 1: Try Firebase Storage URLs first (NEW - these work!)
-        if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
-            return URL(string: firebaseImageUrl)
-        }
+        guard let documentId = id, !documentId.isEmpty else { return nil }
         
-        if let profileImageUrl = profileImageUrl, !profileImageUrl.isEmpty {
-            return URL(string: profileImageUrl)
+        // Check if this is a UUID v4 format (migrated user) or Firebase Auth UID (new user)
+        if documentId.contains("-") && documentId.count == 36 {
+            // UUID v4 format - migrated users with actual images
+            let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(documentId).jpg"
+            return URL(string: uuidImageUrl)
+        } else {
+            // Firebase Auth UID format - new users without images yet
+            // Return nil so the UI shows placeholder
+            return nil
         }
-        
-        // PRIORITY 2: Try profilePhoto field
-        if let profilePhoto = profilePhoto, !profilePhoto.isEmpty {
-            return URL(string: profilePhoto)
-        }
-        
-        // PRIORITY 3: Try legacy profileImage field (likely won't work but worth a try)
-        if let profileImage = profileImage, !profileImage.isEmpty {
-            return URL(string: profileImage)
-        }
-        
-        return nil
     }
 }
 

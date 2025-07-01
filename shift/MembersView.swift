@@ -415,7 +415,9 @@ struct MembersView: View {
         var completenessScore: Double = 0.0
         let totalFields: Double = 6.0
         
-        if member.profileImageUrl != nil || member.firebaseImageUrl != nil {
+        // Images are always available via UUID-based URLs (profiles/{documentId}.jpg)
+        // so we give credit for profile images to all users with valid document IDs
+        if member.id != nil && !member.id!.isEmpty {
             completenessScore += 1.0
         }
         if member.age != nil {

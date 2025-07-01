@@ -397,9 +397,10 @@ class FirebaseMembersService: ObservableObject {
                                 
                                 // Check for ALL possible image fields directly from document data
                                 let data = document.data()
-                                let profileImageUrl = data["profileImageUrl"] as? String
-                                let firebaseImageUrl = data["firebaseImageUrl"] as? String
-                                let profilePhoto = data["profilePhoto"] as? String
+                                // Legacy URL fields exist but are ignored in pure UUID system
+                                let _ = data["profileImageUrl"] as? String
+                                let _ = data["firebaseImageUrl"] as? String  
+                                let _ = data["profilePhoto"] as? String
                                 let profilePicture = data["profilePicture"] as? String
                                 let imageUrl = data["imageUrl"] as? String
                                 let photoUrl = data["photoUrl"] as? String
@@ -407,9 +408,7 @@ class FirebaseMembersService: ObservableObject {
                                 print("🔍 === COMPLETE DOCUMENT DATA FOR \(firstName) ===")
                                 print("🔍 Document ID: \(document.documentID)")
                                 print("🔍 All available fields: \(data.keys.sorted().joined(separator: ", "))")
-                                print("🔍 profileImageUrl: \(profileImageUrl ?? "nil")")
-                                print("🔍 firebaseImageUrl: \(firebaseImageUrl ?? "nil")")
-                                print("🔍 profilePhoto: \(profilePhoto ?? "nil")")
+                                print("🔍 Legacy URLs detected but IGNORED (using UUID-only system)")
                                 print("🔍 profilePicture: \(profilePicture ?? "nil")")
                                 print("🔍 imageUrl: \(imageUrl ?? "nil")")
                                 print("🔍 photoUrl: \(photoUrl ?? "nil")")
@@ -436,17 +435,15 @@ class FirebaseMembersService: ObservableObject {
                                 
                                 print("🔍 ===================================================")
                                 
-                                // Use the first available image URL
-                                let bestImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto ?? profilePicture ?? imageUrl ?? photoUrl ?? user.profilePhoto
-                                
-                                // NEW UUID-BASED SYSTEM: Construct image URL from document ID (Firebase UID)
-                                var finalImageUrl = bestImageUrl
-                                if finalImageUrl == nil || finalImageUrl!.isEmpty {
+                                // MIXED SYSTEM: Handle both migrated users (UUID v4) and new users (Firebase Auth UID)
+                                print("🔧 Document ID format check for \(firstName): \(document.documentID)")
+                                if document.documentID.contains("-") && document.documentID.count == 36 {
+                                    // UUID v4 format - migrated user with actual image
                                     let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(document.documentID).jpg"
-                                    finalImageUrl = uuidImageUrl
-                                    print("🔧 Using UUID-based image URL for \(firstName): \(uuidImageUrl)")
+                                    print("🔧 Using migrated user image URL for \(firstName): \(uuidImageUrl)")
                                 } else {
-                                    print("🔧 Using stored image URL for \(firstName): \(finalImageUrl!)")
+                                    // Firebase Auth UID format - new user without image
+                                    print("🔧 New user detected: \(firstName) - no profile image available yet")
                                 }
                                 
                                 let member = FirebaseMember(
@@ -458,9 +455,9 @@ class FirebaseMembersService: ObservableObject {
                                     attractedTo: user.attractedTo,
                                     approachTip: user.howToApproachMe,
                                     instagramHandle: user.instagramHandle,
-                                    profileImage: finalImageUrl, // Use the constructed URL here
-                                    profileImageUrl: finalImageUrl, // Set both fields
-                                    firebaseImageUrl: finalImageUrl,
+                                    profileImage: nil, // No legacy URLs
+                                    profileImageUrl: nil, // No legacy URLs
+                                    firebaseImageUrl: nil, // No legacy URLs
                                     bio: nil, // Not available in FirebaseUser
                                     location: user.city, // Use city as location
                                     interests: nil, // Not available in FirebaseUser
@@ -474,21 +471,12 @@ class FirebaseMembersService: ObservableObject {
                                     verificationDate: nil, // Not available in FirebaseUser
                                     subscriptionStatus: user.subscribed == true ? "active" : "inactive",
                                     fcmToken: nil, // Not available in FirebaseUser
-                                    profilePhoto: user.profilePhoto,
-                                    profileImageName: user.profilePhoto
+                                    profilePhoto: nil, // No legacy URLs
+                                    profileImageName: nil // No legacy URLs
                                 )
                                 
                                 print("🔧 ✅ FINAL MEMBER CREATED FOR \(firstName):")
-                                print("🔧    profileImage: \(member.profileImage ?? "nil")")
-                                print("🔧    profileImageUrl: \(member.profileImageUrl ?? "nil")")
-                                print("🔧    firebaseImageUrl: \(member.firebaseImageUrl ?? "nil")")
                                 print("🔧    computed profileImageURL: \(member.profileImageURL?.absoluteString ?? "nil")")
-                                
-                                if let bestImageUrl = bestImageUrl {
-                                    print("✅ FOUND IMAGE FOR \(firstName): \(bestImageUrl)")
-                                } else {
-                                    print("❌ NO IMAGE FOUND FOR \(firstName)")
-                                }
                                 
                                 return member
                             } catch {
