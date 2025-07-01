@@ -599,22 +599,53 @@ extension FirebaseEvent {
         return eventName ?? venueName ?? "Unnamed Event"
     }
     
-    // Helper to get event image URL from Firebase Storage
+    // Helper to get event image URL from Firebase Storage - Universal System
     var imageURL: URL? {
+        let eventName = self.eventName ?? "Unknown"
+        
         // PRIORITY 1: Try Firebase Storage URLs first (NEW - these work!)
         if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
+            print("🖼️ EVENT: Using firebaseImageUrl for '\(eventName)': \(firebaseImageUrl)")
             return URL(string: firebaseImageUrl)
         }
         
         if let imageUrl = imageUrl, !imageUrl.isEmpty {
+            print("🖼️ EVENT: Using imageUrl for '\(eventName)': \(imageUrl)")
             return URL(string: imageUrl)
         }
         
-        // PRIORITY 2: Try legacy image field (likely won't work but worth a try)
-        if let image = image, !image.isEmpty {
-            return URL(string: image)
+        // PRIORITY 2: Try document ID-based Firebase Storage URL (like profiles)
+        if let documentId = id, !documentId.isEmpty {
+            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(documentId).jpg?alt=media"
+            print("🖼️ EVENT: Using document ID for '\(eventName)': \(imageUrl)")
+            return URL(string: imageUrl)
         }
         
+        // PRIORITY 3: Try legacy image field but convert to proper Firebase Storage API format
+        if let image = image, !image.isEmpty {
+            // If it's already a proper Firebase Storage URL, use it
+            if image.contains("firebasestorage.googleapis.com") && image.contains("alt=media") {
+                print("🖼️ EVENT: Using legacy proper URL for '\(eventName)': \(image)")
+                return URL(string: image)
+            }
+            // If it's an old storage.googleapis.com URL, convert it to proper format
+            else if image.contains("storage.googleapis.com") || image.contains("event_images/") {
+                // Extract filename from legacy URL
+                if let filename = image.components(separatedBy: "/").last?.components(separatedBy: "?").first {
+                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
+                    print("🔄 EVENT: Converting legacy URL for '\(eventName)': \(image) -> \(properUrl)")
+                    return URL(string: properUrl)
+                }
+            }
+            // If it's just a filename, construct the proper URL
+            else if !image.hasPrefix("http") {
+                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(image)?alt=media"
+                print("🔄 EVENT: Converting filename for '\(eventName)': \(image) -> \(properUrl)")
+                return URL(string: properUrl)
+            }
+        }
+        
+        print("❌ EVENT: No image URL available for '\(eventName)'")
         return nil
     }
 }

@@ -27,20 +27,12 @@ struct MainTabView: View {
             .tag(1)
 
             NavigationStack {
-                ConversationsListView()
-            }
-            .tabItem {
-                Label("Messages", systemImage: "message.fill")
-            }
-            .tag(2)
-
-            NavigationStack {
                 ProfileView()
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
             }
-            .tag(3)
+            .tag(2)
         }
         .tint(.blue)
         .onAppear {

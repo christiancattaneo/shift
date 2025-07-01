@@ -203,28 +203,24 @@ struct CheckInsView: View {
 
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Header Section
-                headerSection
-                
-                // Map Section
-                mapSection
-                
-                // Content Section
-                if eventsService.isLoading {
-                    loadingSection
-                } else if filteredEvents.isEmpty {
-                    emptyStateSection
-                } else {
-                    eventsListSection
-                }
+        VStack(spacing: 0) {
+            // Custom Header Section
+            customHeaderSection
+            
+            // Map Section
+            mapSection
+            
+            // Content Section
+            if eventsService.isLoading {
+                loadingSection
+            } else if filteredEvents.isEmpty {
+                emptyStateSection
+            } else {
+                eventsListSection
             }
-            .navigationTitle("Discover Events")
-            .navigationBarTitleDisplayMode(.large)
-            .refreshable {
-                await refreshEvents()
-            }
+        }
+        .refreshable {
+            await refreshEvents()
         }
         .onAppear {
             setupInitialState()
@@ -233,7 +229,26 @@ struct CheckInsView: View {
     
     // MARK: - UI Components
     
-    private var headerSection: some View {
+    private var customHeaderSection: some View {
+        VStack(spacing: 16) {
+            // Title Section
+            HStack {
+                Text("Discover Events")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            
+            // Search and Filter Section
+            searchAndFilterSection
+        }
+        .background(Color(.systemBackground))
+    }
+    
+    private var searchAndFilterSection: some View {
         VStack(spacing: 16) {
             // Search Bar
             HStack {
@@ -286,8 +301,7 @@ struct CheckInsView: View {
                 .padding(.horizontal, 20)
             }
         }
-        .padding(.vertical, 16)
-        .background(Color(.systemBackground))
+        .padding(.bottom, 12)
     }
     
     private var mapSection: some View {
@@ -423,20 +437,7 @@ struct EventCardView: View {
                         .frame(height: 200)
                         .clipped()
                 } placeholder: {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(height: 200)
-                        .overlay {
-                            ProgressView()
-                                .tint(.white)
-                                .scaleEffect(1.2)
-                        }
+                    eventImagePlaceholder
                 }
                 .cornerRadius(16, corners: [.topLeft, .topRight])
                 
@@ -554,6 +555,30 @@ struct EventCardView: View {
             formatter.dateStyle = .medium
             formatter.timeStyle = .short
             return formatter.string(from: date)
+        }
+    }
+    
+    private var eventImagePlaceholder: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 200)
+            
+            VStack(spacing: 12) {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white.opacity(0.9))
+                Text(event.eventName?.prefix(1).uppercased() ?? "E")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white.opacity(0.9))
+                Text("Loading...")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+            }
         }
     }
 }
