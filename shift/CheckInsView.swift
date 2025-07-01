@@ -494,7 +494,7 @@ struct EventCardView: View {
             // Event Details
             VStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(event.eventName ?? "Event")
+                    Text(event.name)
                         .font(.headline)
                         .fontWeight(.bold)
                         .lineLimit(2)
@@ -604,7 +604,7 @@ struct EventCardView: View {
                 Image(systemName: "calendar.badge.clock")
                     .font(.system(size: 40))
                     .foregroundColor(.white.opacity(0.9))
-                Text(event.eventName?.prefix(1).uppercased() ?? "E")
+                Text(event.name.prefix(1).uppercased())
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.white.opacity(0.9))
@@ -641,7 +641,7 @@ struct EventDetailView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 16) {
-                    Text(event.eventName ?? "Event")
+                    Text(event.name)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
