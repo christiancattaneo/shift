@@ -259,25 +259,14 @@ struct MembersView: View {
         }
         print("🔍 After '\(selectedFilter)' filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
-        // Sort members intelligently and remove duplicates
+        // Sort members intelligently  
         filtered = rankMembersByCompatibility(filtered, currentUser: currentUser)
         
-        // Remove duplicates based on userId (document ID)
-        var uniqueMembers: [FirebaseMember] = []
-        var seenIds: Set<String> = []
-        
-        for member in filtered {
-            if let memberId = member.userId, !seenIds.contains(memberId) {
-                seenIds.insert(memberId)
-                uniqueMembers.append(member)
-            }
-        }
-        
-        filteredMembers = uniqueMembers
+        filteredMembers = filtered
         // Start with just 5 members initially for better performance
-        displayedMembers = Array(uniqueMembers.prefix(5))
+        displayedMembers = Array(filtered.prefix(5))
         
-        print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered (duplicates removed)")
+        print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered")
     }
     
     private func loadMoreMembers() {

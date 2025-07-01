@@ -195,42 +195,63 @@ class FirebaseUserSession: ObservableObject {
         isLoadingUserData = true
         print("📋 Loading user data for UID: \(uid)")
         
+        // Get email from Firebase Auth to search by email (since document IDs are UUIDs after migration)
+        guard let firebaseAuthUser = auth.currentUser,
+              let userEmail = firebaseAuthUser.email else {
+            print("❌ No email available for user lookup")
+            isLoadingUserData = false
+            errorMessage = "No email available"
+            return
+        }
+        
+        print("📧 Looking up user by email: \(userEmail)")
+        
         // Load in background to prevent UI blocking
-        print("🔐 Starting background user data fetch")
+        print("🔐 Starting background user data fetch by email")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            print("🔐 Background user data fetch: Thread=BACKGROUND")
+            print("🔐 Background user data fetch by email: Thread=BACKGROUND")
             
-            self?.db.collection("users").document(uid).getDocument { [weak self] document, error in
-                print("🔐 User data fetch response: Thread=BACKGROUND")
-                
-                DispatchQueue.main.async {
-                    print("🔐 Processing user data fetch response on main thread")
-                    self?.isLoadingUserData = false
+            self?.db.collection("users")
+                .whereField("email", isEqualTo: userEmail)
+                .limit(to: 1)
+                .getDocuments { [weak self] querySnapshot, error in
+                    print("🔐 User data fetch response: Thread=BACKGROUND")
                     
-                    if let error = error {
-                        print("❌ Error loading user data: \(error.localizedDescription)")
-                        self?.errorMessage = error.localizedDescription
-                        return
-                    }
-                    
-                    guard let document = document, document.exists else {
-                        print("❌ User document not found for UID: \(uid)")
-                        self?.errorMessage = "User document not found"
-                        return
-                    }
-                    
-                    do {
-                        let user = try document.data(as: FirebaseUser.self)
-                        print("✅ User data loaded successfully: \(user.firstName ?? "Unknown")")
-                        self?.currentUser = user
-                        self?.isLoggedIn = true
-                        print("🔐 Set isLoggedIn=true, should trigger UI update")
-                    } catch {
-                        print("❌ Error decoding user data: \(error.localizedDescription)")
-                        self?.errorMessage = error.localizedDescription
+                    DispatchQueue.main.async {
+                        print("🔐 Processing user data fetch response on main thread")
+                        self?.isLoadingUserData = false
+                        
+                        if let error = error {
+                            print("❌ Error loading user data: \(error.localizedDescription)")
+                            self?.errorMessage = error.localizedDescription
+                            return
+                        }
+                        
+                        guard let documents = querySnapshot?.documents,
+                              let document = documents.first else {
+                            print("❌ User document not found for email: \(userEmail)")
+                            self?.errorMessage = "User document not found"
+                            return
+                        }
+                        
+                        do {
+                            let user = try document.data(as: FirebaseUser.self)
+                            print("✅ User data loaded successfully: \(user.firstName ?? "Unknown")")
+                            print("✅ Document ID: \(document.documentID)")
+                            
+                            // Update the user object with the correct document ID
+                            var updatedUser = user
+                            updatedUser.id = document.documentID
+                            
+                            self?.currentUser = updatedUser
+                            self?.isLoggedIn = true
+                            print("🔐 Set isLoggedIn=true, should trigger UI update")
+                        } catch {
+                            print("❌ Error decoding user data: \(error.localizedDescription)")
+                            self?.errorMessage = error.localizedDescription
+                        }
                     }
                 }
-            }
         }
     }
     
