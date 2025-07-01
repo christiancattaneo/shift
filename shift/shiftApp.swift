@@ -24,6 +24,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Print memory info
         printMemoryUsage()
         
+        // Start background image sync for scalability
+        Task {
+            await FirebaseServices.shared.syncExistingUserImages()
+        }
+        
         return true
     }
     
@@ -96,6 +101,15 @@ struct shiftApp: App {
     // Register app delegate for Firebase setup
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var userSession = FirebaseUserSession.shared
+    
+    init() {
+        FirebaseApp.configure()
+        
+        // Start background image sync for scalability
+        Task {
+            await FirebaseServices.shared.syncExistingUserImages()
+        }
+    }
     
     var body: some Scene {
         print("🚀 App body: Thread=MAIN")

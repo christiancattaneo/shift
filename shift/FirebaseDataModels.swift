@@ -180,6 +180,7 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     @DocumentID var id: String?
     let userId: String?
     let firstName: String
+    let lastName: String?
     let age: Int?
     let city: String?
     let attractedTo: String?
@@ -188,7 +189,21 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     let profileImage: String?        // Legacy Adalo field (likely dead URLs)
     let profileImageUrl: String?     // NEW Firebase Storage field (working URLs)
     let firebaseImageUrl: String?    // Alternative Firebase field name
+    let bio: String?
+    let location: String?
+    let interests: [String]?
+    let gender: String?
+    let relationshipGoals: String?
+    let dateJoined: Timestamp?
+    let status: String?
     let isActive: Bool?
+    let lastActiveDate: Timestamp?
+    let isVerified: Bool?
+    let verificationDate: Timestamp?
+    let subscriptionStatus: String?
+    let fcmToken: String?
+    let profilePhoto: String?
+    let profileImageName: String?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
     
@@ -214,10 +229,39 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     }
     
     // Convenience initializer
-    init(userId: String? = nil, firstName: String, age: Int? = nil, city: String? = nil, attractedTo: String? = nil, approachTip: String? = nil, instagramHandle: String? = nil, profileImage: String? = nil, profileImageUrl: String? = nil, firebaseImageUrl: String? = nil) {
-        // Don't set self.id - @DocumentID is managed by Firestore
+    init(
+        id: String? = nil,
+        userId: String? = nil, 
+        firstName: String, 
+        lastName: String? = nil,
+        age: Int? = nil, 
+        city: String? = nil, 
+        attractedTo: String? = nil, 
+        approachTip: String? = nil, 
+        instagramHandle: String? = nil, 
+        profileImage: String? = nil, 
+        profileImageUrl: String? = nil, 
+        firebaseImageUrl: String? = nil,
+        bio: String? = nil,
+        location: String? = nil,
+        interests: [String]? = nil,
+        gender: String? = nil,
+        relationshipGoals: String? = nil,
+        dateJoined: Timestamp? = nil,
+        status: String? = nil,
+        isActive: Bool? = nil,
+        lastActiveDate: Timestamp? = nil,
+        isVerified: Bool? = nil,
+        verificationDate: Timestamp? = nil,
+        subscriptionStatus: String? = nil,
+        fcmToken: String? = nil,
+        profilePhoto: String? = nil,
+        profileImageName: String? = nil
+    ) {
+        // Don't set self.id in init - @DocumentID is managed by Firestore
         self.userId = userId
         self.firstName = firstName
+        self.lastName = lastName
         self.age = age
         self.city = city
         self.attractedTo = attractedTo
@@ -226,7 +270,21 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
         self.profileImage = profileImage
         self.profileImageUrl = profileImageUrl
         self.firebaseImageUrl = firebaseImageUrl
-        self.isActive = true
+        self.bio = bio
+        self.location = location
+        self.interests = interests
+        self.gender = gender
+        self.relationshipGoals = relationshipGoals
+        self.dateJoined = dateJoined
+        self.status = status
+        self.isActive = isActive ?? true
+        self.lastActiveDate = lastActiveDate
+        self.isVerified = isVerified
+        self.verificationDate = verificationDate
+        self.subscriptionStatus = subscriptionStatus
+        self.fcmToken = fcmToken
+        self.profilePhoto = profilePhoto
+        self.profileImageName = profileImageName
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
     }
@@ -521,25 +579,15 @@ extension FirebaseMember {
             return URL(string: firebaseUrl)
         }
         
-        // PRIORITY 2: Fallback to legacy profileImage field (likely dead Adalo URLs)
-        guard let profileImage = profileImage, !profileImage.isEmpty else { 
-            // Only log occasionally to avoid spam
-            if firstName.starts(with: ["A", "B", "C", "D"]) {
-                print("🔍 No profile image for member: \(firstName)")
-            }
-            return nil 
-        }
-        
-        if profileImage.hasPrefix("http") {
-            print("⚠️ Using legacy Adalo URL for \(firstName) (may be dead): \(profileImage)")
+        // PRIORITY 2: Try profileImage field (should now contain proper URLs)
+        if let profileImage = profileImage, !profileImage.isEmpty, profileImage.hasPrefix("http") {
+            print("✅ Using profileImage URL for \(firstName): \(profileImage)")
             return URL(string: profileImage)
         }
         
-        // If it's a Firebase Storage reference, construct the URL
-        let encodedPath = profileImage.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? profileImage
-        let constructedURL = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(encodedPath)?alt=media"
-        print("🔗 Constructed Firebase URL for \(firstName): \(constructedURL)")
-        return URL(string: constructedURL)
+        // FALLBACK: No working URL found
+        print("❌ No working image URL found for \(firstName)")
+        return nil
     }
 }
 

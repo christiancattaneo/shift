@@ -400,7 +400,9 @@ class FirebaseMembersService: ObservableObject {
                                 let imageUrl = data["imageUrl"] as? String
                                 let photoUrl = data["photoUrl"] as? String
                                 
-                                print("🔍 === IMAGE DATA FOR \(firstName) ===")
+                                print("🔍 === COMPLETE DOCUMENT DATA FOR \(firstName) ===")
+                                print("🔍 Document ID: \(document.documentID)")
+                                print("🔍 All available fields: \(data.keys.sorted().joined(separator: ", "))")
                                 print("🔍 profileImageUrl: \(profileImageUrl ?? "nil")")
                                 print("🔍 firebaseImageUrl: \(firebaseImageUrl ?? "nil")")
                                 print("🔍 profilePhoto: \(profilePhoto ?? "nil")")
@@ -408,23 +410,89 @@ class FirebaseMembersService: ObservableObject {
                                 print("🔍 imageUrl: \(imageUrl ?? "nil")")
                                 print("🔍 photoUrl: \(photoUrl ?? "nil")")
                                 print("🔍 user.profilePhoto: \(user.profilePhoto ?? "nil")")
-                                print("🔍 =====================================")
+                                
+                                // Check for ID-related fields
+                                if let adaloId = data["adaloId"] {
+                                    print("🔍 adaloId: \(adaloId) (type: \(type(of: adaloId)))")
+                                } else {
+                                    print("🔍 ❌ adaloId: NOT FOUND")
+                                }
+                                
+                                if let id = data["id"] {
+                                    print("🔍 id: \(id) (type: \(type(of: id)))")
+                                } else {
+                                    print("🔍 ❌ id: NOT FOUND")
+                                }
+                                
+                                if let originalId = data["originalId"] {
+                                    print("🔍 originalId: \(originalId) (type: \(type(of: originalId)))")
+                                } else {
+                                    print("🔍 ❌ originalId: NOT FOUND")
+                                }
+                                
+                                print("🔍 ===================================================")
                                 
                                 // Use the first available image URL
                                 let bestImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto ?? profilePicture ?? imageUrl ?? photoUrl ?? user.profilePhoto
                                 
+                                // CRITICAL FIX: If no image URL found, try to construct from adaloId
+                                var finalImageUrl = bestImageUrl
+                                if finalImageUrl == nil, let adaloId = data["adaloId"] as? Int {
+                                    let constructedUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(adaloId)_1751051525259.jpeg"
+                                    print("🔧 CONSTRUCTED URL from adaloId \(adaloId) for \(firstName): \(constructedUrl)")
+                                    finalImageUrl = constructedUrl
+                                } else if finalImageUrl == nil {
+                                    print("🔧 ❌ NO adaloId found for \(firstName) - cannot construct image URL")
+                                }
+                                
+                                // FALLBACK: Try to find ANY numeric field that might be the original ID
+                                if finalImageUrl == nil {
+                                    print("🔧 FALLBACK: Searching for numeric ID fields...")
+                                    for (key, value) in data {
+                                        if let intValue = value as? Int, intValue < 10000 {
+                                            let testUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(intValue)_1751051525259.jpeg"
+                                            print("🔧 TESTING: \(key)=\(intValue) → \(testUrl)")
+                                            // For now, just use the first numeric ID we find
+                                            finalImageUrl = testUrl
+                                            break
+                                        }
+                                    }
+                                }
+                                
                                 let member = FirebaseMember(
                                     userId: user.id,
                                     firstName: firstName,
+                                    lastName: user.fullName, // Use fullName as lastName fallback
                                     age: user.age,
                                     city: user.city,
                                     attractedTo: user.attractedTo,
                                     approachTip: user.howToApproachMe,
                                     instagramHandle: user.instagramHandle,
-                                    profileImage: bestImageUrl,
-                                    profileImageUrl: profileImageUrl,
-                                    firebaseImageUrl: firebaseImageUrl
+                                    profileImage: finalImageUrl, // Use the constructed URL here
+                                    profileImageUrl: finalImageUrl, // Set both fields
+                                    firebaseImageUrl: finalImageUrl,
+                                    bio: nil, // Not available in FirebaseUser
+                                    location: user.city, // Use city as location
+                                    interests: nil, // Not available in FirebaseUser
+                                    gender: user.gender,
+                                    relationshipGoals: nil, // Not available in FirebaseUser
+                                    dateJoined: user.createdAt,
+                                    status: nil, // Not available in FirebaseUser
+                                    isActive: true, // Default to active
+                                    lastActiveDate: user.updatedAt,
+                                    isVerified: false, // Default to unverified
+                                    verificationDate: nil, // Not available in FirebaseUser
+                                    subscriptionStatus: user.subscribed == true ? "active" : "inactive",
+                                    fcmToken: nil, // Not available in FirebaseUser
+                                    profilePhoto: user.profilePhoto,
+                                    profileImageName: user.profilePhoto
                                 )
+                                
+                                print("🔧 ✅ FINAL MEMBER CREATED FOR \(firstName):")
+                                print("🔧    profileImage: \(member.profileImage ?? "nil")")
+                                print("🔧    profileImageUrl: \(member.profileImageUrl ?? "nil")")
+                                print("🔧    firebaseImageUrl: \(member.firebaseImageUrl ?? "nil")")
+                                print("🔧    computed profileImageURL: \(member.profileImageURL?.absoluteString ?? "nil")")
                                 
                                 if let bestImageUrl = bestImageUrl {
                                     print("✅ FOUND IMAGE FOR \(firstName): \(bestImageUrl)")
@@ -942,5 +1010,147 @@ class FirebaseStorageService {
                 }
             }
         }
+    }
+}
+
+// MARK: - SCALABLE IMAGE UPLOAD SYSTEM
+func uploadProfileImage(_ image: UIImage, for userId: String, adaloId: Int?) async throws -> String {
+    guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+        throw NSError(domain: "ImageError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])
+    }
+    
+    // Create proper filename with adaloId for future compatibility
+    let timestamp = Int(Date().timeIntervalSince1970 * 1000)
+    let filename: String
+    
+    if let adaloId = adaloId {
+        filename = "\(adaloId)_\(timestamp).jpeg"
+    } else {
+        // For new users without adaloId, use Firebase UID
+        filename = "firebase_\(userId)_\(timestamp).jpeg"
+    }
+    
+    let storageRef = Storage.storage().reference()
+    let imageRef = storageRef.child("profile_images/\(filename)")
+    
+    print("📸 Uploading image: \(filename)")
+    
+    // Upload the image
+    let metadata = StorageMetadata()
+    metadata.contentType = "image/jpeg"
+    metadata.customMetadata = [
+        "userId": userId,
+        "uploadedAt": String(timestamp),
+        "adaloId": adaloId != nil ? String(adaloId!) : "none"
+    ]
+    
+    _ = try await imageRef.putDataAsync(imageData, metadata: metadata)
+    
+    // Get the public URL
+    let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(filename)"
+    
+    // IMMEDIATELY update Firestore with the image URL (SCALABLE!)
+    let db = Firestore.firestore()
+    try await db.collection("users").document(userId).updateData([
+        "profileImageUrl": publicUrl,
+        "firebaseImageUrl": publicUrl,
+        "profileImageUpdatedAt": FieldValue.serverTimestamp(),
+        "imageFilename": filename
+    ])
+    
+    print("✅ Image uploaded and database updated: \(publicUrl)")
+    return publicUrl
+}
+
+// MARK: - USER CREATION WITH PROPER IMAGE RELATIONSHIP
+func createUserWithProperImageLink(
+    email: String,
+    password: String,
+    firstName: String,
+    lastName: String,
+    adaloId: Int? = nil,
+    profileImage: UIImage? = nil
+) async throws -> String {
+    
+    // Create Firebase Auth user
+    let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
+    let userId = authResult.user.uid
+    
+    var userData: [String: Any] = [
+        "firstName": firstName,
+        "lastName": lastName,
+        "email": email,
+        "createdAt": FieldValue.serverTimestamp(),
+        "userId": userId
+    ]
+    
+    // Add adaloId if provided (for legacy compatibility)
+    if let adaloId = adaloId {
+        userData["adaloId"] = adaloId
+    }
+    
+    // Upload image if provided and get URL
+    if let image = profileImage {
+        let imageUrl = try await uploadProfileImage(image, for: userId, adaloId: adaloId)
+        userData["profileImageUrl"] = imageUrl
+        userData["firebaseImageUrl"] = imageUrl
+    }
+    
+    // Create Firestore document with all data including image URL
+    let db = Firestore.firestore()
+    try await db.collection("users").document(userId).setData(userData)
+    
+    print("✅ User created with proper image relationship: \(firstName)")
+    return userId
+}
+
+// MARK: - BACKGROUND SYNC FOR EXISTING USERS
+func syncExistingUserImages() async {
+    print("🔄 Starting background image sync...")
+    
+    let db = Firestore.firestore()
+    
+    do {
+        // Get users without profile images
+        let usersSnapshot = try await db.collection("users")
+            .whereField("profileImageUrl", isEqualTo: NSNull())
+            .getDocuments()
+        
+        let storage = Storage.storage()
+        let storageRef = storage.reference().child("profile_images")
+        
+        // List all profile images
+        let result = try await storageRef.listAll()
+        
+        var updateCount = 0
+        
+        for document in usersSnapshot.documents {
+            let userData = document.data()
+            
+            // Try to find matching image
+            if let adaloId = userData["adaloId"] as? Int {
+                let matchingImages = result.items.filter { item in
+                    item.name.hasPrefix("\(adaloId)_")
+                }
+                
+                if let imageRef = matchingImages.first {
+                    let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(imageRef.name)"
+                    
+                    try await document.reference.updateData([
+                        "profileImageUrl": publicUrl,
+                        "firebaseImageUrl": publicUrl,
+                        "profileImageMappedAt": FieldValue.serverTimestamp()
+                    ])
+                    
+                    updateCount += 1
+                    print("✅ Synced image for user with adaloId \(adaloId)")
+                }
+            }
+        }
+        
+        print("🎉 Background sync completed: \(updateCount) users updated")
+        
+    } catch {
+        print("❌ Background sync error: \(error)")
     }
 } 

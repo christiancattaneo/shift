@@ -18,7 +18,45 @@ struct MainTabView: View {
         let _ = print("🎯 MainTabView body: selectedTab=\(selectedTab), showModal=\(showSubscriptionModal)")
         let _ = print("🎯 MainTabView body: Thread=MAIN")
         
-        TabView(selection: $selectedTab) {
+        VStack(spacing: 0) {
+            // Debug tab selector for testing - TEMPORARY
+            HStack {
+                Button("Members(0)") {
+                    print("🔄 DEBUG: Manually setting tab to 0")
+                    selectedTab = 0
+                }
+                .background(selectedTab == 0 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+                
+                Button("Check-Ins(1)") {
+                    print("🔄 DEBUG: Manually setting tab to 1")
+                    selectedTab = 1
+                }
+                .background(selectedTab == 1 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+                
+                Button("Messages(2)") {
+                    print("🔄 DEBUG: Manually setting tab to 2")
+                    selectedTab = 2
+                }
+                .background(selectedTab == 2 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+                
+                Button("Profile(3)") {
+                    print("🔄 DEBUG: Manually setting tab to 3")
+                    selectedTab = 3
+                }
+                .background(selectedTab == 3 ? Color.blue : Color.gray)
+                .foregroundColor(.white)
+                .padding(4)
+            }
+            .padding(.horizontal)
+            .background(Color.yellow.opacity(0.3))
+            
+            TabView(selection: $selectedTab) {
             NavigationStack {
                 MembersView()
                     .onAppear {
@@ -78,19 +116,20 @@ struct MainTabView: View {
                 Label("Profile", systemImage: "person.crop.circle.fill")
             }
             .tag(3)
-        }
-        .accentColor(.blue)
-        .onChange(of: selectedTab) { oldValue, newValue in
-            print("🔄 🎯 TAB SELECTION CHANGED: \(oldValue) → \(newValue)")
-            print("🔄 Tab change: Thread=MAIN")
-            switch newValue {
-            case 0: print("🔄 Now showing: Members tab")
-            case 1: print("🔄 Now showing: Check-Ins tab")
-            case 2: print("🔄 Now showing: Messages tab")
-            case 3: print("🔄 Now showing: Profile tab")
-            default: print("🔄 Unknown tab: \(newValue)")
             }
-        }
+            .accentColor(.blue)
+            .onChange(of: selectedTab) { oldValue, newValue in
+                print("🔄 🎯 TAB SELECTION CHANGED: \(oldValue) → \(newValue)")
+                print("🔄 Tab change: Thread=MAIN")
+                switch newValue {
+                case 0: print("🔄 Now showing: Members tab")
+                case 1: print("🔄 Now showing: Check-Ins tab")
+                case 2: print("🔄 Now showing: Messages tab")
+                case 3: print("🔄 Now showing: Profile tab")
+                default: print("🔄 Unknown tab: \(newValue)")
+                }
+            }
+        } // Close VStack
         .onAppear {
             print("🎯 MainTabView body appeared - modal state: \(showSubscriptionModal)")
             print("🎯 MainTabView onAppear: Thread=MAIN")
@@ -103,19 +142,6 @@ struct MainTabView: View {
                     print("💰 SubscriptionModalView appeared")
                 }
         }
-        .simultaneousGesture(
-            TapGesture()
-                .onEnded { _ in
-                    print("🎯 TABVIEW RECEIVED TAP - selectedTab is: \(selectedTab)")
-                }
-        )
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 20)
-                .onEnded { value in
-                    print("🎯 DRAG GESTURE on TabView - direction: \(value.translation)")
-                    print("🎯 Current selectedTab: \(selectedTab)")
-                }
-        )
     }
 }
 
