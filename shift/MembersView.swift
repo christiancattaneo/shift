@@ -15,7 +15,7 @@ struct MembersView: View {
     // Lazy loading state
     @State private var displayedMembers: [FirebaseMember] = []
     @State private var isLoadingMore = false
-    private let membersPerPage = 20
+    private let membersPerPage = 30
     
     private let filters = ["Compatible", "Nearby", "All", "Online"]
 
@@ -54,7 +54,7 @@ struct MembersView: View {
     // MARK: - UI Components
     
     private var headerSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // Search Bar
             HStack {
                 Image(systemName: "magnifyingglass")
@@ -73,10 +73,10 @@ struct MembersView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 10)
             .background(Color(.systemGray6))
             .cornerRadius(12)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             
             // Filter Pills
             ScrollView(.horizontal, showsIndicators: false) {
@@ -93,7 +93,7 @@ struct MembersView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
             
             // Results Counter
@@ -104,10 +104,10 @@ struct MembersView: View {
                         .foregroundColor(.secondary)
                     Spacer()
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
         .background(Color(.systemBackground))
     }
     
@@ -125,16 +125,19 @@ struct MembersView: View {
     private var membersGridView: some View {
         ScrollView {
             LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 16),
-                GridItem(.flexible(), spacing: 16)
-            ], spacing: 20) {
+                GridItem(.flexible(), spacing: 12),
+                GridItem(.flexible(), spacing: 12)
+            ], spacing: 16) {
                 ForEach(displayedMembers, id: \.uniqueID) { member in
-                    MemberCardView(member: member)
-                        .onAppear {
-                            if member.uniqueID == displayedMembers.last?.uniqueID {
-                                loadMoreMembers()
-                            }
+                    NavigationLink(destination: MemberDetailView(member: member)) {
+                        MemberCardView(member: member)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .onAppear {
+                        if member.uniqueID == displayedMembers.last?.uniqueID {
+                            loadMoreMembers()
                         }
+                    }
                 }
                 
                 // Loading More Indicator
@@ -143,8 +146,9 @@ struct MembersView: View {
                         .gridCellColumns(2)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
         }
     }
     
@@ -582,6 +586,157 @@ struct UserPreferences {
     let city: String?
     let ageRange: (min: Int, max: Int)
     let maxDistance: Int
+}
+
+// MARK: - Member Detail View
+struct MemberDetailView: View {
+    let member: FirebaseMember
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Profile Image
+                ZStack(alignment: .topLeading) {
+                    CachedAsyncImage(url: member.profileImageURL) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 500)
+                            .clipped()
+                    } placeholder: {
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(height: 500)
+                            .overlay {
+                                VStack(spacing: 12) {
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .font(.system(size: 60))
+                                        .foregroundColor(.gray.opacity(0.6))
+                                    Text(member.firstName.prefix(1).uppercased())
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.gray.opacity(0.8))
+                                }
+                            }
+                    }
+                }
+                
+                // Member Information
+                VStack(spacing: 24) {
+                    // Name and Age
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(member.firstName)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+                            
+                            if let age = member.age {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "birthday.cake")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Text("\(age)")
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        Spacer()
+                    }
+                    
+                    Divider()
+                    
+                    // Location
+                    if let city = member.city {
+                        HStack(spacing: 8) {
+                            Image(systemName: "location")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Location")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text(city)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    
+                    // Approach Tip
+                    if let approachTip = member.approachTip, !approachTip.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "lightbulb")
+                                .font(.title2)
+                                .foregroundColor(.orange)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Tip to Approach Me")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text(approachTip)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    
+                    // Attraction Preferences
+                    if let attractedTo = member.attractedTo, !attractedTo.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "heart")
+                                .font(.title2)
+                                .foregroundColor(.pink)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Attracted to")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text(attractedTo)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    
+                    // Instagram Handle
+                    if let instagramHandle = member.instagramHandle, !instagramHandle.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "camera")
+                                .font(.title2)
+                                .foregroundColor(.purple)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Instagram")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text("@\(instagramHandle)")
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    
+                    Spacer(minLength: 50)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 24)
+            }
+        }
+        .navigationTitle(member.firstName)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(false)
+        .background(Color(.systemBackground))
+    }
 }
 
 #Preview {
