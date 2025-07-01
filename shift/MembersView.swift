@@ -12,10 +12,10 @@ struct MembersView: View {
     @State private var filteredMembers: [FirebaseMember] = []
     @State private var currentUserPreferences: UserPreferences?
     
-    // Lazy loading state
+    // Lazy loading state - LOAD AT TOP
     @State private var displayedMembers: [FirebaseMember] = []
     @State private var isLoadingMore = false
-    private let membersPerPage = 30
+    private let membersPerPage = 10 // Reduced to 10 members at a time
     
     private let filters = ["Compatible", "Nearby", "All", "Online"]
 
@@ -187,11 +187,11 @@ struct MembersView: View {
     
     private func setupInitialState() {
         loadUserPreferences()
-        if membersService.members.isEmpty {
-            membersService.fetchMembers()
-        } else {
-            filterMembers()
-        }
+        // FORCE REFRESH to fix cached Firebase Auth UIDs issue
+        print("🔄 Forcing fresh member data to fix image URL issues...")
+        membersService.refreshMembers()
+        // Start with small batch
+        displayedMembers = []
     }
     
     private func loadUserPreferences() {
@@ -259,13 +259,25 @@ struct MembersView: View {
         }
         print("🔍 After '\(selectedFilter)' filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
-        // Sort members intelligently
+        // Sort members intelligently and remove duplicates
         filtered = rankMembersByCompatibility(filtered, currentUser: currentUser)
         
-        filteredMembers = filtered
-        displayedMembers = Array(filtered.prefix(membersPerPage))
+        // Remove duplicates based on userId (document ID)
+        var uniqueMembers: [FirebaseMember] = []
+        var seenIds: Set<String> = []
         
-        print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered")
+        for member in filtered {
+            if let memberId = member.userId, !seenIds.contains(memberId) {
+                seenIds.insert(memberId)
+                uniqueMembers.append(member)
+            }
+        }
+        
+        filteredMembers = uniqueMembers
+        // Start with just 5 members initially for better performance
+        displayedMembers = Array(uniqueMembers.prefix(5))
+        
+        print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered (duplicates removed)")
     }
     
     private func loadMoreMembers() {
@@ -277,23 +289,28 @@ struct MembersView: View {
         guard currentCount < totalCount else { return }
         
         isLoadingMore = true
+        let batchSize = 5 // Load 5 more members at a time
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let nextBatch = Array(filteredMembers[currentCount..<min(currentCount + membersPerPage, totalCount)])
+            let nextBatch = Array(filteredMembers[currentCount..<min(currentCount + batchSize, totalCount)])
             displayedMembers.append(contentsOf: nextBatch)
             isLoadingMore = false
+            print("📱 Loaded \(nextBatch.count) more members. Total displayed: \(displayedMembers.count)/\(totalCount)")
         }
     }
     
     private func refreshMembers() async {
         isRefreshing = true
+        print("🔄 Refreshing members with fresh data...")
         membersService.refreshMembers()
         
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
         await MainActor.run {
+            displayedMembers = [] // Clear displayed members first
             filterMembers()
             isRefreshing = false
+            print("✅ Refresh complete: \(displayedMembers.count) members loaded")
         }
     }
     
@@ -484,12 +501,13 @@ struct MemberCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Profile Image
+            // Profile Image with consistent sizing
             CachedAsyncImage(url: member.profileImageURL) { image in
                 image
                     .resizable()
                     .scaledToFill()
-                    .frame(height: 200)
+                    .frame(maxWidth: .infinity, maxHeight: 200)
+                    .aspectRatio(1, contentMode: .fill)
                     .clipped()
             } placeholder: {
                 loadingImageView
@@ -549,7 +567,8 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 200)
+            .frame(maxWidth: .infinity, maxHeight: 200)
+            .aspectRatio(1, contentMode: .fill)
             
             VStack(spacing: 8) {
                 ProgressView()
