@@ -201,30 +201,46 @@ struct MembersView: View {
     
     private func filterMembers() {
         guard let currentUser = userSession.currentUser else {
-            filteredMembers = []
-            displayedMembers = []
+            print("⚠️ No current user available for filtering - showing all members")
+            // For debugging: Show all members when no current user
+            filteredMembers = membersService.members
+            displayedMembers = Array(membersService.members.prefix(membersPerPage))
             return
         }
         
-        var filtered = membersService.members
+        print("🔍 Filtering \(membersService.members.count) members for user: \(currentUser.firstName ?? "Unknown")")
         
-        // Exclude current user
+        var filtered = membersService.members
+        let originalCount = filtered.count
+        
+        // Exclude current user (less restrictive)
         filtered = filtered.filter { member in
-            member.id != currentUser.id && 
-            member.userId != currentUser.id &&
-            member.firstName.lowercased() != currentUser.firstName?.lowercased()
+            // Only exclude if we can definitively identify it's the same user
+            if let memberId = member.id, let userId = currentUser.id, memberId == userId {
+                return false
+            }
+            if let memberUserId = member.userId, let userId = currentUser.id, memberUserId == userId {
+                return false
+            }
+            // Allow different people with same first name
+            return true
         }
+        
+        print("🔍 After user exclusion: \(filtered.count) members (excluded \(originalCount - filtered.count))")
         
         // Apply search filter
         if !searchText.isEmpty {
+            let beforeSearch = filtered.count
             filtered = filtered.filter { member in
                 member.firstName.lowercased().contains(searchText.lowercased()) ||
                 (member.city?.lowercased().contains(searchText.lowercased()) ?? false) ||
                 (member.instagramHandle?.lowercased().contains(searchText.lowercased()) ?? false)
             }
+            print("🔍 After search filter '\(searchText)': \(filtered.count) members (excluded \(beforeSearch - filtered.count))")
         }
         
         // Apply selected filter
+        let beforeFilter = filtered.count
         switch selectedFilter {
         case "Compatible":
             filtered = applyCompatibilityFilter(to: filtered)
@@ -235,12 +251,15 @@ struct MembersView: View {
         default:
             break // "All" - no additional filtering
         }
+        print("🔍 After '\(selectedFilter)' filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Sort members intelligently
         filtered = rankMembersByCompatibility(filtered, currentUser: currentUser)
         
         filteredMembers = filtered
         displayedMembers = Array(filtered.prefix(membersPerPage))
+        
+        print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered")
     }
     
     private func loadMoreMembers() {
@@ -322,9 +341,10 @@ struct MembersView: View {
     }
     
     private func applyOnlineFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
-        return members.filter { member in
-            member.profileImageUrl != nil || member.firebaseImageUrl != nil
-        }
+        // For now, return all members for "Online" filter to debug
+        // Later we can implement proper online status tracking
+        print("🔍 Online filter: showing all \(members.count) members (online status not implemented)")
+        return members
     }
     
     private func rankMembersByCompatibility(_ members: [FirebaseMember], currentUser: FirebaseUser?) -> [FirebaseMember] {
