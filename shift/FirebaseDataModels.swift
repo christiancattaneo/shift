@@ -83,6 +83,9 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
+        // IMPORTANT: Let @DocumentID handle itself - don't try to decode it manually
+        // The @DocumentID property wrapper will be handled automatically by Firestore
+        
         // Handle profilePhoto - could be String or Dictionary
         if let photoString = try? container.decode(String.self, forKey: .profilePhoto) {
             self.profilePhoto = photoString
@@ -332,6 +335,9 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
+        // IMPORTANT: Let @DocumentID handle itself - don't try to decode it manually
+        // The @DocumentID property wrapper will be handled automatically by Firestore
+        
         // Handle eventStartTime - could be String or Timestamp
         if let timestampValue = try? container.decode(Timestamp.self, forKey: .eventStartTime) {
             let formatter = DateFormatter()
@@ -384,6 +390,9 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.place = try? container.decode(String.self, forKey: .place)
         self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
         self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
+        
+        // DEBUG: Add logging to see what's happening with ID
+        print("🔍 Event decoded: \(eventName ?? "Unknown") - Document ID will be set by @DocumentID")
     }
     
     // Custom encoding
@@ -407,7 +416,7 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     
     // Coding keys
     private enum CodingKeys: String, CodingKey {
-        case id, eventName, venueName, eventLocation, eventStartTime, eventEndTime
+        case eventName, venueName, eventLocation, eventStartTime, eventEndTime
         case image, imageUrl, firebaseImageUrl, isEventFree, eventCategory, eventDate, place, createdAt, updatedAt
     }
     

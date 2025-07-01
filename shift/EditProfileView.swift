@@ -455,25 +455,36 @@ struct EditProfileView: View {
     // MARK: - Helper Functions
     
     private func saveProfile() {
+        print("🔧 SAVE PROFILE: Starting save process")
+        print("🔧 SAVE PROFILE: isFormValid = \(isFormValid)")
+        print("🔧 SAVE PROFILE: firstName = '\(firstName)'")
+        print("🔧 SAVE PROFILE: age = '\(age)'")
+        print("🔧 SAVE PROFILE: city = '\(city)'")
+        print("🔧 SAVE PROFILE: gender = '\(gender)'")
+        
         guard isFormValid else {
+            print("❌ SAVE PROFILE: Form validation failed")
             alertMessage = "Please fill in all required fields"
             showingAlert = true
             return
         }
         
         guard let firebaseAuthUser = userSession.firebaseAuthUser else {
+            print("❌ SAVE PROFILE: No authenticated user")
             alertMessage = "User not authenticated"
             showingAlert = true
             return
         }
         
         let userEmail = firebaseAuthUser.email ?? ""
+        print("🔧 SAVE PROFILE: User email = '\(userEmail)'")
         
         isLoading = true
         Haptics.lightImpact()
         
         Task {
             do {
+                print("🔧 SAVE PROFILE: Building update data...")
                 var updatedData: [String: Any] = [
                     "firstName": firstName.trimmingCharacters(in: .whitespacesAndNewlines),
                     "age": Int(age) ?? 0,
@@ -482,57 +493,81 @@ struct EditProfileView: View {
                     "updatedAt": FieldValue.serverTimestamp()
                 ]
                 
+                print("🔧 SAVE PROFILE: Core data = \(updatedData)")
+                
                 // Add optional fields only if they have values
                 if !attractedTo.isEmpty {
                     updatedData["attractedTo"] = attractedTo
+                    print("🔧 SAVE PROFILE: Added attractedTo = '\(attractedTo)'")
                 }
                 
                 let trimmedApproachTip = approachTip.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmedApproachTip.isEmpty {
                     updatedData["howToApproachMe"] = trimmedApproachTip
+                    print("🔧 SAVE PROFILE: Added howToApproachMe = '\(trimmedApproachTip)'")
                 }
                 
                 let trimmedInstagram = instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmedInstagram.isEmpty {
                     updatedData["instagramHandle"] = trimmedInstagram
+                    print("🔧 SAVE PROFILE: Added instagramHandle = '\(trimmedInstagram)'")
                 }
                 
+                print("🔧 SAVE PROFILE: Final update data = \(updatedData)")
+                
                 // Find the user document by email first
+                print("🔧 SAVE PROFILE: Querying user document by email...")
                 let db = Firestore.firestore()
                 let querySnapshot = try await db.collection("users")
                     .whereField("email", isEqualTo: userEmail)
                     .limit(to: 1)
                     .getDocuments()
                 
+                print("🔧 SAVE PROFILE: Query returned \(querySnapshot.documents.count) documents")
+                
                 guard let userDocument = querySnapshot.documents.first else {
+                    print("❌ SAVE PROFILE: No user document found for email '\(userEmail)'")
                     throw NSError(domain: "UserNotFound", code: 404, userInfo: [NSLocalizedDescriptionKey: "User document not found"])
                 }
                 
                 let actualUserId = userDocument.documentID
+                print("🔧 SAVE PROFILE: Found user document with ID = '\(actualUserId)'")
                 
                 // Handle image upload if new image is selected
                 if let imageData = selectedImageData {
-                    let _ = try await uploadProfileImage(imageData, userId: actualUserId)
+                    print("🔧 SAVE PROFILE: Uploading new profile image...")
+                    let imageUrl = try await uploadProfileImage(imageData, userId: actualUserId)
+                    print("🔧 SAVE PROFILE: Image uploaded successfully to '\(imageUrl)'")
                     // Don't store URLs in database - use pure UUID-based system
                     updatedData["hasProfileImage"] = true
+                } else {
+                    print("🔧 SAVE PROFILE: No new image to upload")
                 }
                 
                 // Save to Firestore using the actual document ID
+                print("🔧 SAVE PROFILE: Updating Firestore document...")
                 try await userDocument.reference.updateData(updatedData)
+                print("✅ SAVE PROFILE: Firestore update successful!")
                 
                 await MainActor.run {
+                    print("🔧 SAVE PROFILE: Processing success on main thread")
                     isLoading = false
-                        Haptics.successNotification()
+                    Haptics.successNotification()
                     alertMessage = "Profile updated successfully!"
                     showingAlert = true
+                    print("✅ SAVE PROFILE: Success alert displayed")
                 }
                 
             } catch {
+                print("❌ SAVE PROFILE: Error occurred - \(error.localizedDescription)")
+                print("❌ SAVE PROFILE: Full error - \(error)")
                 await MainActor.run {
+                    print("🔧 SAVE PROFILE: Processing error on main thread")
                     isLoading = false
-                        Haptics.errorNotification()
+                    Haptics.errorNotification()
                     alertMessage = "Failed to update profile: \(error.localizedDescription)"
                     showingAlert = true
+                    print("❌ SAVE PROFILE: Error alert displayed")
                 }
             }
         }

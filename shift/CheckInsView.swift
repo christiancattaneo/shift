@@ -576,10 +576,39 @@ struct EventCardView: View {
     }
     
     private func toggleCheckIn() {
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else {
-            print("❌ Cannot check in: Missing user or event ID")
+        print("🔍 DEBUG: toggleCheckIn called")
+        print("🔍 DEBUG: event.name = \(event.eventName ?? "nil")")
+        print("🔍 DEBUG: event.id = \(event.id ?? "nil")")
+        print("🔍 DEBUG: event.uniqueID = \(event.uniqueID)")
+        print("🔍 DEBUG: currentUser = \(FirebaseUserSession.shared.currentUser?.firstName ?? "nil")")
+        print("🔍 DEBUG: currentUser.id = \(FirebaseUserSession.shared.currentUser?.id ?? "nil")")
+        print("🔍 DEBUG: CURRENT isCheckedIn = \(isCheckedIn)")
+        print("🔍 DEBUG: CURRENT checkInCount = \(checkInCount)")
+        print("🔍 DEBUG: CURRENT isProcessing = \(isProcessing)")
+        
+        guard let currentUser = FirebaseUserSession.shared.currentUser else {
+            print("❌ Cannot check in: Missing user")
+            return
+        }
+        
+        // CRITICAL FIX: Use Firebase Auth UID, not Firestore document ID
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser else {
+            print("❌ Cannot check in: Missing Firebase Auth UID")
+            print("❌ Current user: \(currentUser.firstName ?? "nil")")
+            print("❌ Firebase Auth user: \(FirebaseUserSession.shared.firebaseAuthUser?.email ?? "nil")")
+            return
+        }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        print("🔧 USING Firebase Auth UID: \(firebaseAuthUID)")
+        print("🔧 NOT using Firestore document ID: \(currentUser.id ?? "nil")")
+        
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("❌ Cannot check in: Event has no valid ID")
+            print("❌ event.id: \(event.id ?? "nil")")
+            print("❌ event.uniqueID: \(event.uniqueID)")
             return
         }
         
@@ -588,19 +617,28 @@ struct EventCardView: View {
             return 
         }
         
-        print("🎯 Starting check-in process for user \(userId) at event \(eventId)")
+        print("🎯 Starting check-in process for Firebase Auth UID \(firebaseAuthUID) at event \(eventId)")
+        print("🎯 Current state - isCheckedIn: \(isCheckedIn), will \(isCheckedIn ? "CHECK OUT" : "CHECK IN")")
         Haptics.lightImpact()
         isProcessing = true
+        print("🔍 Set isProcessing = true")
         
         if isCheckedIn {
             // Check out
-            print("🔄 Checking out...")
-            checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
+            print("🔄 CHECKOUT: Starting check-out process...")
+            checkInsService.checkOut(userId: firebaseAuthUID, eventId: eventId) { success, error in
+                print("🔄 CHECKOUT: Firebase response received - success: \(success), error: \(error ?? "none")")
                 DispatchQueue.main.async {
+                    print("🔄 CHECKOUT: Processing response on main thread")
                     self.isProcessing = false
+                    print("🔍 Set isProcessing = false")
                     if success {
+                        print("✅ CHECKOUT: Success - updating UI state")
+                        let oldCheckedIn = self.isCheckedIn
+                        let oldCount = self.checkInCount
                         self.isCheckedIn = false
                         self.checkInCount = max(0, self.checkInCount - 1)
+                        print("✅ CHECKOUT: State updated - isCheckedIn: \(oldCheckedIn) → \(self.isCheckedIn), checkInCount: \(oldCount) → \(self.checkInCount)")
                         Haptics.successNotification()
                         print("✅ Successfully checked out of event")
                         
@@ -610,21 +648,29 @@ struct EventCardView: View {
                             object: nil,
                             userInfo: ["eventId": eventId, "isCheckedIn": false]
                         )
+                        print("📢 Posted checkInStatusChanged notification")
                     } else {
-                        print("❌ Check out failed: \(error ?? "Unknown error")")
+                        print("❌ CHECKOUT: Failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
                     }
                 }
             }
         } else {
             // Check in
-            print("🔄 Checking in...")
-            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
+            print("🔄 CHECKIN: Starting check-in process...")
+            checkInsService.checkIn(userId: firebaseAuthUID, eventId: eventId) { success, error in
+                print("🔄 CHECKIN: Firebase response received - success: \(success), error: \(error ?? "none")")
                 DispatchQueue.main.async {
+                    print("🔄 CHECKIN: Processing response on main thread")
                     self.isProcessing = false
+                    print("🔍 Set isProcessing = false")
                     if success {
+                        print("✅ CHECKIN: Success - updating UI state")
+                        let oldCheckedIn = self.isCheckedIn
+                        let oldCount = self.checkInCount
                         self.isCheckedIn = true
                         self.checkInCount += 1
+                        print("✅ CHECKIN: State updated - isCheckedIn: \(oldCheckedIn) → \(self.isCheckedIn), checkInCount: \(oldCount) → \(self.checkInCount)")
                         Haptics.successNotification()
                         print("✅ Successfully checked in to event")
                         
@@ -634,8 +680,9 @@ struct EventCardView: View {
                             object: nil,
                             userInfo: ["eventId": eventId, "isCheckedIn": true]
                         )
+                        print("📢 Posted checkInStatusChanged notification")
                     } else {
-                        print("❌ Check in failed: \(error ?? "Unknown error")")
+                        print("❌ CHECKIN: Failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
                     }
                 }
@@ -644,36 +691,72 @@ struct EventCardView: View {
     }
     
     private func checkIfUserCheckedIn() {
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else {
-            print("⚠️ Cannot check user check-in status: Missing user or event ID")
+        print("🔍 INIT: checkIfUserCheckedIn called for event \(event.eventName ?? "unknown")")
+        
+        guard let currentUser = FirebaseUserSession.shared.currentUser else {
+            print("⚠️ INIT: Cannot check user check-in status: Missing user")
             return
         }
         
-        checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { isCheckedIn in
+        // CRITICAL FIX: Use Firebase Auth UID, not Firestore document ID
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser else {
+            print("⚠️ INIT: Cannot check user check-in status: Missing Firebase Auth UID")
+            print("⚠️ INIT: currentUser = \(currentUser.firstName ?? "nil")")
+            print("⚠️ INIT: currentUser.id = \(currentUser.id ?? "nil")")
+            print("⚠️ INIT: firebaseAuthUser = \(FirebaseUserSession.shared.firebaseAuthUser?.email ?? "nil")")
+            return
+        }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("⚠️ INIT: Cannot check user check-in status: Missing event ID")
+            print("⚠️ INIT: event.id = \(event.id ?? "nil")")
+            print("⚠️ INIT: event.uniqueID = \(event.uniqueID)")
+            return
+        }
+        
+        print("🔍 INIT: Checking check-in status for Firebase Auth UID=\(firebaseAuthUID), eventId=\(eventId)")
+        
+        checkInsService.isUserCheckedIn(userId: firebaseAuthUID, eventId: eventId) { isCheckedIn in
+            print("🔍 INIT: isUserCheckedIn callback received with result: \(isCheckedIn)")
             DispatchQueue.main.async {
+                print("🔍 INIT: Processing isUserCheckedIn result on main thread")
+                let oldValue = self.isCheckedIn
                 self.isCheckedIn = isCheckedIn
-                print("📊 User check-in status loaded: \(isCheckedIn ? "checked in" : "not checked in")")
+                print("📊 INIT: User check-in status loaded: \(oldValue) → \(self.isCheckedIn)")
             }
         }
     }
     
     private func loadCheckInCount() {
-        guard let eventId = event.id else { 
-            print("⚠️ Cannot load check-in count: Missing event ID")
-            return 
+        print("🔍 INIT: loadCheckInCount called for event \(event.eventName ?? "unknown")")
+        
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("⚠️ INIT: Cannot load check-in count: Missing event ID")
+            print("⚠️ INIT: event.id = \(event.id ?? "nil")")
+            print("⚠️ INIT: event.uniqueID = \(event.uniqueID)")
+            return
         }
         
+        print("🔍 INIT: Loading check-in count for eventId=\(eventId)")
+        
         checkInsService.getCheckInCount(for: eventId) { count in
+            print("🔍 INIT: getCheckInCount callback received with result: \(count)")
             DispatchQueue.main.async {
+                print("🔍 INIT: Processing getCheckInCount result on main thread")
+                let oldValue = self.checkInCount
                 self.checkInCount = count
-                print("📊 Check-in count loaded: \(count)")
+                print("📊 INIT: Check-in count loaded: \(oldValue) → \(self.checkInCount)")
             }
         }
-         }
-      
-      private func formatEventDate(_ date: Date) -> String {
+    }
+    
+    private func formatEventDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         
         if Calendar.current.isDateInToday(date) {
@@ -940,28 +1023,69 @@ struct EventDetailView: View {
     }
     
     private func toggleCheckIn() {
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else {
-            print("❌ Cannot check in: Missing user or event ID")
+        print("🔍 DEBUG: EventDetailView toggleCheckIn called")
+        print("🔍 DEBUG: event.name = \(event.eventName ?? "nil")")
+        print("🔍 DEBUG: event.id = \(event.id ?? "nil")")
+        print("🔍 DEBUG: event.uniqueID = \(event.uniqueID)")
+        print("🔍 DEBUG: currentUser = \(FirebaseUserSession.shared.currentUser?.firstName ?? "nil")")
+        print("🔍 DEBUG: currentUser.id = \(FirebaseUserSession.shared.currentUser?.id ?? "nil")")
+        print("🔍 DEBUG: CURRENT isCheckedIn = \(isCheckedIn)")
+        print("🔍 DEBUG: CURRENT checkInCount = \(checkInCount)")
+        print("🔍 DEBUG: CURRENT isProcessing = \(isProcessing)")
+        
+        guard let currentUser = FirebaseUserSession.shared.currentUser else {
+            print("❌ Cannot check in: Missing user")
             return
         }
         
-        guard !isProcessing else { return }
+        // CRITICAL FIX: Use Firebase Auth UID, not Firestore document ID
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser else {
+            print("❌ Cannot check in: Missing Firebase Auth UID")
+            print("❌ Current user: \(currentUser.firstName ?? "nil")")
+            print("❌ Firebase Auth user: \(FirebaseUserSession.shared.firebaseAuthUser?.email ?? "nil")")
+            return
+        }
         
-        print("🎯 Starting check-in process for user \(userId) at event \(eventId)")
+        let firebaseAuthUID = firebaseAuthUser.uid
+        print("🔧 USING Firebase Auth UID: \(firebaseAuthUID)")
+        print("🔧 NOT using Firestore document ID: \(currentUser.id ?? "nil")")
+        
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("❌ Cannot check in: Event has no valid ID")
+            print("❌ event.id: \(event.id ?? "nil")")
+            print("❌ event.uniqueID: \(event.uniqueID)")
+            return
+        }
+        
+        guard !isProcessing else { 
+            print("⚠️ Check-in already in progress")
+            return 
+        }
+        
+        print("🎯 Starting check-in process for Firebase Auth UID \(firebaseAuthUID) at event \(eventId)")
+        print("🎯 Current state - isCheckedIn: \(isCheckedIn), will \(isCheckedIn ? "CHECK OUT" : "CHECK IN")")
         Haptics.lightImpact()
         isProcessing = true
+        print("🔍 Set isProcessing = true")
         
         if isCheckedIn {
             // Check out
-            checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
+            print("🔄 CHECKOUT: Starting check-out process...")
+            checkInsService.checkOut(userId: firebaseAuthUID, eventId: eventId) { success, error in
+                print("🔄 CHECKOUT: Firebase response received - success: \(success), error: \(error ?? "none")")
                 DispatchQueue.main.async {
+                    print("🔄 CHECKOUT: Processing response on main thread")
                     self.isProcessing = false
+                    print("🔍 Set isProcessing = false")
                     if success {
+                        print("✅ CHECKOUT: Success - updating UI state")
+                        let oldCheckedIn = self.isCheckedIn
+                        let oldCount = self.checkInCount
                         self.isCheckedIn = false
                         self.checkInCount = max(0, self.checkInCount - 1)
-                        self.loadAttendees() // Refresh attendees list
+                        print("✅ CHECKOUT: State updated - isCheckedIn: \(oldCheckedIn) → \(self.isCheckedIn), checkInCount: \(oldCount) → \(self.checkInCount)")
                         Haptics.successNotification()
                         print("✅ Successfully checked out of event")
                         
@@ -971,21 +1095,29 @@ struct EventDetailView: View {
                             object: nil,
                             userInfo: ["eventId": eventId, "isCheckedIn": false]
                         )
+                        print("📢 Posted checkInStatusChanged notification")
                     } else {
-                        print("❌ Check out failed: \(error ?? "Unknown error")")
+                        print("❌ CHECKOUT: Failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
                     }
                 }
             }
         } else {
             // Check in
-            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
+            print("🔄 CHECKIN: Starting check-in process...")
+            checkInsService.checkIn(userId: firebaseAuthUID, eventId: eventId) { success, error in
+                print("🔄 CHECKIN: Firebase response received - success: \(success), error: \(error ?? "none")")
                 DispatchQueue.main.async {
+                    print("🔄 CHECKIN: Processing response on main thread")
                     self.isProcessing = false
+                    print("🔍 Set isProcessing = false")
                     if success {
+                        print("✅ CHECKIN: Success - updating UI state")
+                        let oldCheckedIn = self.isCheckedIn
+                        let oldCount = self.checkInCount
                         self.isCheckedIn = true
                         self.checkInCount += 1
-                        self.loadAttendees() // Refresh attendees list
+                        print("✅ CHECKIN: State updated - isCheckedIn: \(oldCheckedIn) → \(self.isCheckedIn), checkInCount: \(oldCount) → \(self.checkInCount)")
                         Haptics.successNotification()
                         print("✅ Successfully checked in to event")
                         
@@ -995,8 +1127,9 @@ struct EventDetailView: View {
                             object: nil,
                             userInfo: ["eventId": eventId, "isCheckedIn": true]
                         )
+                        print("📢 Posted checkInStatusChanged notification")
                     } else {
-                        print("❌ Check in failed: \(error ?? "Unknown error")")
+                        print("❌ CHECKIN: Failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
                     }
                 }
@@ -1005,33 +1138,78 @@ struct EventDetailView: View {
     }
     
     private func checkIfUserCheckedIn() {
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else {
+        print("🔍 INIT: EventDetailView checkIfUserCheckedIn called for event \(event.eventName ?? "unknown")")
+        
+        guard let currentUser = FirebaseUserSession.shared.currentUser else {
+            print("⚠️ INIT: Cannot check user check-in status: Missing user")
             return
         }
         
-        checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { isCheckedIn in
+        // CRITICAL FIX: Use Firebase Auth UID, not Firestore document ID
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser else {
+            print("⚠️ INIT: Cannot check user check-in status: Missing Firebase Auth UID")
+            print("⚠️ INIT: currentUser = \(currentUser.firstName ?? "nil")")
+            print("⚠️ INIT: currentUser.id = \(currentUser.id ?? "nil")")
+            print("⚠️ INIT: firebaseAuthUser = \(FirebaseUserSession.shared.firebaseAuthUser?.email ?? "nil")")
+            return
+        }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("⚠️ INIT: Cannot check user check-in status: Missing event ID")
+            print("⚠️ INIT: event.id = \(event.id ?? "nil")")
+            print("⚠️ INIT: event.uniqueID = \(event.uniqueID)")
+            return
+        }
+        
+        print("🔍 INIT: Checking check-in status for Firebase Auth UID=\(firebaseAuthUID), eventId=\(eventId)")
+        
+        checkInsService.isUserCheckedIn(userId: firebaseAuthUID, eventId: eventId) { isCheckedIn in
+            print("🔍 INIT: isUserCheckedIn callback received with result: \(isCheckedIn)")
             DispatchQueue.main.async {
+                print("🔍 INIT: Processing isUserCheckedIn result on main thread")
+                let oldValue = self.isCheckedIn
                 self.isCheckedIn = isCheckedIn
-                print("📊 User check-in status: \(isCheckedIn ? "checked in" : "not checked in")")
+                print("📊 INIT: User check-in status loaded: \(oldValue) → \(self.isCheckedIn)")
             }
         }
     }
     
     private func loadCheckInCount() {
-        guard let eventId = event.id else { return }
+        print("🔍 INIT: loadCheckInCount called for event \(event.eventName ?? "unknown")")
+        
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("⚠️ INIT: Cannot load check-in count: Missing event ID")
+            print("⚠️ INIT: event.id = \(event.id ?? "nil")")
+            print("⚠️ INIT: event.uniqueID = \(event.uniqueID)")
+            return
+        }
+        
+        print("🔍 INIT: Loading check-in count for eventId=\(eventId)")
         
         checkInsService.getCheckInCount(for: eventId) { count in
+            print("🔍 INIT: getCheckInCount callback received with result: \(count)")
             DispatchQueue.main.async {
+                print("🔍 INIT: Processing getCheckInCount result on main thread")
+                let oldValue = self.checkInCount
                 self.checkInCount = count
-                print("📊 Check-in count: \(count)")
+                print("📊 INIT: Check-in count loaded: \(oldValue) → \(self.checkInCount)")
             }
         }
     }
     
     private func loadAttendees() {
-        guard let eventId = event.id else { return }
+        // Use event.id if available, otherwise use uniqueID as fallback
+        let eventId = event.id ?? event.uniqueID
+        guard !eventId.isEmpty else {
+            print("⚠️ Cannot load attendees: Missing event ID")
+            return
+        }
         
         isLoadingAttendees = true
         checkInsService.getMembersAtEvent(eventId) { members in

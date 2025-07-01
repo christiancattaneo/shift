@@ -771,62 +771,99 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     func checkIn(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
+        print("🔥 FIREBASE CHECKIN: Starting check-in process")
+        print("🔥 FIREBASE CHECKIN: userId = \(userId)")
+        print("🔥 FIREBASE CHECKIN: eventId = \(eventId)")
+        
         // First check if user is already checked in
         isUserCheckedIn(userId: userId, eventId: eventId) { [weak self] isAlreadyCheckedIn in
-            guard let self = self else { return }
+            print("🔥 FIREBASE CHECKIN: isAlreadyCheckedIn check result = \(isAlreadyCheckedIn)")
+            
+            guard let self = self else { 
+                print("❌ FIREBASE CHECKIN: self is nil")
+                completion(false, "Service unavailable")
+                return 
+            }
             
             if isAlreadyCheckedIn {
+                print("❌ FIREBASE CHECKIN: User already checked in")
                 completion(false, "Already checked in to this event")
                 return
             }
             
+            print("🔥 FIREBASE CHECKIN: Creating new check-in document...")
             let checkIn = FirebaseCheckIn(userId: userId, eventId: eventId)
             
             do {
+                print("🔥 FIREBASE CHECKIN: Attempting to add document to Firestore...")
                 try self.db.collection("checkIns").addDocument(from: checkIn) { error in
+                    print("🔥 FIREBASE CHECKIN: Firestore addDocument callback received")
                     DispatchQueue.main.async {
+                        print("🔥 FIREBASE CHECKIN: Processing on main thread")
                         if let error = error {
+                            print("❌ FIREBASE CHECKIN: Failed with error: \(error.localizedDescription)")
                             completion(false, error.localizedDescription)
                         } else {
-                            print("✅ User \(userId) checked in to event \(eventId)")
+                            print("✅ FIREBASE CHECKIN: SUCCESS - User \(userId) checked in to event \(eventId)")
                             completion(true, nil)
                         }
                     }
                 }
             } catch {
+                print("❌ FIREBASE CHECKIN: Exception during addDocument: \(error.localizedDescription)")
                 completion(false, error.localizedDescription)
             }
         }
     }
     
     func checkOut(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
+        print("🔥 FIREBASE CHECKOUT: Starting check-out process")
+        print("🔥 FIREBASE CHECKOUT: userId = \(userId)")
+        print("🔥 FIREBASE CHECKOUT: eventId = \(eventId)")
+        
         // Find the active check-in for this user and event
+        print("🔥 FIREBASE CHECKOUT: Querying for active check-in...")
         db.collection("checkIns")
             .whereField("userId", isEqualTo: userId)
             .whereField("eventId", isEqualTo: eventId)
             .whereField("isActive", isEqualTo: true)
             .getDocuments { querySnapshot, error in
+                print("🔥 FIREBASE CHECKOUT: Query callback received")
                 DispatchQueue.main.async {
+                    print("🔥 FIREBASE CHECKOUT: Processing on main thread")
                     if let error = error {
+                        print("❌ FIREBASE CHECKOUT: Query failed with error: \(error.localizedDescription)")
                         completion(false, error.localizedDescription)
                         return
                     }
                     
-                    guard let documents = querySnapshot?.documents, let document = documents.first else {
+                    guard let documents = querySnapshot?.documents else {
+                        print("❌ FIREBASE CHECKOUT: No documents in query result")
                         completion(false, "No active check-in found")
                         return
                     }
                     
+                    print("🔥 FIREBASE CHECKOUT: Found \(documents.count) documents")
+                    
+                    guard let document = documents.first else {
+                        print("❌ FIREBASE CHECKOUT: No active check-in document found")
+                        completion(false, "No active check-in found")
+                        return
+                    }
+                    
+                    print("🔥 FIREBASE CHECKOUT: Found active check-in, updating document...")
                     // Update the check-in to mark as checked out
                     document.reference.updateData([
                         "checkedOutAt": Timestamp(),
                         "isActive": false,
                         "updatedAt": Timestamp()
                     ]) { error in
+                        print("🔥 FIREBASE CHECKOUT: Update callback received")
                         if let error = error {
+                            print("❌ FIREBASE CHECKOUT: Update failed with error: \(error.localizedDescription)")
                             completion(false, error.localizedDescription)
                         } else {
-                            print("✅ User \(userId) checked out of event \(eventId)")
+                            print("✅ FIREBASE CHECKOUT: SUCCESS - User \(userId) checked out of event \(eventId)")
                             completion(true, nil)
                         }
                     }
@@ -835,37 +872,50 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     func isUserCheckedIn(userId: String, eventId: String, completion: @escaping (Bool) -> Void) {
+        print("🔥 FIREBASE STATUS: Checking if user is checked in")
+        print("🔥 FIREBASE STATUS: userId = \(userId)")
+        print("🔥 FIREBASE STATUS: eventId = \(eventId)")
+        
         db.collection("checkIns")
             .whereField("userId", isEqualTo: userId)
             .whereField("eventId", isEqualTo: eventId)
             .whereField("isActive", isEqualTo: true)
             .getDocuments { querySnapshot, error in
+                print("🔥 FIREBASE STATUS: Query callback received")
                 DispatchQueue.main.async {
+                    print("🔥 FIREBASE STATUS: Processing on main thread")
                     if let error = error {
-                        print("❌ Error checking check-in status: \(error.localizedDescription)")
+                        print("❌ FIREBASE STATUS: Query failed: \(error.localizedDescription)")
                         completion(false)
                         return
                     }
                     
-                    let isCheckedIn = !(querySnapshot?.documents.isEmpty ?? true)
+                    let documentCount = querySnapshot?.documents.count ?? 0
+                    let isCheckedIn = documentCount > 0
+                    print("🔥 FIREBASE STATUS: Found \(documentCount) active check-ins, isCheckedIn = \(isCheckedIn)")
                     completion(isCheckedIn)
                 }
             }
     }
     
     func getCheckInCount(for eventId: String, completion: @escaping (Int) -> Void) {
+        print("🔥 FIREBASE COUNT: Getting check-in count for event \(eventId)")
+        
         db.collection("checkIns")
             .whereField("eventId", isEqualTo: eventId)
             .whereField("isActive", isEqualTo: true)
             .getDocuments { querySnapshot, error in
+                print("🔥 FIREBASE COUNT: Query callback received")
                 DispatchQueue.main.async {
+                    print("🔥 FIREBASE COUNT: Processing on main thread")
                     if let error = error {
-                        print("❌ Error getting check-in count: \(error.localizedDescription)")
+                        print("❌ FIREBASE COUNT: Query failed: \(error.localizedDescription)")
                         completion(0)
                         return
                     }
                     
                     let count = querySnapshot?.documents.count ?? 0
+                    print("🔥 FIREBASE COUNT: Found \(count) active check-ins for event")
                     completion(count)
                 }
             }

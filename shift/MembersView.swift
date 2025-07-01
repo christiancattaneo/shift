@@ -504,13 +504,12 @@ struct MemberCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Profile Image with consistent sizing
+            // Profile Image with constrained sizing
             CachedAsyncImage(url: member.profileImageURL) { image in
                 image
                     .resizable()
                     .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: 200)
-                    .aspectRatio(1, contentMode: .fill)
+                    .frame(height: 180)
                     .clipped()
             } placeholder: {
                 loadingImageView
@@ -524,14 +523,16 @@ struct MemberCardView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
                         .lineLimit(1)
+                        .truncationMode(.tail)
                     
-                    Spacer()
+                    Spacer(minLength: 4)
                     
                     if let age = member.age {
                         Text("\(age)")
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
+                            .fixedSize()
                     }
                 }
                 
@@ -544,6 +545,7 @@ struct MemberCardView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .lineLimit(1)
+                            .truncationMode(.tail)
                     }
                 }
                 
@@ -553,11 +555,13 @@ struct MemberCardView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
+                        .truncationMode(.tail)
                 }
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity)
         .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
@@ -570,8 +574,7 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(maxWidth: .infinity, maxHeight: 200)
-            .aspectRatio(1, contentMode: .fill)
+            .frame(height: 180)
             
             VStack(spacing: 8) {
                 ProgressView()
@@ -590,7 +593,7 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 200)
+            .frame(height: 180)
             
             VStack(spacing: 8) {
                 Image(systemName: "person.crop.circle.fill")
