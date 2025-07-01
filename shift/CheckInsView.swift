@@ -1,7 +1,5 @@
 import SwiftUI
-import MapKit
 import Combine
-import CoreLocation
 
 // MARK: - Cached AsyncImage Component
 struct CachedAsyncImage<Content: View, Placeholder: View>: View {
@@ -152,16 +150,9 @@ func parseEventDate(_ dateString: String) -> Date? {
 }
 
 struct CheckInsView: View {
-    @State private var region = MapCameraPosition.region(
-        MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 30.2672, longitude: -97.7431), // Austin, Texas
-            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-        )
-    )
-    @State private var locationManager = CLLocationManager()
-    
     @State private var searchText = ""
     @State private var selectedFilter = "All"
+    @State private var selectedEvent: FirebaseEvent? = nil
     @StateObject private var eventsService = FirebaseEventsService()
     @StateObject private var checkInsService = FirebaseCheckInsService()
     
@@ -217,6 +208,17 @@ struct CheckInsView: View {
             print("🌐 EVENTS: 'All' filter: keeping all \(events.count) events")
         }
         
+        // Filter out events without images
+        let beforeImageFilter = events.count
+        events = events.filter { event in
+            let hasImage = event.imageURL != nil
+            if !hasImage {
+                print("🖼️ EVENTS: Filtering out event '\(event.eventName ?? event.venueName ?? "Unknown")' - no image available")
+            }
+            return hasImage
+        }
+        print("📸 EVENTS: After image filter: \(events.count) events (filtered out \(beforeImageFilter - events.count) without images)")
+        
         print("🎯 EVENTS: Final result: \(events.count) events will be displayed")
         return events
     }
@@ -226,9 +228,6 @@ struct CheckInsView: View {
         VStack(spacing: 0) {
             // Custom Header Section
             customHeaderSection
-            
-            // Map Section
-            mapSection
             
             // Content Section
             if eventsService.isLoading {
@@ -253,6 +252,19 @@ struct CheckInsView: View {
         }
         .onAppear {
             setupInitialState()
+        }
+        .sheet(item: $selectedEvent) { event in
+            NavigationView {
+                EventDetailView(event: event)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Done") {
+                                selectedEvent = nil
+                            }
+                        }
+                    }
+            }
         }
     }
     
@@ -333,31 +345,7 @@ struct CheckInsView: View {
         .padding(.bottom, 12)
     }
     
-    private var mapSection: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text("Nearby Events")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                Spacer()
-                Button("View All") {
-                    // TODO: Expand map view
-                }
-                .font(.subheadline)
-                .foregroundColor(.blue)
-            }
-            .padding(.horizontal, 20)
-            
-            Map(position: $region)
-                .frame(height: 180)
-                .cornerRadius(16)
-                .padding(.horizontal, 20)
-                .onAppear {
-                    requestLocationPermission()
-                }
-        }
-        .padding(.vertical, 8)
-    }
+
     
     private var loadingSection: some View {
         VStack(spacing: 16) {
@@ -403,10 +391,15 @@ struct CheckInsView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(filteredEvents, id: \.uniqueID) { event in
-                    NavigationLink(destination: EventDetailView(event: event)) {
-                        EventCardView(event: event)
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    EventCardView(
+                        event: event,
+                        checkInsService: checkInsService,
+                        onCardTap: {
+                            // Handle card tap to navigate to event detail
+                            print("🎯 Card tapped for event: \(event.name)")
+                            selectedEvent = event
+                        }
+                    )
                 }
             }
             .padding(.horizontal, 20)
@@ -433,31 +426,19 @@ struct CheckInsView: View {
         try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
     
-    private func requestLocationPermission() {
-        locationManager.requestWhenInUseAuthorization()
-        
-        if locationManager.authorizationStatus == .authorizedWhenInUse || 
-           locationManager.authorizationStatus == .authorizedAlways {
-            if let userLocation = locationManager.location {
-                withAnimation(.easeInOut(duration: 1.0)) {
-                    region = MapCameraPosition.region(
-                        MKCoordinateRegion(
-                            center: userLocation.coordinate,
-                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                        )
-                    )
-                }
-            }
-        }
-    }
+
 }
 
 // MARK: - Supporting Views
 
 struct EventCardView: View {
     let event: FirebaseEvent
+    let checkInsService: FirebaseCheckInsService
+    let onCardTap: () -> Void
+    
     @State private var isCheckedIn = false
     @State private var checkInCount = 0
+    @State private var isProcessing = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -473,6 +454,9 @@ struct EventCardView: View {
                     eventImagePlaceholder
                 }
                 .cornerRadius(16, corners: [.topLeft, .topRight])
+                .onTapGesture {
+                    onCardTap()
+                }
                 
                 // Check-in count badge
                 if checkInCount > 0 {
@@ -520,13 +504,22 @@ struct EventCardView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .onTapGesture {
+                    onCardTap()
+                }
                 
-                // Check-in Button
+                // Check-in Button  
                 Button(action: toggleCheckIn) {
                     HStack(spacing: 6) {
-                        Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle")
-                            .font(.subheadline)
-                        Text(isCheckedIn ? "Checked In" : "Check In")
+                        if isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .frame(width: 16, height: 16)
+                        } else {
+                            Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle")
+                                .font(.subheadline)
+                        }
+                        Text(isProcessing ? "Processing..." : (isCheckedIn ? "Check Out" : "Check In"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
@@ -543,6 +536,7 @@ struct EventCardView: View {
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(isCheckedIn ? Color.clear : Color.blue.opacity(0.3), lineWidth: 1)
                     )
+                    .disabled(isProcessing)
                 }
             }
             .padding(16)
@@ -557,22 +551,75 @@ struct EventCardView: View {
     }
     
     private func toggleCheckIn() {
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id,
+              let eventId = event.id else {
+            print("❌ Cannot check in: Missing user or event ID")
+            return
+        }
+        
+        guard !isProcessing else { return }
+        
         Haptics.lightImpact()
-        isCheckedIn.toggle()
+        isProcessing = true
+        
         if isCheckedIn {
-            checkInCount += 1
-            Haptics.successNotification()
+            // Check out
+            checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
+                DispatchQueue.main.async {
+                    self.isProcessing = false
+                    if success {
+                        self.isCheckedIn = false
+                        self.checkInCount = max(0, self.checkInCount - 1)
+                        Haptics.successNotification()
+                        print("✅ Successfully checked out of event")
+                    } else {
+                        print("❌ Check out failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
+                    }
+                }
+            }
         } else {
-            checkInCount = max(0, checkInCount - 1)
+            // Check in
+            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
+                DispatchQueue.main.async {
+                    self.isProcessing = false
+                    if success {
+                        self.isCheckedIn = true
+                        self.checkInCount += 1
+                        Haptics.successNotification()
+                        print("✅ Successfully checked in to event")
+                    } else {
+                        print("❌ Check in failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
+                    }
+                }
+            }
         }
     }
     
     private func checkIfUserCheckedIn() {
-        isCheckedIn = false
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id,
+              let eventId = event.id else {
+            return
+        }
+        
+        checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { isCheckedIn in
+            DispatchQueue.main.async {
+                self.isCheckedIn = isCheckedIn
+            }
+        }
     }
     
     private func loadCheckInCount() {
-        checkInCount = Int.random(in: 2...15)
+        guard let eventId = event.id else { return }
+        
+        checkInsService.getCheckInCount(for: eventId) { count in
+            DispatchQueue.main.async {
+                self.checkInCount = count
+            }
+        }
     }
     
     private func formatEventDate(_ date: Date) -> String {

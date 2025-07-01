@@ -436,7 +436,9 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
     @DocumentID var id: String?
     let placeName: String?
     let placeLocation: String?
-    let placeImage: String?
+    let placeImage: String?          // Legacy field
+    let imageUrl: String?            // NEW Firebase Storage field (working URLs)
+    let firebaseImageUrl: String?    // Alternative Firebase field name
     let isPlaceFree: Bool?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
@@ -447,6 +449,8 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
         self.placeName = placeName
         self.placeLocation = placeLocation
         self.placeImage = placeImage
+        self.imageUrl = nil
+        self.firebaseImageUrl = nil
         self.isPlaceFree = nil
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
@@ -605,80 +609,38 @@ extension FirebaseEvent {
     var imageURL: URL? {
         let eventName = self.eventName ?? "Unknown"
         
-        // PRIORITY 1: Try Firebase Storage URLs but CONVERT old format to new format
+        // PRIORITY 1: Check imageUrl field FIRST (this is what our fix script updated)
+        if let imageUrl = imageUrl, !imageUrl.isEmpty {
+            print("🖼️ EVENT: Using imageUrl for '\(eventName)': \(imageUrl)")
+            return URL(string: imageUrl)
+        }
+        
+        // PRIORITY 2: Check firebaseImageUrl field
         if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
-            // If it's already a proper Firebase Storage URL, use it
-            if firebaseImageUrl.contains("firebasestorage.googleapis.com") && firebaseImageUrl.contains("alt=media") {
-                print("🖼️ EVENT: Using proper firebaseImageUrl for '\(eventName)': \(firebaseImageUrl)")
-                return URL(string: firebaseImageUrl)
-            }
-            // If it's an old storage.googleapis.com URL, convert it to proper format
-            else if firebaseImageUrl.contains("storage.googleapis.com") || firebaseImageUrl.contains("event_images/") {
-                                 // Extract ID from legacy URL (e.g., "219_1751064183603.jpeg" -> "219")
-                 if let filename = firebaseImageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first,
-                    let eventId = filename.components(separatedBy: "_").first {
-                     
-                     // First try the descriptive filename based on event name
-                     if let eventName = eventName, !eventName.isEmpty {
-                         let descriptiveFilename = "\(eventId)_\(eventName.replacingOccurrences(of: " ", with: "___").replacingOccurrences(of: "&", with: "___")).jpeg"
-                         let descriptiveUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(descriptiveFilename)?alt=media"
-                         print("🔄 EVENT: Trying descriptive filename for '\(eventName)': \(descriptiveUrl)")
-                         return URL(string: descriptiveUrl)
-                     }
-                     
-                     // Fallback to original filename (timestamp version)
-                     let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
-                     print("🔄 EVENT: Fallback to timestamp filename for '\(eventName)': \(properUrl)")
-                     return URL(string: properUrl)
-                 }
-            }
-            // Otherwise use as-is (fallback)
-            print("🖼️ EVENT: Using firebaseImageUrl as-is for '\(eventName)': \(firebaseImageUrl)")
+            print("🖼️ EVENT: Using firebaseImageUrl for '\(eventName)': \(firebaseImageUrl)")
             return URL(string: firebaseImageUrl)
         }
         
-        if let imageUrl = imageUrl, !imageUrl.isEmpty {
-            // Apply same conversion logic to imageUrl field
-            if imageUrl.contains("firebasestorage.googleapis.com") && imageUrl.contains("alt=media") {
-                print("🖼️ EVENT: Using proper imageUrl for '\(eventName)': \(imageUrl)")
+        // PRIORITY 3: Try document ID-based Firebase Storage URL (standard pattern)
+        if let documentId = id, !documentId.isEmpty {
+            // Check common extensions
+            let extensions = [".jpeg", ".jpg", ".png"]
+            for ext in extensions {
+                let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(documentId)\(ext)?alt=media"
+                print("🖼️ EVENT: Trying document ID pattern for '\(eventName)': \(imageUrl)")
                 return URL(string: imageUrl)
             }
-            else if imageUrl.contains("storage.googleapis.com") || imageUrl.contains("event_images/") {
-                if let filename = imageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first {
-                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
-                    print("🔄 EVENT: Converting imageUrl for '\(eventName)': \(imageUrl) -> \(properUrl)")
-                    return URL(string: properUrl)
-                }
-            }
-            print("🖼️ EVENT: Using imageUrl as-is for '\(eventName)': \(imageUrl)")
-            return URL(string: imageUrl)
         }
         
-        // PRIORITY 2: Try document ID-based Firebase Storage URL (like profiles)
-        if let documentId = id, !documentId.isEmpty {
-            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(documentId).jpg?alt=media"
-            print("🖼️ EVENT: Using document ID for '\(eventName)': \(imageUrl)")
-            return URL(string: imageUrl)
-        }
-        
-        // PRIORITY 3: Try legacy image field but convert to proper Firebase Storage API format
+        // PRIORITY 4: Try legacy image field with proper conversion
         if let image = image, !image.isEmpty {
-            // If it's already a proper Firebase Storage URL, use it
-            if image.contains("firebasestorage.googleapis.com") && image.contains("alt=media") {
-                print("🖼️ EVENT: Using legacy proper URL for '\(eventName)': \(image)")
+            // If it's already a complete URL, use it
+            if image.hasPrefix("http") {
+                print("🖼️ EVENT: Using legacy URL for '\(eventName)': \(image)")
                 return URL(string: image)
             }
-            // If it's an old storage.googleapis.com URL, convert it to proper format
-            else if image.contains("storage.googleapis.com") || image.contains("event_images/") {
-                // Extract filename from legacy URL
-                if let filename = image.components(separatedBy: "/").last?.components(separatedBy: "?").first {
-                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
-                    print("🔄 EVENT: Converting legacy URL for '\(eventName)': \(image) -> \(properUrl)")
-                    return URL(string: properUrl)
-                }
-            }
             // If it's just a filename, construct the proper URL
-            else if !image.hasPrefix("http") {
+            else {
                 let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(image)?alt=media"
                 print("🔄 EVENT: Converting filename for '\(eventName)': \(image) -> \(properUrl)")
                 return URL(string: properUrl)
@@ -699,18 +661,50 @@ extension FirebasePlace {
         return placeLocation
     }
     
-    // Helper to get place image URL from Firebase Storage
+    // Helper to get place image URL from Firebase Storage - Universal System
     var imageURL: URL? {
-        guard let placeImage = placeImage, !placeImage.isEmpty else { return nil }
+        let placeName = self.placeName ?? "Unknown"
         
-        // If it's already a complete URL, use it
-        if placeImage.hasPrefix("http") {
-            return URL(string: placeImage)
+        // PRIORITY 1: Check imageUrl field FIRST (this is what our fix script updated)
+        if let imageUrl = imageUrl, !imageUrl.isEmpty {
+            print("🖼️ PLACE: Using imageUrl for '\(placeName)': \(imageUrl)")
+            return URL(string: imageUrl)
         }
         
-        // If it's a Firebase Storage reference, construct the URL with proper encoding
-        let encodedPath = placeImage.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? placeImage
-        return URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(encodedPath)?alt=media")
+        // PRIORITY 2: Check firebaseImageUrl field
+        if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
+            print("🖼️ PLACE: Using firebaseImageUrl for '\(placeName)': \(firebaseImageUrl)")
+            return URL(string: firebaseImageUrl)
+        }
+        
+        // PRIORITY 3: Try document ID-based Firebase Storage URL (standard pattern)
+        if let documentId = id, !documentId.isEmpty {
+            // Check common extensions
+            let extensions = [".jpeg", ".jpg", ".png"]
+            for ext in extensions {
+                let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/places%2F\(documentId)\(ext)?alt=media"
+                print("🖼️ PLACE: Trying document ID pattern for '\(placeName)': \(imageUrl)")
+                return URL(string: imageUrl)
+            }
+        }
+        
+        // PRIORITY 4: Try legacy placeImage field with proper conversion
+        if let placeImage = placeImage, !placeImage.isEmpty {
+            // If it's already a complete URL, use it
+            if placeImage.hasPrefix("http") {
+                print("🖼️ PLACE: Using legacy URL for '\(placeName)': \(placeImage)")
+                return URL(string: placeImage)
+            }
+            // If it's just a filename, construct the proper URL
+            else {
+                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/places%2F\(placeImage)?alt=media"
+                print("🔄 PLACE: Converting filename for '\(placeName)': \(placeImage) -> \(properUrl)")
+                return URL(string: properUrl)
+            }
+        }
+        
+        print("❌ PLACE: No image URL available for '\(placeName)'")
+        return nil
     }
 }
 

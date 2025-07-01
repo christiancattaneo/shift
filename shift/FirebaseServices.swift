@@ -762,21 +762,104 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     func checkIn(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
-        let checkIn = FirebaseCheckIn(userId: userId, eventId: eventId)
-        
-        do {
-            try db.collection("checkIns").addDocument(from: checkIn) { error in
+        // First check if user is already checked in
+        isUserCheckedIn(userId: userId, eventId: eventId) { [weak self] isAlreadyCheckedIn in
+            guard let self = self else { return }
+            
+            if isAlreadyCheckedIn {
+                completion(false, "Already checked in to this event")
+                return
+            }
+            
+            let checkIn = FirebaseCheckIn(userId: userId, eventId: eventId)
+            
+            do {
+                try self.db.collection("checkIns").addDocument(from: checkIn) { error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            completion(false, error.localizedDescription)
+                        } else {
+                            print("✅ User \(userId) checked in to event \(eventId)")
+                            completion(true, nil)
+                        }
+                    }
+                }
+            } catch {
+                completion(false, error.localizedDescription)
+            }
+        }
+    }
+    
+    func checkOut(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
+        // Find the active check-in for this user and event
+        db.collection("checkIns")
+            .whereField("userId", isEqualTo: userId)
+            .whereField("eventId", isEqualTo: eventId)
+            .whereField("isActive", isEqualTo: true)
+            .getDocuments { querySnapshot, error in
                 DispatchQueue.main.async {
                     if let error = error {
                         completion(false, error.localizedDescription)
-                    } else {
-                        completion(true, nil)
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents, let document = documents.first else {
+                        completion(false, "No active check-in found")
+                        return
+                    }
+                    
+                    // Update the check-in to mark as checked out
+                    document.reference.updateData([
+                        "checkedOutAt": Timestamp(),
+                        "isActive": false,
+                        "updatedAt": Timestamp()
+                    ]) { error in
+                        if let error = error {
+                            completion(false, error.localizedDescription)
+                        } else {
+                            print("✅ User \(userId) checked out of event \(eventId)")
+                            completion(true, nil)
+                        }
                     }
                 }
             }
-        } catch {
-            completion(false, error.localizedDescription)
-        }
+    }
+    
+    func isUserCheckedIn(userId: String, eventId: String, completion: @escaping (Bool) -> Void) {
+        db.collection("checkIns")
+            .whereField("userId", isEqualTo: userId)
+            .whereField("eventId", isEqualTo: eventId)
+            .whereField("isActive", isEqualTo: true)
+            .getDocuments { querySnapshot, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        print("❌ Error checking check-in status: \(error.localizedDescription)")
+                        completion(false)
+                        return
+                    }
+                    
+                    let isCheckedIn = !(querySnapshot?.documents.isEmpty ?? true)
+                    completion(isCheckedIn)
+                }
+            }
+    }
+    
+    func getCheckInCount(for eventId: String, completion: @escaping (Int) -> Void) {
+        db.collection("checkIns")
+            .whereField("eventId", isEqualTo: eventId)
+            .whereField("isActive", isEqualTo: true)
+            .getDocuments { querySnapshot, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        print("❌ Error getting check-in count: \(error.localizedDescription)")
+                        completion(0)
+                        return
+                    }
+                    
+                    let count = querySnapshot?.documents.count ?? 0
+                    completion(count)
+                }
+            }
     }
     
     func getMembersAtEvent(_ eventId: String) -> [FirebaseMember] {
