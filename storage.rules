@@ -5,35 +5,35 @@ service firebase.storage {
   match /b/{bucket}/o {
     
     // NEW: Profile images - UUID-based system  
-    match /profiles/{userId} {
+    match /profiles/{filename} {
       allow read: if true; // Public read for profile images
-      allow write: if request.auth != null && request.auth.uid == userId; // Users can only update their own image
+      allow write: if request.auth != null; // Authenticated users can upload profile images
     }
     
     // NEW: Event images - clean naming system
-    match /events/{imageId} {
+    match /events/{filename} {
       allow read: if true; // Public read for event images
       allow write: if request.auth != null; // Authenticated users can manage events
     }
     
     // NEW: Place images - clean naming system  
-    match /places/{imageId} {
+    match /places/{filename} {
       allow read: if true; // Public read for place images
       allow write: if request.auth != null; // Authenticated users can manage places
     }
     
     // LEGACY: Old directories (read-only for cleanup)
-    match /profile_images/{imageId} {
+    match /profile_images/{filename} {
       allow read: if true; // Read-only access to legacy images
       allow write: if false; // No new uploads to legacy directory
     }
     
-    match /event_images/{imageId} {
+    match /event_images/{filename} {
       allow read: if true; // Read-only access to legacy images
       allow write: if false; // No new uploads to legacy directory
     }
     
-    match /place_images/{imageId} {
+    match /place_images/{filename} {
       allow read: if true; // Read-only access to legacy images  
       allow write: if false; // No new uploads to legacy directory
     }
