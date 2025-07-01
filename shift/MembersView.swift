@@ -107,10 +107,10 @@ struct MembersView: View {
                 filterMembers()
             }
         }
-        .onChange(of: membersService.members) { _ in
+        .onChange(of: membersService.members) {
             filterMembers()
         }
-        .onChange(of: searchText) { _ in
+        .onChange(of: searchText) {
             filterMembers()
         }
     }
