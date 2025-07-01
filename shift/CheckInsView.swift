@@ -4,6 +4,27 @@ import Combine
 
 // MARK: - Helper Functions
 
+// Extension for corner radius with specific corners
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
 // Global helper function to parse event date string to Date
 func parseEventDate(_ dateString: String) -> Date? {
     let dateFormats = [
@@ -265,9 +286,8 @@ struct EventCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Event Image/Header
+            // Event Image Header
             ZStack(alignment: .topTrailing) {
-                // Event Image with fallback gradient
                 AsyncImage(url: event.imageURL) { phase in
                     switch phase {
                     case .empty:
@@ -279,184 +299,148 @@ struct EventCardView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(height: 120)
-                            .overlay(
+                            .frame(height: 200)
+                            .overlay {
                                 ProgressView()
-                                    .scaleEffect(0.8)
-                                    .foregroundColor(.white.opacity(0.8))
-                            )
+                                    .tint(.white)
+                                    .scaleEffect(1.2)
+                            }
                     case .success(let image):
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(height: 120)
+                            .frame(height: 200)
                             .clipped()
-                            .overlay(
-                                LinearGradient(
-                                    colors: [Color.black.opacity(0.3), Color.clear],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
                     case .failure(_):
                         Rectangle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                                    colors: [Color.gray.opacity(0.8), Color.gray.opacity(0.6)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(height: 120)
+                            .frame(height: 200)
+                            .overlay {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 30))
+                                        .foregroundColor(.white.opacity(0.8))
+                                    Text("Image unavailable")
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.8))
+                                }
+                            }
                     @unknown default:
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
-                            .frame(height: 120)
-                }
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(event.eventName ?? "Event")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .lineLimit(2)
-                            
-                            if let venueName = event.venueName {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "location.fill")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.8))
-                                    Text(venueName)
-                                        .font(.subheadline)
-                                        .foregroundColor(.white.opacity(0.9))
-                                        .lineLimit(1)
-                                }
-                            }
-                        }
-                        Spacer()
-                    }
-                    
-                    Spacer()
-                    
-                    // Event Time/Date
-                    if let eventDateString = event.eventDate,
-                       let eventDate = parseEventDate(eventDateString) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "clock.fill")
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.8))
-                            Text(formatEventDate(eventDate))
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.9))
-                        }
+                            .frame(height: 200)
                     }
                 }
-                .padding(16)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .cornerRadius(16, corners: [.topLeft, .topRight])
                 
-                // Event Type Badge
-                VStack {
-                    Text("EVENT")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.black.opacity(0.3))
-                        .cornerRadius(8)
+                // Check-in count badge
+                if checkInCount > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2.fill")
+                            .font(.caption2)
+                        Text("\(checkInCount)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(12)
                 }
-                .padding(12)
             }
             
             // Event Details
             VStack(spacing: 12) {
-                if let address = event.eventLocation {
-                    HStack {
-                        Image(systemName: "mappin")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(address)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(event.eventName ?? "Event")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    if let venueName = event.venueName {
+                        Text(venueName)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                            .lineLimit(2)
-                        Spacer()
+                            .lineLimit(1)
+                    }
+                    
+                    if let location = event.eventLocation {
+                        HStack(spacing: 4) {
+                            Image(systemName: "location")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(location)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(2)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // Check-in Section
-                HStack {
-                    // Check-in Count
-                    HStack(spacing: 4) {
-                        Image(systemName: "person.2.fill")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("\(checkInCount) checked in")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                // Check-in Button
+                Button(action: toggleCheckIn) {
+                    HStack(spacing: 6) {
+                        Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle")
+                            .font(.subheadline)
+                        Text(isCheckedIn ? "Checked In" : "Check In")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                     }
-                    
-                    Spacer()
-                    
-                    // Check-in Button
-                    Button(action: toggleCheckIn) {
-                        HStack(spacing: 6) {
-                            Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle")
-                                .font(.subheadline)
-                            Text(isCheckedIn ? "Checked In" : "Check In")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(isCheckedIn ? .white : .blue)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            isCheckedIn ? 
-                                LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing) :
-                                LinearGradient(colors: [.blue.opacity(0.1), .blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
-                        )
-                        .cornerRadius(20)
-                    }
+                    .foregroundColor(isCheckedIn ? .white : .blue)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        isCheckedIn ? 
+                            LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing) :
+                            LinearGradient(colors: [.blue.opacity(0.1), .blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(isCheckedIn ? Color.clear : Color.blue.opacity(0.3), lineWidth: 1)
+                    )
                 }
             }
             .padding(16)
         }
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
         .onAppear {
             checkIfUserCheckedIn()
             loadCheckInCount()
         }
     }
     
-    func toggleCheckIn() {
+    private func toggleCheckIn() {
         Haptics.lightImpact()
-        
+        isCheckedIn.toggle()
         if isCheckedIn {
-            // Check out logic - for now just toggle state
-            isCheckedIn = false
-            checkInCount = max(0, checkInCount - 1)
-        } else {
-            // Check in logic - for now just toggle state
-            Haptics.successNotification()
-            isCheckedIn = true
             checkInCount += 1
+            Haptics.successNotification()
+        } else {
+            checkInCount = max(0, checkInCount - 1)
         }
     }
     
-    func checkIfUserCheckedIn() {
-        // TODO: Implement check if current user is checked into this event
+    private func checkIfUserCheckedIn() {
         isCheckedIn = false
     }
     
-    func loadCheckInCount() {
-        // TODO: Load actual check-in count for this event
+    private func loadCheckInCount() {
         checkInCount = Int.random(in: 2...15)
     }
     
-    func formatEventDate(_ date: Date) -> String {
+    private func formatEventDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         
         if Calendar.current.isDateInToday(date) {
@@ -473,57 +457,7 @@ struct EventCardView: View {
     }
 }
 
-// MARK: - FilterPill Component
-struct FilterPill: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.blue : Color(.systemGray6))
-                )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
 
-// MARK: - Firebase Services (Placeholder)
-class FirebaseEventsService: ObservableObject {
-    @Published var events: [FirebaseEvent] = []
-    @Published var isLoading = false
-    
-    func fetchEvents() {
-        isLoading = true
-        // TODO: Implement Firebase event fetching
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.isLoading = false
-            // Add mock data for now
-            self.events = []
-        }
-    }
-}
-
-class FirebaseCheckInsService: ObservableObject {
-    @Published var isLoading = false
-    
-    func fetchCheckIns() {
-        // TODO: Implement Firebase check-ins fetching
-    }
-    
-    func checkIn(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
-        // TODO: Implement Firebase check-in
-        completion(true, nil)
-    }
-}
 
 // MARK: - Event Detail View (Placeholder)
 struct EventDetailView: View {
@@ -572,6 +506,8 @@ struct EventDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+
+
 
 #Preview {
     CheckInsView()
