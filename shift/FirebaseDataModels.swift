@@ -361,9 +361,9 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
             // Try to decode as a dictionary and extract URL
             if let imageDict = try? container.decodeIfPresent([String: AnyDecodable].self, forKey: .image),
                let urlValue = imageDict["url"]?.value as? String {
-                // If it's just a filename, construct the Firebase Storage URL using event_images/ directory
+                // If it's just a filename, construct the Firebase Storage URL using events/ directory
                 if !urlValue.hasPrefix("http") {
-                    self.image = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/event_images%2F\(urlValue)?alt=media"
+                    self.image = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(urlValue)?alt=media"
                     print("🔗 Using clean event image: \(urlValue)")
                 } else {
                     self.image = urlValue
@@ -614,12 +614,23 @@ extension FirebaseEvent {
             }
             // If it's an old storage.googleapis.com URL, convert it to proper format
             else if firebaseImageUrl.contains("storage.googleapis.com") || firebaseImageUrl.contains("event_images/") {
-                // Extract filename from legacy URL
-                if let filename = firebaseImageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first {
-                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/event_images%2F\(filename)?alt=media"
-                    print("🔄 EVENT: Converting firebaseImageUrl for '\(eventName)': \(firebaseImageUrl) -> \(properUrl)")
-                    return URL(string: properUrl)
-                }
+                                 // Extract ID from legacy URL (e.g., "219_1751064183603.jpeg" -> "219")
+                 if let filename = firebaseImageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first,
+                    let eventId = filename.components(separatedBy: "_").first {
+                     
+                     // First try the descriptive filename based on event name
+                     if let eventName = eventName, !eventName.isEmpty {
+                         let descriptiveFilename = "\(eventId)_\(eventName.replacingOccurrences(of: " ", with: "___").replacingOccurrences(of: "&", with: "___")).jpeg"
+                         let descriptiveUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(descriptiveFilename)?alt=media"
+                         print("🔄 EVENT: Trying descriptive filename for '\(eventName)': \(descriptiveUrl)")
+                         return URL(string: descriptiveUrl)
+                     }
+                     
+                     // Fallback to original filename (timestamp version)
+                     let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
+                     print("🔄 EVENT: Fallback to timestamp filename for '\(eventName)': \(properUrl)")
+                     return URL(string: properUrl)
+                 }
             }
             // Otherwise use as-is (fallback)
             print("🖼️ EVENT: Using firebaseImageUrl as-is for '\(eventName)': \(firebaseImageUrl)")
@@ -634,7 +645,7 @@ extension FirebaseEvent {
             }
             else if imageUrl.contains("storage.googleapis.com") || imageUrl.contains("event_images/") {
                 if let filename = imageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first {
-                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/event_images%2F\(filename)?alt=media"
+                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
                     print("🔄 EVENT: Converting imageUrl for '\(eventName)': \(imageUrl) -> \(properUrl)")
                     return URL(string: properUrl)
                 }
@@ -645,7 +656,7 @@ extension FirebaseEvent {
         
         // PRIORITY 2: Try document ID-based Firebase Storage URL (like profiles)
         if let documentId = id, !documentId.isEmpty {
-            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/event_images%2F\(documentId).jpg?alt=media"
+            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(documentId).jpg?alt=media"
             print("🖼️ EVENT: Using document ID for '\(eventName)': \(imageUrl)")
             return URL(string: imageUrl)
         }
@@ -661,14 +672,14 @@ extension FirebaseEvent {
             else if image.contains("storage.googleapis.com") || image.contains("event_images/") {
                 // Extract filename from legacy URL
                 if let filename = image.components(separatedBy: "/").last?.components(separatedBy: "?").first {
-                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/event_images%2F\(filename)?alt=media"
+                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
                     print("🔄 EVENT: Converting legacy URL for '\(eventName)': \(image) -> \(properUrl)")
                     return URL(string: properUrl)
                 }
             }
             // If it's just a filename, construct the proper URL
             else if !image.hasPrefix("http") {
-                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/event_images%2F\(image)?alt=media"
+                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(image)?alt=media"
                 print("🔄 EVENT: Converting filename for '\(eventName)': \(image) -> \(properUrl)")
                 return URL(string: properUrl)
             }
