@@ -1,6 +1,87 @@
 import SwiftUI
 import MapKit
 import Combine
+import CoreLocation
+
+// MARK: - Cached AsyncImage Component
+struct CachedAsyncImage<Content: View, Placeholder: View>: View {
+    private let url: URL?
+    private let content: (Image) -> Content
+    private let placeholder: () -> Placeholder
+    
+    @State private var cachedImage: UIImage?
+    @State private var isLoading = false
+    
+    init(
+        url: URL?,
+        @ViewBuilder content: @escaping (Image) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
+        self.url = url
+        self.content = content
+        self.placeholder = placeholder
+    }
+    
+    var body: some View {
+        Group {
+            if let cachedImage = cachedImage {
+                content(Image(uiImage: cachedImage))
+            } else if isLoading {
+                placeholder()
+            } else {
+                placeholder()
+                    .onAppear {
+                        loadImage()
+                    }
+            }
+        }
+    }
+    
+    private func loadImage() {
+        guard let url = url, cachedImage == nil && !isLoading else { return }
+        
+        // Check cache first
+        if let cachedImage = ImageCache.shared.getImage(for: url.absoluteString) {
+            self.cachedImage = cachedImage
+            return
+        }
+        
+        isLoading = true
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let uiImage = UIImage(data: data) {
+                    await MainActor.run {
+                        ImageCache.shared.setImage(uiImage, for: url.absoluteString)
+                        self.cachedImage = uiImage
+                        self.isLoading = false
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoading = false
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Image Cache
+class ImageCache {
+    static let shared = ImageCache()
+    private init() {}
+    
+    private let cache = NSCache<NSString, UIImage>()
+    
+    func getImage(for key: String) -> UIImage? {
+        return cache.object(forKey: NSString(string: key))
+    }
+    
+    func setImage(_ image: UIImage, for key: String) {
+        cache.setObject(image, forKey: NSString(string: key))
+    }
+}
 
 // MARK: - Helper Functions
 
@@ -49,10 +130,11 @@ func parseEventDate(_ dateString: String) -> Date? {
 struct CheckInsView: View {
     @State private var region = MapCameraPosition.region(
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 40.758896, longitude: -73.985130),
-            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+            center: CLLocationCoordinate2D(latitude: 30.2672, longitude: -97.7431), // Austin, Texas
+            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
         )
     )
+    @State private var locationManager = CLLocationManager()
     
     @State private var searchText = ""
     @State private var selectedFilter = "All"
@@ -185,7 +267,7 @@ struct CheckInsView: View {
     }
     
     private var mapSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             HStack {
                 Text("Nearby Events")
                     .font(.headline)
@@ -200,11 +282,14 @@ struct CheckInsView: View {
             .padding(.horizontal, 20)
             
             Map(position: $region)
-                .frame(height: 200)
+                .frame(height: 180)
                 .cornerRadius(16)
                 .padding(.horizontal, 20)
+                .onAppear {
+                    requestLocationPermission()
+                }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 8)
     }
     
     private var loadingSection: some View {
@@ -249,7 +334,7 @@ struct CheckInsView: View {
     
     private var eventsListSection: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
+            LazyVStack(spacing: 12) {
                 ForEach(filteredEvents, id: \.uniqueID) { event in
                     NavigationLink(destination: EventDetailView(event: event)) {
                         EventCardView(event: event)
@@ -258,7 +343,8 @@ struct CheckInsView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 16)
         }
     }
     
@@ -275,6 +361,24 @@ struct CheckInsView: View {
         
         try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
+    
+    private func requestLocationPermission() {
+        locationManager.requestWhenInUseAuthorization()
+        
+        if locationManager.authorizationStatus == .authorizedWhenInUse || 
+           locationManager.authorizationStatus == .authorizedAlways {
+            if let userLocation = locationManager.location {
+                withAnimation(.easeInOut(duration: 1.0)) {
+                    region = MapCameraPosition.region(
+                        MKCoordinateRegion(
+                            center: userLocation.coordinate,
+                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                        )
+                    )
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Supporting Views
@@ -288,54 +392,27 @@ struct EventCardView: View {
         VStack(spacing: 0) {
             // Event Image Header
             ZStack(alignment: .topTrailing) {
-                AsyncImage(url: event.imageURL) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                CachedAsyncImage(url: event.imageURL) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 200)
+                        .clipped()
+                } placeholder: {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .frame(height: 200)
-                            .overlay {
-                                ProgressView()
-                                    .tint(.white)
-                                    .scaleEffect(1.2)
-                            }
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 200)
-                            .clipped()
-                    case .failure(_):
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.gray.opacity(0.8), Color.gray.opacity(0.6)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(height: 200)
-                            .overlay {
-                                VStack(spacing: 8) {
-                                    Image(systemName: "photo")
-                                        .font(.system(size: 30))
-                                        .foregroundColor(.white.opacity(0.8))
-                                    Text("Image unavailable")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.8))
-                                }
-                            }
-                    @unknown default:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 200)
-                    }
+                        )
+                        .frame(height: 200)
+                        .overlay {
+                            ProgressView()
+                                .tint(.white)
+                                .scaleEffect(1.2)
+                        }
                 }
                 .cornerRadius(16, corners: [.topLeft, .topRight])
                 

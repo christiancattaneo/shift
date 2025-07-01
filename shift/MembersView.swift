@@ -477,22 +477,14 @@ struct MemberCardView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Profile Image
-            AsyncImage(url: member.profileImageURL) { phase in
-                switch phase {
-                case .empty:
-                    loadingImageView
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 200)
-                        .clipped()
-                case .failure(_):
-                    fallbackImageView
-                @unknown default:
-                    Color.gray.opacity(0.2)
-                        .frame(height: 200)
-                }
+            CachedAsyncImage(url: member.profileImageURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 200)
+                    .clipped()
+            } placeholder: {
+                loadingImageView
             }
             
             // Member Info

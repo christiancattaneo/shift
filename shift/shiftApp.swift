@@ -106,9 +106,22 @@ struct shiftApp: App {
         // Firebase is already configured in AppDelegate
         // No need to configure again here
         
-        // Start background image sync for scalability
+        // Start background tasks for scalability
         Task {
             await FirebaseServices.shared.syncExistingUserImages()
+        }
+        
+        // Preload events and members for better UX
+        Task {
+            print("🔄 Preloading events and members...")
+            let eventsService = FirebaseEventsService()
+            let membersService = FirebaseMembersService.shared
+            
+            // Start both requests in parallel
+            async let _ = eventsService.fetchEvents()
+            async let _ = membersService.fetchMembers()
+            
+            print("✅ Preloading initiated")
         }
     }
     
