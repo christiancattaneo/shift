@@ -1013,144 +1013,153 @@ class FirebaseStorageService {
     }
 }
 
-// MARK: - SCALABLE IMAGE UPLOAD SYSTEM
-func uploadProfileImage(_ image: UIImage, for userId: String, adaloId: Int?) async throws -> String {
-    guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-        throw NSError(domain: "ImageError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])
+// MARK: - Main Firebase Services Class (SCALABLE!)
+class FirebaseServices {
+    static let shared = FirebaseServices()
+    
+    private init() {
+        print("🔧 FirebaseServices singleton initialized")
     }
     
-    // Create proper filename with adaloId for future compatibility
-    let timestamp = Int(Date().timeIntervalSince1970 * 1000)
-    let filename: String
-    
-    if let adaloId = adaloId {
-        filename = "\(adaloId)_\(timestamp).jpeg"
-    } else {
-        // For new users without adaloId, use Firebase UID
-        filename = "firebase_\(userId)_\(timestamp).jpeg"
-    }
-    
-    let storageRef = Storage.storage().reference()
-    let imageRef = storageRef.child("profile_images/\(filename)")
-    
-    print("📸 Uploading image: \(filename)")
-    
-    // Upload the image
-    let metadata = StorageMetadata()
-    metadata.contentType = "image/jpeg"
-    metadata.customMetadata = [
-        "userId": userId,
-        "uploadedAt": String(timestamp),
-        "adaloId": adaloId != nil ? String(adaloId!) : "none"
-    ]
-    
-    _ = try await imageRef.putDataAsync(imageData, metadata: metadata)
-    
-    // Get the public URL
-    let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(filename)"
-    
-    // IMMEDIATELY update Firestore with the image URL (SCALABLE!)
-    let db = Firestore.firestore()
-    try await db.collection("users").document(userId).updateData([
-        "profileImageUrl": publicUrl,
-        "firebaseImageUrl": publicUrl,
-        "profileImageUpdatedAt": FieldValue.serverTimestamp(),
-        "imageFilename": filename
-    ])
-    
-    print("✅ Image uploaded and database updated: \(publicUrl)")
-    return publicUrl
-}
-
-// MARK: - USER CREATION WITH PROPER IMAGE RELATIONSHIP
-func createUserWithProperImageLink(
-    email: String,
-    password: String,
-    firstName: String,
-    lastName: String,
-    adaloId: Int? = nil,
-    profileImage: UIImage? = nil
-) async throws -> String {
-    
-    // Create Firebase Auth user
-    let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
-    let userId = authResult.user.uid
-    
-    var userData: [String: Any] = [
-        "firstName": firstName,
-        "lastName": lastName,
-        "email": email,
-        "createdAt": FieldValue.serverTimestamp(),
-        "userId": userId
-    ]
-    
-    // Add adaloId if provided (for legacy compatibility)
-    if let adaloId = adaloId {
-        userData["adaloId"] = adaloId
-    }
-    
-    // Upload image if provided and get URL
-    if let image = profileImage {
-        let imageUrl = try await uploadProfileImage(image, for: userId, adaloId: adaloId)
-        userData["profileImageUrl"] = imageUrl
-        userData["firebaseImageUrl"] = imageUrl
-    }
-    
-    // Create Firestore document with all data including image URL
-    let db = Firestore.firestore()
-    try await db.collection("users").document(userId).setData(userData)
-    
-    print("✅ User created with proper image relationship: \(firstName)")
-    return userId
-}
-
-// MARK: - BACKGROUND SYNC FOR EXISTING USERS
-func syncExistingUserImages() async {
-    print("🔄 Starting background image sync...")
-    
-    let db = Firestore.firestore()
-    
-    do {
-        // Get users without profile images
-        let usersSnapshot = try await db.collection("users")
-            .whereField("profileImageUrl", isEqualTo: NSNull())
-            .getDocuments()
-        
-        let storage = Storage.storage()
-        let storageRef = storage.reference().child("profile_images")
-        
-        // List all profile images
-        let result = try await storageRef.listAll()
-        
-        var updateCount = 0
-        
-        for document in usersSnapshot.documents {
-            let userData = document.data()
-            
-            // Try to find matching image
-            if let adaloId = userData["adaloId"] as? Int {
-                let matchingImages = result.items.filter { item in
-                    item.name.hasPrefix("\(adaloId)_")
-                }
-                
-                if let imageRef = matchingImages.first {
-                    let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(imageRef.name)"
-                    
-                    try await document.reference.updateData([
-                        "profileImageUrl": publicUrl,
-                        "firebaseImageUrl": publicUrl,
-                        "profileImageMappedAt": FieldValue.serverTimestamp()
-                    ])
-                    
-                    updateCount += 1
-                    print("✅ Synced image for user with adaloId \(adaloId)")
-                }
-            }
+    // MARK: - SCALABLE IMAGE UPLOAD SYSTEM
+    func uploadProfileImage(_ image: UIImage, for userId: String, adaloId: Int?) async throws -> String {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw NSError(domain: "ImageError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])
         }
         
-        print("🎉 Background sync completed: \(updateCount) users updated")
+        // Create proper filename with adaloId for future compatibility
+        let timestamp = Int(Date().timeIntervalSince1970 * 1000)
+        let filename: String
         
-    } catch {
-        print("❌ Background sync error: \(error)")
+        if let adaloId = adaloId {
+            filename = "\(adaloId)_\(timestamp).jpeg"
+        } else {
+            // For new users without adaloId, use Firebase UID
+            filename = "firebase_\(userId)_\(timestamp).jpeg"
+        }
+        
+        let storageRef = Storage.storage().reference()
+        let imageRef = storageRef.child("profile_images/\(filename)")
+        
+        print("📸 Uploading image: \(filename)")
+        
+        // Upload the image
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        metadata.customMetadata = [
+            "userId": userId,
+            "uploadedAt": String(timestamp),
+            "adaloId": adaloId != nil ? String(adaloId!) : "none"
+        ]
+        
+        _ = try await imageRef.putDataAsync(imageData, metadata: metadata)
+        
+        // Get the public URL
+        let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(filename)"
+        
+        // IMMEDIATELY update Firestore with the image URL (SCALABLE!)
+        let db = Firestore.firestore()
+        try await db.collection("users").document(userId).updateData([
+            "profileImageUrl": publicUrl,
+            "firebaseImageUrl": publicUrl,
+            "profileImageUpdatedAt": FieldValue.serverTimestamp(),
+            "imageFilename": filename
+        ])
+        
+        print("✅ Image uploaded and database updated: \(publicUrl)")
+        return publicUrl
+    }
+    
+    // MARK: - USER CREATION WITH PROPER IMAGE RELATIONSHIP
+    func createUserWithProperImageLink(
+        email: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+        adaloId: Int? = nil,
+        profileImage: UIImage? = nil
+    ) async throws -> String {
+        
+        // Create Firebase Auth user
+        let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
+        let userId = authResult.user.uid
+        
+        var userData: [String: Any] = [
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": email,
+            "createdAt": FieldValue.serverTimestamp(),
+            "userId": userId
+        ]
+        
+        // Add adaloId if provided (for legacy compatibility)
+        if let adaloId = adaloId {
+            userData["adaloId"] = adaloId
+        }
+        
+        // Upload image if provided and get URL
+        if let image = profileImage {
+            let imageUrl = try await uploadProfileImage(image, for: userId, adaloId: adaloId)
+            userData["profileImageUrl"] = imageUrl
+            userData["firebaseImageUrl"] = imageUrl
+        }
+        
+        // Create Firestore document with all data including image URL
+        let db = Firestore.firestore()
+        try await db.collection("users").document(userId).setData(userData)
+        
+        print("✅ User created with proper image relationship: \(firstName)")
+        return userId
+    }
+    
+    // MARK: - BACKGROUND SYNC FOR EXISTING USERS
+    func syncExistingUserImages() async {
+        print("🔄 Starting background image sync...")
+        
+        let db = Firestore.firestore()
+        
+        do {
+            // Get users without profile images
+            let usersSnapshot = try await db.collection("users")
+                .whereField("profileImageUrl", isEqualTo: NSNull())
+                .getDocuments()
+            
+            let storage = Storage.storage()
+            let storageRef = storage.reference().child("profile_images")
+            
+            // List all profile images
+            let result = try await storageRef.listAll()
+            
+            var updateCount = 0
+            
+            for document in usersSnapshot.documents {
+                let userData = document.data()
+                
+                // Try to find matching image
+                if let adaloId = userData["adaloId"] as? Int {
+                    let matchingImages = result.items.filter { item in
+                        item.name.hasPrefix("\(adaloId)_")
+                    }
+                    
+                    if let imageRef = matchingImages.first {
+                        let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(imageRef.name)"
+                        
+                        try await document.reference.updateData([
+                            "profileImageUrl": publicUrl,
+                            "firebaseImageUrl": publicUrl,
+                            "profileImageMappedAt": FieldValue.serverTimestamp()
+                        ])
+                        
+                        updateCount += 1
+                        print("✅ Synced image for user with adaloId \(adaloId)")
+                    }
+                }
+            }
+            
+            print("🎉 Background sync completed: \(updateCount) users updated")
+            
+        } catch {
+            print("❌ Background sync error: \(error)")
+        }
     }
 } 
