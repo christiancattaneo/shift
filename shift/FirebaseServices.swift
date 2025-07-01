@@ -438,8 +438,8 @@ class FirebaseMembersService: ObservableObject {
                                 // MIXED SYSTEM: Handle both migrated users (UUID v4) and new users (Firebase Auth UID)
                                 print("🔧 Document ID format check for \(firstName): \(document.documentID)")
                                 if document.documentID.contains("-") && document.documentID.count == 36 {
-                                    // UUID v4 format - migrated user with actual image
-                                    let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(document.documentID).jpg"
+                                    // UUID v4 format - migrated user with actual image (Firebase Storage API format)
+                                    let uuidImageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(document.documentID).jpg?alt=media"
                                     print("🔧 Using migrated user image URL for \(firstName): \(uuidImageUrl)")
                                 } else {
                                     // Firebase Auth UID format - new user without image
@@ -1023,8 +1023,8 @@ class FirebaseServices {
         
         _ = try await imageRef.putDataAsync(imageData, metadata: metadata)
         
-        // Get the public URL (UUID-based)
-        let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(filename)"
+        // Get the public URL (Firebase Storage API format)
+        let publicUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(filename)?alt=media"
         
         // Update Firestore with the image URL
         let db = Firestore.firestore()

@@ -387,8 +387,8 @@ struct ProfileView: View {
                     .getDocuments()
                 
                 await MainActor.run {
-                    if let document = querySnapshot.documents.first,
-                       let data = document.data() {
+                    if let document = querySnapshot.documents.first {
+                        let data = document.data()
                         print("✅ Found migrated user document: \(document.documentID)")
                         print("✅ User data loaded: \(data.keys.joined(separator: ", "))")
                         userData = data
@@ -396,7 +396,7 @@ struct ProfileView: View {
                         // All migrated users have UUID v4 document IDs with matching images
                         let documentId = document.documentID
                         if documentId.contains("-") && documentId.count == 36 {
-                            let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(documentId).jpg"
+                            let uuidImageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
                             profileImageUrl = uuidImageUrl
                             print("🖼️ Using migrated user image URL: \(uuidImageUrl)")
                         } else {

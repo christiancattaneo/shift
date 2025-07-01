@@ -580,8 +580,8 @@ extension FirebaseMember {
         
         // Check if this is a UUID v4 format (migrated user) or Firebase Auth UID (new user)
         if documentId.contains("-") && documentId.count == 36 {
-            // UUID v4 format - migrated users with actual images
-            let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(documentId).jpg"
+            // UUID v4 format - migrated users with actual images (Firebase Storage API format)
+            let uuidImageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
             return URL(string: uuidImageUrl)
         } else {
             // Firebase Auth UID format - new users without images yet
