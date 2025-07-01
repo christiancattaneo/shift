@@ -322,7 +322,7 @@ struct SubscriptionModalView: View {
     // MARK: - Helper Functions
     
     private func handleSubscription() {
-        Haptics.successImpact()
+                        Haptics.successNotification()
         
         // TODO: Implement actual subscription logic
         print("Subscribe to \(selectedPlan) plan")

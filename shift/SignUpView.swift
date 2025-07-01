@@ -452,10 +452,10 @@ struct SignUpView: View {
                         uploadProfileImage(imageData: imageData)
                     }
                     
-                    Haptics.successImpact()
+                    Haptics.successNotification()
                     didCompleteSignUp = true
                 } else {
-                    Haptics.errorImpact()
+                    Haptics.errorNotification()
                     isLoading = false
                     
                     if error?.contains("email-already-in-use") == true {

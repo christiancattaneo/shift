@@ -436,50 +436,8 @@ struct EnhancedConversationCard: View {
     }
 }
 
-// MARK: - Legacy Support (keeping for compatibility)
-
-// Placeholder data structures for legacy support
-struct User: Identifiable, Hashable {
-    let id = UUID()
-    let name: String
-    let profileImageName: String?
-}
-
-struct Message: Identifiable {
-    let id = UUID()
-    let text: String
-    let isSender: Bool
-    let timestamp: Date
-}
-
-struct Conversation: Identifiable, Hashable {
-    let id = UUID()
-    let recipientName: String
-    let lastMessage: String
-    let timestamp: String
-    let profileImageName: String?
-    var isRead: Bool = false
-    var messages: [Message] = []
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    static func == (lhs: Conversation, rhs: Conversation) -> Bool {
-        lhs.id == rhs.id
-    }
-}
-
-// Sample data for legacy support
-let sampleUsers: [User] = [
-    User(name: "Caroline", profileImageName: "person.crop.circle.fill"),
-    User(name: "Omeed", profileImageName: "person.crop.circle.fill"),
-    User(name: "Macey", profileImageName: "person.crop.circle.fill"),
-    User(name: "Marin", profileImageName: "person.crop.circle.fill"),
-    User(name: "Alex", profileImageName: "person.crop.circle.fill.badge.plus"),
-    User(name: "Sam", profileImageName: "person.crop.circle.fill")
-]
+// MARK: - Preview
 
 #Preview {
     ConversationsListView()
-} 
+}

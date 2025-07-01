@@ -404,10 +404,10 @@ struct EditProfileView: View {
                 DispatchQueue.main.async {
                     isLoading = false
                     if success {
-                        Haptics.successImpact()
+                        Haptics.successNotification()
                         alertMessage = "Profile \(action) successfully!"
                     } else {
-                        Haptics.errorImpact()
+                        Haptics.errorNotification()
                         alertMessage = error ?? "Failed to \(action.dropLast()) profile"
                     }
                     showingAlert = true
@@ -418,10 +418,10 @@ struct EditProfileView: View {
                 DispatchQueue.main.async {
                     isLoading = false
                     if success {
-                        Haptics.successImpact()
+                        Haptics.successNotification()
                         alertMessage = "Profile \(action) successfully!"
                     } else {
-                        Haptics.errorImpact()
+                        Haptics.errorNotification()
                         alertMessage = error ?? "Failed to \(action.dropLast()) profile"
                     }
                     showingAlert = true
@@ -545,4 +545,4 @@ struct EnhancedTextField: View {
     NavigationView {
         EditProfileView(userMember: nil)
     }
-} 
+}

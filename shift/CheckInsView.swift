@@ -2,6 +2,29 @@ import SwiftUI
 import MapKit
 import Combine
 
+// MARK: - Helper Functions
+
+// Global helper function to parse event date string to Date
+func parseEventDate(_ dateString: String) -> Date? {
+    let dateFormats = [
+        "yyyy-MM-dd",
+        "MM/dd/yyyy",
+        "yyyy-MM-dd HH:mm:ss",
+        "MM/dd/yyyy HH:mm:ss",
+        "yyyy-MM-dd'T'HH:mm:ss"
+    ]
+    
+    for format in dateFormats {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        if let date = formatter.date(from: dateString) {
+            return date
+        }
+    }
+    
+    return nil
+}
+
 struct CheckInsView: View {
     @State private var region = MapCameraPosition.region(
         MKCoordinateRegion(
@@ -23,8 +46,8 @@ struct CheckInsView: View {
         // Apply search filter
         if !searchText.isEmpty {
             events = events.filter { event in
-                event.name.localizedCaseInsensitiveContains(searchText) ||
-                (event.address?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (event.eventName?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (event.eventLocation?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 (event.venueName?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
@@ -33,11 +56,14 @@ struct CheckInsView: View {
         switch selectedFilter {
         case "Tonight":
             return events.filter { event in
-                Calendar.current.isDateInToday(event.eventDate ?? Date())
+                guard let eventDateString = event.eventDate,
+                      let eventDate = parseEventDate(eventDateString) else { return false }
+                return Calendar.current.isDateInToday(eventDate)
             }
         case "This Week":
             return events.filter { event in
-                guard let eventDate = event.eventDate else { return false }
+                guard let eventDateString = event.eventDate,
+                      let eventDate = parseEventDate(eventDateString) else { return false }
                 return Calendar.current.isDate(eventDate, equalTo: Date(), toGranularity: .weekOfYear)
             }
         case "Nearby":
@@ -47,6 +73,7 @@ struct CheckInsView: View {
             return events
         }
     }
+
 
     var body: some View {
         NavigationView {
@@ -254,7 +281,7 @@ struct EventCardView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(event.name)
+                            Text(event.eventName ?? "Event")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
@@ -278,7 +305,8 @@ struct EventCardView: View {
                     Spacer()
                     
                     // Event Time/Date
-                    if let eventDate = event.eventDate {
+                    if let eventDateString = event.eventDate,
+                       let eventDate = parseEventDate(eventDateString) {
                         HStack(spacing: 8) {
                             Image(systemName: "clock.fill")
                                 .font(.caption)
@@ -308,7 +336,7 @@ struct EventCardView: View {
             
             // Event Details
             VStack(spacing: 12) {
-                if let address = event.address {
+                if let address = event.eventLocation {
                     HStack {
                         Image(systemName: "mappin")
                             .font(.caption)
@@ -350,7 +378,7 @@ struct EventCardView: View {
                         .background(
                             isCheckedIn ? 
                                 LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing) :
-                                Color.blue.opacity(0.1)
+                                LinearGradient(colors: [.blue.opacity(0.1), .blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
                         )
                         .cornerRadius(20)
                     }
@@ -384,11 +412,11 @@ struct EventCardView: View {
             checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
                 DispatchQueue.main.async {
                     if success {
-                        Haptics.successImpact()
+                        Haptics.successNotification()
                         isCheckedIn = true
                         checkInCount += 1
                     } else {
-                        Haptics.errorImpact()
+                        Haptics.errorNotification()
                         print("Failed to check in: \(error ?? "Unknown error")")
                     }
                 }

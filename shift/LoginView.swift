@@ -286,10 +286,10 @@ struct LoginView: View {
                 isLoading = false
                 
                 if success {
-                    Haptics.successImpact()
+                    Haptics.successNotification()
                     didCompleteLogin = true
                 } else {
-                    Haptics.errorImpact()
+                    Haptics.errorNotification()
                     
                     if error?.contains("wrong-password") == true || error?.contains("user-not-found") == true {
                         errorMessage = "Account migrated to new system. Please use 'Forgot Password' to set up your new password."
@@ -318,10 +318,10 @@ struct LoginView: View {
         FirebaseUserSession.shared.resetPassword(email: trimmedEmail) { success, error in
             DispatchQueue.main.async {
                 if success {
-                    Haptics.successImpact()
+                    Haptics.successNotification()
                     errorMessage = "Password reset email sent! Check your inbox."
                 } else {
-                    Haptics.errorImpact()
+                    Haptics.errorNotification()
                     errorMessage = error ?? "Failed to send reset email. Please try again."
                 }
             }
