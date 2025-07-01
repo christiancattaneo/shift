@@ -5,6 +5,7 @@ struct LoginView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showPassword = false
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
@@ -16,187 +17,333 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            // Background
+            Color(.systemBackground)
+                .ignoresSafeArea()
             
-            ScrollView { // Use ScrollView to prevent overflow on smaller devices
-                VStack(spacing: 25) {
-                    // Logo (Similar to SignUp)
-                    HStack {
-                        Image("shiftlogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 40, height: 40)
-                        Text("Shift")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
-                    }
-                    .padding(.bottom, 30)
-                    .padding(.top, 50) // Add padding at the top
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 32) {
+                    Spacer(minLength: 60)
                     
-                    Text("Log In")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                        .padding(.bottom, 20)
+                    // Logo Section
+                    logoSection
                     
-                    // Email Field
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Email")
-                            .foregroundColor(.primary)
-                            .font(.subheadline)
-                        TextField("emma@example.com", text: $email)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .padding(12)
-                            .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(colorScheme == .dark ? Color(.systemGray) : Color(.systemGray3), lineWidth: 1)
-                            )
-                            .accentColor(.blue)
-                    }
+                    // Welcome Text
+                    welcomeSection
                     
-                    // Password Field
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Password")
-                            .foregroundColor(.primary)
-                            .font(.subheadline)
-                        SecureField("Password...", text: $password)
-                            .padding(12)
-                            .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(colorScheme == .dark ? Color(.systemGray) : Color(.systemGray3), lineWidth: 1)
-                            )
-                            .accentColor(.blue)
-                    }
+                    // Input Fields
+                    inputFieldsSection
                     
-                    Spacer(minLength: 30)
+                    // Login Button
+                    loginButtonSection
                     
-                    // Log In Button
-                    Button {
-                        Haptics.lightImpact()
-                        
-                        // Validate input
-                        guard !email.isEmpty, !password.isEmpty else {
-                            errorMessage = "Please enter both email and password"
-                            return
-                        }
-                        
-                        // Use Firebase authentication
-                        isLoading = true
-                        errorMessage = nil
-                        
-                        FirebaseUserSession.shared.signIn(email: email, password: password) { success, error in
-                            isLoading = false
-                            
-                            if success {
-                                didCompleteLogin = true
-                            } else {
-                                // Check if this might be a migrated user who needs password reset
-                                if error?.contains("wrong-password") == true || error?.contains("user-not-found") == true {
-                                    errorMessage = "Please use 'Forgot Password' to set up your new password. Your account has been migrated to our new system."
-                                } else {
-                                    errorMessage = error ?? "Login failed"
-                                }
-                            }
-                        }
-                    } label: {
-                        Text("LOG IN")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                    }
-                    .disabled(isLoading)
-                    .opacity(isLoading ? 0.6 : 1.0)
+                    // Error Message
+                    errorSection
                     
-                    // Loading indicator
-                    if isLoading {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                            .padding(.top, 5)
-                    }
+                    Spacer(minLength: 40)
                     
-                    // Error message
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.top, 5)
-                    }
+                    // Footer Actions
+                    footerSection
                     
-                    // Note about authentication
-                    Text("Note: Using Firebase secure authentication system")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 5)
-                    
-                    // Forgot Password Button
-                    Button {
-                        Haptics.lightImpact()
-                        // Use Firebase password reset
-                        guard !email.isEmpty else {
-                            errorMessage = "Please enter your email address first"
-                            return
-                        }
-                        
-                        FirebaseUserSession.shared.resetPassword(email: email) { success, error in
-                            if success {
-                                errorMessage = "Password reset email sent!"
-                            } else {
-                                errorMessage = error ?? "Failed to send reset email"
-                            }
-                        }
-                    } label: {
-                        Text("FORGOT PASSWORD?")
-                            .font(.footnote)
-                            .foregroundColor(.primary)
-                    }
-                    .padding(.top, 10)
-                    
-                    Spacer() // Push Signup to bottom
-                    
-                    // Sign Up Button
-                    Button {
-                        Haptics.lightImpact()
-                        needsSignUp = true
-                        dismiss()
-                    } label: {
-                        Text("SIGNUP")
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                    }
-                    .padding(.bottom, 20) // Padding at the very bottom
-                    
+                    Spacer(minLength: 20)
                 }
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 24)
             }
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
     }
+    
+    // MARK: - UI Components
+    
+    private var logoSection: some View {
+        VStack(spacing: 12) {
+            Image("shiftlogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+            
+            Text("Shift")
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
+        }
+    }
+    
+    private var welcomeSection: some View {
+        VStack(spacing: 8) {
+            Text("Welcome Back")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+            
+            Text("Sign in to continue your journey")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var inputFieldsSection: some View {
+        VStack(spacing: 20) {
+            // Email Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Email")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                HStack {
+                    Image(systemName: "envelope")
+                        .foregroundColor(.secondary)
+                        .frame(width: 20)
+                    
+                    TextField("Enter your email", text: $email)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
+                        .textContentType(.emailAddress)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(email.isEmpty ? Color.clear : Color.blue.opacity(0.5), lineWidth: 1)
+                )
+            }
+            
+            // Password Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Password")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                HStack {
+                    Image(systemName: "lock")
+                        .foregroundColor(.secondary)
+                        .frame(width: 20)
+                    
+                    if showPassword {
+                        TextField("Enter your password", text: $password)
+                            .textContentType(.password)
+                    } else {
+                        SecureField("Enter your password", text: $password)
+                            .textContentType(.password)
+                    }
+                    
+                    Button(action: { showPassword.toggle() }) {
+                        Image(systemName: showPassword ? "eye.slash" : "eye")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(password.isEmpty ? Color.clear : Color.blue.opacity(0.5), lineWidth: 1)
+                )
+            }
+        }
+    }
+    
+    private var loginButtonSection: some View {
+        VStack(spacing: 16) {
+            Button(action: handleLogin) {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.8)
+                    } else {
+                        Text("Sign In")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                    }
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: isFormValid ? [Color.blue, Color.blue.opacity(0.8)] : [Color.gray, Color.gray.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+                .shadow(color: isFormValid ? .blue.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+            }
+            .disabled(!isFormValid || isLoading)
+            .scaleEffect(isLoading ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: isLoading)
+            
+            // Forgot Password
+            Button(action: handleForgotPassword) {
+                Text("Forgot Password?")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.blue)
+            }
+            .disabled(isLoading)
+        }
+    }
+    
+    private var errorSection: some View {
+        Group {
+            if let errorMessage = errorMessage {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.red)
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.leading)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(8)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: errorMessage)
+    }
+    
+    private var footerSection: some View {
+        VStack(spacing: 16) {
+            // Divider with text
+            HStack {
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(.secondary.opacity(0.3))
+                
+                Text("New to Shift?")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(.secondary.opacity(0.3))
+            }
+            
+            // Sign Up Button
+            Button(action: {
+                Haptics.lightImpact()
+                needsSignUp = true
+                dismiss()
+            }) {
+                Text("Create Account")
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+            }
+            .disabled(isLoading)
+            
+            // App info
+            Text("Secure authentication powered by Firebase")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var isFormValid: Bool {
+        !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !password.isEmpty &&
+        email.contains("@")
+    }
+    
+    // MARK: - Actions
+    
+    private func handleLogin() {
+        guard isFormValid else {
+            errorMessage = "Please enter a valid email and password"
+            return
+        }
+        
+        Haptics.lightImpact()
+        hideKeyboard()
+        
+        isLoading = true
+        errorMessage = nil
+        
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        FirebaseUserSession.shared.signIn(email: trimmedEmail, password: password) { success, error in
+            DispatchQueue.main.async {
+                isLoading = false
+                
+                if success {
+                    Haptics.successImpact()
+                    didCompleteLogin = true
+                } else {
+                    Haptics.errorImpact()
+                    
+                    if error?.contains("wrong-password") == true || error?.contains("user-not-found") == true {
+                        errorMessage = "Account migrated to new system. Please use 'Forgot Password' to set up your new password."
+                    } else if error?.contains("invalid-email") == true {
+                        errorMessage = "Please enter a valid email address."
+                    } else if error?.contains("too-many-requests") == true {
+                        errorMessage = "Too many failed attempts. Please try again later."
+                    } else {
+                        errorMessage = error ?? "Sign in failed. Please try again."
+                    }
+                }
+            }
+        }
+    }
+    
+    private func handleForgotPassword() {
+        guard !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            errorMessage = "Please enter your email address first"
+            return
+        }
+        
+        Haptics.lightImpact()
+        
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        FirebaseUserSession.shared.resetPassword(email: trimmedEmail) { success, error in
+            DispatchQueue.main.async {
+                if success {
+                    Haptics.successImpact()
+                    errorMessage = "Password reset email sent! Check your inbox."
+                } else {
+                    Haptics.errorImpact()
+                    errorMessage = error ?? "Failed to send reset email. Please try again."
+                }
+            }
+        }
+    }
+    
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
 }
 
 #Preview {
-    // Create dummy states for the preview
     struct PreviewWrapper: View {
         @State private var didComplete = false
         @State private var needsSignUp = false
+        
         var body: some View {
-            NavigationView { // Needed for dismiss
+            NavigationView {
                 LoginView(didCompleteLogin: $didComplete, needsSignUp: $needsSignUp)
             }
         }
     }
+    
     return PreviewWrapper()
 } 

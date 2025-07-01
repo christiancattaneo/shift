@@ -346,11 +346,10 @@ class FirebaseMembersService: ObservableObject {
         
         // Fetch in background to prevent UI blocking
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            // Use optimized query - only get users with firstName (non-null/non-empty)
-            // This dramatically reduces the documents we need to process
+            // Get ALL users for dating app - we need the full pool
             self?.db.collection("users")
-                .whereField("firstName", isNotEqualTo: "")  // More efficient than client-side filtering
-                .limit(to: 50)  // Much smaller batch size to prevent blocking
+                .whereField("firstName", isNotEqualTo: "")  // Only users with names
+                .limit(to: 500)  // Much larger batch for dating app
                 .getDocuments { [weak self] querySnapshot, error in
                     DispatchQueue.main.async {
                         self?.isLoading = false

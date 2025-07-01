@@ -14,6 +14,7 @@ struct EditProfileView: View {
     @State private var isLoading = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @State private var showingImagePicker = false
     
     @ObservedObject private var membersService = FirebaseMembersService.shared
     @StateObject private var userSession = FirebaseUserSession.shared
@@ -23,12 +24,10 @@ struct EditProfileView: View {
     private let existingMember: FirebaseMember?
     private let isCreatingNew: Bool
     
-    // Initializer for editing existing member
     init(userMember: FirebaseMember?) {
         self.existingMember = userMember
         self.isCreatingNew = userMember == nil
         
-        // Initialize state with existing data or empty values
         _firstName = State(initialValue: userMember?.firstName ?? "")
         _age = State(initialValue: userMember?.age?.description ?? "")
         _city = State(initialValue: userMember?.city ?? "")
@@ -38,261 +37,507 @@ struct EditProfileView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Profile Image Section
-                VStack(spacing: 15) {
-                    ZStack(alignment: .bottomTrailing) {
-                        // Image Display
-                        if let imageData = selectedImageData, let uiImage = UIImage(data: imageData) {
-                            Image(uiImage: uiImage)
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header Section
+                    headerSection
+                    
+                    // Profile Image Section
+                    profileImageSection
+                    
+                    // Form Section
+                    formSection
+                    
+                    // Action Buttons
+                    actionButtonsSection
+                    
+                    Spacer(minLength: 40)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+            }
+            .navigationTitle(isCreatingNew ? "Complete Profile" : "Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !isCreatingNew {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .alert("Profile Update", isPresented: $showingAlert) {
+                Button("OK") {
+                    if alertMessage.contains("success") {
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text(alertMessage)
+            }
+        }
+    }
+    
+    // MARK: - UI Components
+    
+    private var headerSection: some View {
+        VStack(spacing: 12) {
+            Text(isCreatingNew ? "Let's complete your profile" : "Update your profile")
+                .font(.title2)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.center)
+            
+            Text(isCreatingNew ? "Add your details to help others discover you" : "Keep your information up to date")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 8)
+    }
+    
+    private var profileImageSection: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                // Image Display
+                if let imageData = selectedImageData, let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 140, height: 140)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 3)
+                        )
+                } else if let profileImage = existingMember?.profileImage, !profileImage.isEmpty {
+                    AsyncImage(url: URL(string: profileImage)) { phase in
+                        switch phase {
+                        case .empty:
+                            Circle()
+                                .fill(Color(.systemGray5))
+                                .frame(width: 140, height: 140)
+                                .overlay(
+                                    ProgressView()
+                                        .scaleEffect(1.2)
+                                )
+                        case .success(let image):
+                            image
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 120, height: 120)
+                                .frame(width: 140, height: 140)
                                 .clipShape(Circle())
-                        } else if let profileImage = existingMember?.profileImage, !profileImage.isEmpty {
-                            AsyncImage(url: URL(string: profileImage)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            } placeholder: {
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .foregroundColor(.gray)
-                            }
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                        } else {
-                            Image(systemName: "person.crop.circle.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundColor(.gray)
-                                .frame(width: 120, height: 120)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.blue.opacity(0.3), lineWidth: 3)
+                                )
+                        case .failure(_):
+                            fallbackProfileImage
+                        @unknown default:
+                            fallbackProfileImage
                         }
-                        
-                        // Photo Picker Button
+                    }
+                } else {
+                    fallbackProfileImage
+                }
+                
+                // Edit Button
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
                         PhotosPicker(
                             selection: $selectedPhotoItem,
                             matching: .images,
                             photoLibrary: .shared()
                         ) {
-                            Image(systemName: "pencil.circle.fill")
-                                .font(.system(size: 30))
+                            Image(systemName: "camera.circle.fill")
+                                .font(.system(size: 36))
                                 .foregroundColor(.blue)
-                                .background(Color(.systemBackground).clipShape(Circle()))
+                                .background(
+                                    Circle()
+                                        .fill(Color(.systemBackground))
+                                        .frame(width: 28, height: 28)
+                                )
                         }
                         .onChange(of: selectedPhotoItem) { _, newItem in
                             Task {
                                 if let data = try? await newItem?.loadTransferable(type: Data.self) {
                                     selectedImageData = data
+                                    Haptics.lightImpact()
                                 }
                             }
                         }
                     }
-                    
-                    Text(isCreatingNew ? "Complete Your Profile" : "Edit Profile")
-                        .font(.title2)
-                        .fontWeight(.bold)
                 }
-                .padding(.top, 20)
-
-                // Profile Form
-                VStack(spacing: 15) {
-                    ProfileTextField(
-                        label: "First Name",
-                        placeholder: "Enter your first name",
-                        text: $firstName
-                    )
-                    
-                    ProfileTextField(
-                        label: "Age",
-                        placeholder: "Enter your age",
-                        keyboardType: .numberPad,
-                        text: $age
-                    )
-                    
-                    ProfileTextField(
-                        label: "City",
-                        placeholder: "Enter your city",
-                        icon: "mappin",
-                        text: $city
-                    )
-                    
-                    ProfileTextField(
-                        label: "Attracted To",
-                        placeholder: "e.g., Male, Female, Non-binary",
-                        text: $attractedTo
-                    )
-                    
-                    ProfileTextField(
-                        label: "Approach Tip",
-                        placeholder: "How should someone approach you?",
-                        isMultiline: true,
-                        text: $approachTip
-                    )
-                    
-                    ProfileTextField(
-                        label: "Instagram Handle",
-                        placeholder: "@username (optional)",
-                        text: $instagramHandle
-                    )
-                }
-                .padding(.horizontal)
-                
-                Spacer(minLength: 30)
-
-                // Action Buttons
-                VStack(spacing: 15) {
-                    Button(action: saveProfile) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                    .foregroundColor(.white)
-                            }
-                            Text(isCreatingNew ? "Create Profile" : "Update Profile")
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isLoading ? Color.gray : Color.blue)
-                        .cornerRadius(10)
-                    }
-                    .disabled(isLoading || firstName.isEmpty)
-                    
-                    if !isCreatingNew {
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    }
-                }
-                .padding(.horizontal)
+                .frame(width: 140, height: 140)
             }
-        }
-        .navigationTitle(isCreatingNew ? "Complete Profile" : "Edit Profile")
-        .navigationBarTitleDisplayMode(.inline)
-        .alert("Profile Update", isPresented: $showingAlert) {
-            Button("OK") {
-                if alertMessage.contains("success") {
-                    dismiss()
-                }
-            }
-        } message: {
-            Text(alertMessage)
+            
+            Text("Tap to update photo")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
     
+    private var fallbackProfileImage: some View {
+        Circle()
+            .fill(
+                LinearGradient(
+                    colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .frame(width: 140, height: 140)
+            .overlay(
+                VStack(spacing: 8) {
+                    Image(systemName: "person.crop.circle")
+                        .font(.system(size: 40))
+                        .foregroundColor(.blue.opacity(0.7))
+                    Text("Add Photo")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue.opacity(0.7))
+                }
+            )
+    }
+    
+    private var formSection: some View {
+        VStack(spacing: 20) {
+            // Basic Info Section
+            formSectionCard(title: "Basic Information") {
+                VStack(spacing: 16) {
+                    EnhancedTextField(
+                        title: "First Name",
+                        placeholder: "Enter your first name",
+                        text: $firstName,
+                        icon: "person",
+                        isRequired: true
+                    )
+                    
+                    EnhancedTextField(
+                        title: "Age",
+                        placeholder: "Enter your age",
+                        text: $age,
+                        icon: "calendar",
+                        keyboardType: .numberPad,
+                        isRequired: true
+                    )
+                    
+                    EnhancedTextField(
+                        title: "City",
+                        placeholder: "Where are you located?",
+                        text: $city,
+                        icon: "mappin",
+                        isRequired: true
+                    )
+                }
+            }
+            
+            // Preferences Section
+            formSectionCard(title: "Dating Preferences") {
+                VStack(spacing: 16) {
+                    EnhancedTextField(
+                        title: "Attracted To",
+                        placeholder: "e.g., Men, Women, Everyone",
+                        text: $attractedTo,
+                        icon: "heart"
+                    )
+                    
+                    EnhancedTextField(
+                        title: "Approach Tip",
+                        placeholder: "How should someone start a conversation with you?",
+                        text: $approachTip,
+                        icon: "message",
+                        isMultiline: true
+                    )
+                }
+            }
+            
+            // Social Section
+            formSectionCard(title: "Social Media") {
+                EnhancedTextField(
+                    title: "Instagram Handle",
+                    placeholder: "@username (optional)",
+                    text: $instagramHandle,
+                    icon: "at",
+                    prefix: "@"
+                )
+            }
+        }
+    }
+    
+    private func formSectionCard<Content: View>(title: String, @ViewBuilder content: @escaping () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
+            content()
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(.systemGray5), lineWidth: 1)
+        )
+    }
+    
+    private var actionButtonsSection: some View {
+        VStack(spacing: 16) {
+            // Save Button
+            Button(action: saveProfile) {
+                HStack(spacing: 8) {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Text(isCreatingNew ? "Create Profile" : "Save Changes")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: isFormValid && !isLoading ? [.blue, .blue.opacity(0.8)] : [.gray, .gray.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .disabled(!isFormValid || isLoading)
+            
+            // Progress Indicator
+            if isCreatingNew {
+                profileCompletionIndicator
+            }
+        }
+    }
+    
+    private var profileCompletionIndicator: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text("Profile Completion")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text("\(Int(completionPercentage))%")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+            }
+            
+            ProgressView(value: completionPercentage / 100)
+                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                .scaleEffect(y: 1.5)
+        }
+        .padding(16)
+        .background(Color.blue.opacity(0.05))
+        .cornerRadius(12)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var isFormValid: Bool {
+        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !age.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    private var completionPercentage: Double {
+        let fields = [firstName, age, city, attractedTo, approachTip, instagramHandle]
+        let completedFields = fields.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        let imageCompletion = selectedImageData != nil || (existingMember?.profileImage != nil) ? 1 : 0
+        
+        return Double(completedFields.count + imageCompletion) / 7.0 * 100
+    }
+    
+    // MARK: - Helper Functions
+    
     private func saveProfile() {
-        guard !firstName.isEmpty else {
-            alertMessage = "First name is required"
+        guard isFormValid else {
+            alertMessage = "Please fill in all required fields"
             showingAlert = true
             return
         }
         
         isLoading = true
+        Haptics.lightImpact()
         
         let ageInt = Int(age)
         
-        // Use Firebase user session to get current user ID
         guard let currentUser = FirebaseUserSession.shared.currentUser,
               let userId = currentUser.id else {
             alertMessage = "User not authenticated"
             showingAlert = true
+            isLoading = false
             return
         }
         
         let member = FirebaseMember(
             userId: userId,
-            firstName: firstName,
+            firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
             age: ageInt,
-            city: city.isEmpty ? nil : city,
-            attractedTo: attractedTo.isEmpty ? nil : attractedTo,
-            approachTip: approachTip.isEmpty ? nil : approachTip,
-            instagramHandle: instagramHandle.isEmpty ? nil : instagramHandle,
+            city: city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : city.trimmingCharacters(in: .whitespacesAndNewlines),
+            attractedTo: attractedTo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : attractedTo.trimmingCharacters(in: .whitespacesAndNewlines),
+            approachTip: approachTip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : approachTip.trimmingCharacters(in: .whitespacesAndNewlines),
+            instagramHandle: instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines),
             profileImage: nil // TODO: Handle image upload
         )
         
+        let action = isCreatingNew ? "created" : "updated"
+        
         if isCreatingNew {
             membersService.createMember(member) { success, error in
-                isLoading = false
-                if success {
-                    alertMessage = "Profile created successfully!"
-                } else {
-                    alertMessage = error ?? "Failed to create profile"
+                DispatchQueue.main.async {
+                    isLoading = false
+                    if success {
+                        Haptics.successImpact()
+                        alertMessage = "Profile \(action) successfully!"
+                    } else {
+                        Haptics.errorImpact()
+                        alertMessage = error ?? "Failed to \(action.dropLast()) profile"
+                    }
+                    showingAlert = true
                 }
-                showingAlert = true
             }
         } else {
             membersService.updateMember(member) { success, error in
-                isLoading = false
-                if success {
-                    alertMessage = "Profile updated successfully!"
-                } else {
-                    alertMessage = error ?? "Failed to update profile"
+                DispatchQueue.main.async {
+                    isLoading = false
+                    if success {
+                        Haptics.successImpact()
+                        alertMessage = "Profile \(action) successfully!"
+                    } else {
+                        Haptics.errorImpact()
+                        alertMessage = error ?? "Failed to \(action.dropLast()) profile"
+                    }
+                    showingAlert = true
                 }
-                showingAlert = true
             }
         }
-        
-        // The actual Firebase call happens above with completion handlers
     }
 }
 
-// Updated ProfileTextField to support multiline
-struct ProfileTextField: View {
-    let label: String
+// MARK: - Enhanced Text Field
+
+struct EnhancedTextField: View {
+    let title: String
     let placeholder: String
-    var icon: String? = nil
-    var keyboardType: UIKeyboardType = .default
-    var isMultiline: Bool = false
     @Binding var text: String
+    let icon: String?
+    let keyboardType: UIKeyboardType
+    let isMultiline: Bool
+    let isRequired: Bool
+    let prefix: String?
+    
     @Environment(\.colorScheme) var colorScheme
+    @FocusState private var isFocused: Bool
+    
+    init(
+        title: String,
+        placeholder: String,
+        text: Binding<String>,
+        icon: String? = nil,
+        keyboardType: UIKeyboardType = .default,
+        isMultiline: Bool = false,
+        isRequired: Bool = false,
+        prefix: String? = nil
+    ) {
+        self.title = title
+        self.placeholder = placeholder
+        self._text = text
+        self.icon = icon
+        self.keyboardType = keyboardType
+        self.isMultiline = isMultiline
+        self.isRequired = isRequired
+        self.prefix = prefix
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(label)
-                .foregroundColor(.primary)
-                .font(.subheadline)
-                .fontWeight(.medium)
-            
-            if isMultiline {
-                // Use custom text input for multiline (has its own styling)
-                HStack {
-                    if let iconName = icon {
-                        Image(systemName: iconName)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 8)
-                    }
-                    CustomMessageInput(text: $text, placeholder: placeholder, maxHeight: 120)
-                        .frame(minHeight: 44)
+        VStack(alignment: .leading, spacing: 8) {
+            // Field Label
+            HStack {
+                if let iconName = icon {
+                    Image(systemName: iconName)
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
                 }
-            } else {
-                // Use regular TextField with custom styling
-                HStack {
-                    if let iconName = icon {
-                        Image(systemName: iconName)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 12)
-                    }
-                    
+                
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                if isRequired {
+                    Text("*")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                }
+                
+                Spacer()
+            }
+            
+            // Input Field
+            HStack {
+                if let prefixText = prefix {
+                    Text(prefixText)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 16)
+                }
+                
+                if isMultiline {
+                    TextField(placeholder, text: $text, axis: .vertical)
+                        .lineLimit(3...6)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .focused($isFocused)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, prefix != nil ? 4 : 16)
+                } else {
                     TextField(placeholder, text: $text)
                         .keyboardType(keyboardType)
-                        .padding(.vertical, 12)
-                        .padding(.leading, icon == nil ? 12 : 5)
-                        .padding(.trailing, 12)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .focused($isFocused)
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, prefix != nil ? 4 : 16)
                 }
-                .background(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(colorScheme == .dark ? Color(.systemGray4) : Color(.systemGray3), lineWidth: 1)
-                )
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(
+                                isFocused ? Color.blue : 
+                                (isRequired && text.isEmpty ? Color.red.opacity(0.5) : Color.clear),
+                                lineWidth: isFocused ? 2 : 1
+                            )
+                    )
+            )
+            .animation(.easeInOut(duration: 0.2), value: isFocused)
+            
+            // Validation Message
+            if isRequired && text.isEmpty && !isFocused {
+                Text("This field is required")
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: text.isEmpty)
     }
 }
 

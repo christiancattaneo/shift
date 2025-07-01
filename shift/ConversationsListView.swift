@@ -51,7 +51,6 @@ struct ConversationsListView: View {
             return conversationsService.conversations
         } else {
             return conversationsService.conversations.filter { conversation in
-                // Filter based on last message or participant info
                 conversation.lastMessage?.localizedCaseInsensitiveContains(searchText) ?? false ||
                 getParticipantName(for: conversation).localizedCaseInsensitiveContains(searchText)
             }
@@ -91,216 +90,291 @@ struct ConversationsListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Custom Header
-                VStack(spacing: 15) {
-                    HStack {
-                        Text("Messages")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Spacer()
-                        
-                        // New Message Button
-                        Button(action: {
-                            showingNewMessage = true
-                        }) {
-                            Image(systemName: "square.and.pencil")
-                                .font(.title2)
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    
-                    // Search Bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
-                        
-                        TextField("Search conversations", text: $searchText)
-                            .textFieldStyle(PlainTextFieldStyle())
-                        
-                        if !searchText.isEmpty {
-                            Button(action: {
-                                searchText = ""
-                            }) {
-                                Image(systemName: "multiply.circle.fill")
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .padding(10)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                .padding(.top, 10)
+                // Header Section
+                headerSection
                 
-                // Conversations List
+                // Content Section
                 if conversationsService.isLoading {
-                    Spacer()
-                    VStack {
-                        ProgressView("Loading conversations...")
-                            .progressViewStyle(CircularProgressViewStyle())
-                        Text("Fetching your messages...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 5)
-                    }
-                    Spacer()
+                    loadingSection
                 } else if filteredConversations.isEmpty {
-                    Spacer()
-                    VStack(spacing: 15) {
-                        Image(systemName: "message")
-                            .font(.system(size: 50))
-                            .foregroundColor(.secondary)
-                        Text("No conversations yet")
-                            .font(.title2)
-                            .fontWeight(.medium)
-                        Text("Start a conversation with someone!")
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        Button("New Message") {
-                            showingNewMessage = true
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                    }
-                    .padding()
-                    Spacer()
+                    emptyStateSection
                 } else {
-                    List {
-                        ForEach(filteredConversations) { conversation in
-                            NavigationLink(
-                                destination: FirebaseChatView(
-                                    conversation: conversation,
-                                    participantName: getParticipantName(for: conversation),
-                                    participantImageURL: getParticipantImageURL(for: conversation)
-                                )
-                            ) {
-                                ConversationRow(
-                                    conversation: conversation,
-                                    participantName: getParticipantName(for: conversation),
-                                    participantImageURL: getParticipantImageURL(for: conversation)
-                                )
-                            }
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 5, leading: 20, bottom: 5, trailing: 20))
-                        }
-                    }
-                    .listStyle(PlainListStyle())
-                    
-                    // Data source indicator
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Real conversations from Firebase • \(filteredConversations.count) chats")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 10)
+                    conversationsListSection
                 }
                 
-                // Error handling
-                if let errorMessage = conversationsService.errorMessage {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
-                            Text("Connection Error")
-                                .font(.headline)
-                                .foregroundColor(.red)
-                        }
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                        
-                        Button("Retry") {
-                            if let currentUser = FirebaseUserSession.shared.currentUser,
-                               let userId = currentUser.id {
-                                conversationsService.fetchConversations(for: userId)
-                            }
-                        }
-                        .padding(.top, 5)
-                        .buttonStyle(.bordered)
+                // Error Handling
+                errorSection
+            }
+            .navigationTitle("Messages")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingNewMessage = true }) {
+                        Image(systemName: "square.and.pencil")
+                            .font(.title2)
+                            .foregroundColor(.blue)
                     }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                    .cornerRadius(8)
-                    .padding(.horizontal)
                 }
+            }
+            .refreshable {
+                await refreshConversations()
             }
         }
         .sheet(isPresented: $showingNewMessage) {
-            NewMessageRecipientView(
-                members: membersService.members
-            ) { selectedMember in
-                // Handle new conversation creation
-                if let currentUser = FirebaseUserSession.shared.currentUser,
-                   let userId = currentUser.id,
-                   let participantTwoId = selectedMember.id {
-                        conversationsService.createConversation(
-                            participantOneId: userId,
-                            participantTwoId: participantTwoId,
-                            completion: { success, error in
-                                if !success {
-                                    print("Failed to create conversation: \(error ?? "Unknown error")")
-                                }
-                            }
-                        )
-                }
+            NewMessageRecipientView(members: membersService.members) { selectedMember in
+                handleNewConversation(with: selectedMember)
             }
         }
         .onAppear {
-            if let currentUser = FirebaseUserSession.shared.currentUser,
-               let userId = currentUser.id {
-                conversationsService.fetchConversations(for: userId)
-            }
-            membersService.fetchMembers()
+            setupInitialState()
         }
-        .refreshable {
-            if let currentUser = FirebaseUserSession.shared.currentUser,
-               let userId = currentUser.id {
-                conversationsService.fetchConversations(for: userId)
+    }
+    
+    // MARK: - UI Components
+    
+    private var headerSection: some View {
+        VStack(spacing: 16) {
+            // Search Bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 16, weight: .medium))
+                
+                TextField("Search conversations...", text: $searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .autocorrectionDisabled()
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
-            membersService.fetchMembers()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .padding(.horizontal, 20)
+            
+            // Active Conversations Counter
+            if !filteredConversations.isEmpty {
+                HStack {
+                    Text("\(filteredConversations.count) conversations")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.vertical, 16)
+        .background(Color(.systemBackground))
+    }
+    
+    private var loadingSection: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("Loading conversations...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var emptyStateSection: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "message.circle")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: 12) {
+                Text("No conversations yet")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Start connecting with other members by sending them a message")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+            
+            Button("Start Conversation") {
+                showingNewMessage = true
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+    
+    private var conversationsListSection: some View {
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(filteredConversations) { conversation in
+                    NavigationLink(
+                        destination: FirebaseChatView(
+                            conversation: conversation,
+                            participantName: getParticipantName(for: conversation),
+                            participantImageURL: getParticipantImageURL(for: conversation)
+                        )
+                    ) {
+                        EnhancedConversationCard(
+                            conversation: conversation,
+                            participantName: getParticipantName(for: conversation),
+                            participantImageURL: getParticipantImageURL(for: conversation)
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+    }
+    
+    private var errorSection: some View {
+        Group {
+            if let errorMessage = conversationsService.errorMessage {
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                        Text("Connection Error")
+                            .font(.headline)
+                            .foregroundColor(.red)
+                        Spacer()
+                    }
+                    
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.leading)
+                    
+                    Button("Retry") {
+                        if let currentUser = FirebaseUserSession.shared.currentUser,
+                           let userId = currentUser.id {
+                            conversationsService.fetchConversations(for: userId)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(12)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: conversationsService.errorMessage)
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func setupInitialState() {
+        if let currentUser = FirebaseUserSession.shared.currentUser,
+           let userId = currentUser.id {
+            conversationsService.fetchConversations(for: userId)
+        }
+        membersService.fetchMembers()
+    }
+    
+    private func refreshConversations() async {
+        if let currentUser = FirebaseUserSession.shared.currentUser,
+           let userId = currentUser.id {
+            conversationsService.fetchConversations(for: userId)
+        }
+        membersService.fetchMembers()
+        
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+    }
+    
+    private func handleNewConversation(with selectedMember: FirebaseMember) {
+        if let currentUser = FirebaseUserSession.shared.currentUser,
+           let userId = currentUser.id,
+           let participantTwoId = selectedMember.id {
+            conversationsService.createConversation(
+                participantOneId: userId,
+                participantTwoId: participantTwoId,
+                completion: { success, error in
+                    if !success {
+                        print("Failed to create conversation: \(error ?? "Unknown error")")
+                    }
+                }
+            )
         }
     }
 }
 
-// Row view for each conversation
-struct ConversationRow: View {
+// MARK: - Enhanced Conversation Card
+
+struct EnhancedConversationCard: View {
     let conversation: FirebaseConversation
     let participantName: String
     let participantImageURL: URL?
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: 16) {
             // Profile Image
-            AsyncImage(url: participantImageURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 55, height: 55)
-                    .clipShape(Circle())
-            } placeholder: {
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 55, height: 55)
-                    .clipShape(Circle())
-                    .foregroundColor(.gray)
+            AsyncImage(url: participantImageURL) { phase in
+                switch phase {
+                case .empty:
+                    Circle()
+                        .fill(Color(.systemGray5))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            ProgressView()
+                                .scaleEffect(0.7)
+                        )
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 60, height: 60)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 2)
+                        )
+                case .failure(_):
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Text(participantName.prefix(1).uppercased())
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.blue)
+                        )
+                @unknown default:
+                    Circle()
+                        .fill(Color(.systemGray5))
+                        .frame(width: 60, height: 60)
+                }
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            // Conversation Details
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(participantName)
                         .font(.headline)
-                        .fontWeight(conversation.isRead == false ? .semibold : .regular)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                    
                     Spacer()
+                    
                     if let lastMessageAt = conversation.lastMessageAt {
                         Text(formatTimestamp(lastMessageAt))
                             .font(.caption)
@@ -308,33 +382,53 @@ struct ConversationRow: View {
                     }
                 }
                 
-                Text(conversation.lastMessage ?? "No messages yet")
-                    .font(.subheadline)
-                    .foregroundColor(conversation.isRead == false ? .primary : .secondary)
-                    .lineLimit(1)
+                HStack {
+                    Text(conversation.lastMessage ?? "No messages yet")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    Spacer()
+                    
+                    // Unread indicator
+                    if conversation.isRead == false {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 8, height: 8)
+                    }
+                }
             }
             
-            // Optional: Unread indicator dot
-            if conversation.isRead == false {
-                 Circle()
-                    .fill(Color.blue)
-                    .frame(width: 10, height: 10)
-            }
+            // Chevron
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
-        .padding(.vertical, 8)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(conversation.isRead == false ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
+        )
     }
     
-    // Helper function to format timestamp
     private func formatTimestamp(_ timestamp: Timestamp) -> String {
         let date = timestamp.dateValue()
         let formatter = DateFormatter()
         
-        // Check if the date is today
         if Calendar.current.isDateInToday(date) {
             formatter.timeStyle = .short
             return formatter.string(from: date)
         } else if Calendar.current.isDateInYesterday(date) {
             return "Yesterday"
+        } else if Calendar.current.isDate(date, equalTo: Date(), toGranularity: .weekOfYear) {
+            formatter.setLocalizedDateFormatFromTemplate("EEEE")
+            return formatter.string(from: date)
         } else {
             formatter.dateStyle = .short
             return formatter.string(from: date)
@@ -342,168 +436,49 @@ struct ConversationRow: View {
     }
 }
 
-// Updated Chat screen to use real Firebase data
-struct ChatView: View {
-    let conversation: FirebaseConversation
-    let participantName: String
-    let participantImageURL: URL?
-    @StateObject private var messagesService = FirebaseMessagesService()
-    @State private var newMessageText = ""
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            // Custom header
-            HStack {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                }
-                
-                AsyncImage(url: participantImageURL) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 35, height: 35)
-                        .clipShape(Circle())
-                } placeholder: {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .frame(width: 35, height: 35)
-                        .foregroundColor(.gray)
-                }
-                
-                VStack(alignment: .leading) {
-                    Text(participantName)
-                        .font(.headline)
-                    Text("Online")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-                
-                Spacer()
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            
-            // Messages list
-            if messagesService.isLoading {
-                Spacer()
-                ProgressView("Loading messages...")
-                Spacer()
-            } else if messagesService.messages.isEmpty {
-                Spacer()
-                VStack {
-                    Image(systemName: "message")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gray)
-                    Text("No messages yet")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    Text("Start the conversation!")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(messagesService.messages) { message in
-                            HStack {
-                                if message.isSender {
-                                    Spacer()
-                                    VStack(alignment: .trailing) {
-                                        Text(message.messageText)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(18)
-                                        Text(formatMessageTime(message.timestamp))
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    }
-                                } else {
-                                    VStack(alignment: .leading) {
-                                        Text(message.messageText)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(Color(.systemGray5))
-                                            .cornerRadius(18)
-                                        Text(formatMessageTime(message.timestamp))
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    Spacer()
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-                    .padding(.vertical)
-                }
-            }
-            
-            // Message input
-            HStack(spacing: 12) {
-                CustomMessageInput(text: $newMessageText, placeholder: "Type a message...", maxHeight: 100)
-                    .frame(minHeight: 44)
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "paperplane.fill")
-                        .foregroundColor(.white)
-                        .frame(width: 40, height: 40)
-                        .background(newMessageText.isEmpty ? Color.gray : Color.blue)
-                        .clipShape(Circle())
-                }
-                .disabled(newMessageText.isEmpty)
-            }
-            .padding()
-        }
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
-        .onAppear {
-            messagesService.fetchMessages(for: conversation.id ?? "")
-        }
-    }
-    
-    private func sendMessage() {
-        guard !newMessageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              let currentUser = FirebaseUserSession.shared.currentUser else { return }
-        
-        let messageText = newMessageText.trimmingCharacters(in: .whitespacesAndNewlines)
-        messagesService.sendMessage(
-            conversationId: conversation.id ?? "",
-            senderId: currentUser.id ?? "",
-            messageText: messageText,
-            completion: { success, error in
-                if !success {
-                    print("Failed to send message: \(error ?? "Unknown error")")
-                }
-            }
-        )
-        newMessageText = ""
-    }
-    
-    private func formatMessageTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
+// MARK: - Legacy Support (keeping for compatibility)
+
+// Placeholder data structures for legacy support
+struct User: Identifiable, Hashable {
+    let id = UUID()
+    let name: String
+    let profileImageName: String?
 }
 
-// Make Conversation Hashable for NavigationLink value
-extension Conversation: Hashable {
-    // Implement hash(into:) and == based on conversation ID or recipient identity
+struct Message: Identifiable {
+    let id = UUID()
+    let text: String
+    let isSender: Bool
+    let timestamp: Date
+}
+
+struct Conversation: Identifiable, Hashable {
+    let id = UUID()
+    let recipientName: String
+    let lastMessage: String
+    let timestamp: String
+    let profileImageName: String?
+    var isRead: Bool = false
+    var messages: [Message] = []
+    
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id) // Use ID for hashing
+        hasher.combine(id)
     }
     
     static func == (lhs: Conversation, rhs: Conversation) -> Bool {
-        lhs.id == rhs.id // Use ID for equality
+        lhs.id == rhs.id
     }
 }
+
+// Sample data for legacy support
+let sampleUsers: [User] = [
+    User(name: "Caroline", profileImageName: "person.crop.circle.fill"),
+    User(name: "Omeed", profileImageName: "person.crop.circle.fill"),
+    User(name: "Macey", profileImageName: "person.crop.circle.fill"),
+    User(name: "Marin", profileImageName: "person.crop.circle.fill"),
+    User(name: "Alex", profileImageName: "person.crop.circle.fill.badge.plus"),
+    User(name: "Sam", profileImageName: "person.crop.circle.fill")
+]
 
 #Preview {
     ConversationsListView()

@@ -9,153 +9,353 @@ struct ProfileView: View {
     @State private var userMember: FirebaseMember?
     @State private var isLoading = true
     @State private var currentUserImageUrl: String?
+    @State private var showEditProfile = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    // Profile Header Section
-                    VStack(spacing: 15) {
-                        // Profile Image - Now using migrated data
-                        if let imageUrl = currentUserImageUrl, !imageUrl.isEmpty {
-                            AsyncImage(url: URL(string: imageUrl)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            } placeholder: {
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .foregroundColor(.gray)
-                            }
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                            .onAppear {
-                                print("🖼️ ProfileView: Loading image URL: \(imageUrl)")
-                            }
-                        } else if let legacyPhoto = userSession.currentUser?.profilePhoto, !legacyPhoto.isEmpty {
-                            // Fallback to legacy profile photo
-                            AsyncImage(url: URL(string: legacyPhoto)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            } placeholder: {
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .foregroundColor(.gray)
-                            }
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                            .onAppear {
-                                print("🖼️ ProfileView: Using legacy photo: \(legacyPhoto)")
-                            }
-                        } else {
-                            Image(systemName: "person.crop.circle.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundColor(.gray)
-                                .frame(width: 120, height: 120)
-                                .onAppear {
-                                    print("🖼️ ProfileView: No image URL available - currentUserImageUrl: \(currentUserImageUrl ?? "nil"), legacyPhoto: \(userSession.currentUser?.profilePhoto ?? "nil")")
-                                }
-                        }
-                        
-                        // User Name
-                        Text(userSession.currentUser?.firstName ?? "Unknown User")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        
-                        // Age (if available from member profile)
-                        if let userMember = userMember, let age = userMember.age {
-                            Text("\(age)")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.top, 20)
+                VStack(spacing: 24) {
+                    // Profile Header
+                    profileHeaderSection
                     
-                    // Profile Information Section
+                    // Profile Content
                     if isLoading {
-                        ProgressView("Loading profile...")
-                            .padding()
-                    } else if let userMember = userMember {
-                        VStack(spacing: 15) {
-                            // City
-                            if let city = userMember.city {
-                                InfoRow(icon: "mappin.and.ellipse", label: "City", value: city)
-                            }
-                            
-                            // Approach Tip
-                            if let approachTip = userMember.approachTip {
-                                InfoRow(icon: "lightbulb.fill", label: "Tip to Approach Me", value: approachTip)
-                            }
-                            
-                            // Attracted To
-                            if let attractedTo = userMember.attractedTo {
-                                InfoRow(icon: "figure.dress.line.vertical.figure", label: "Attracted to", value: attractedTo)
-                            }
-                            
-                            // Instagram Handle
-                            if let handle = userMember.instagramHandle, !handle.isEmpty {
-                                InfoRow(icon: "camera.fill", label: "Instagram", value: handle)
-                            }
-                        }
-                        .padding(.horizontal)
+                        loadingSection
                     } else {
-                        VStack(spacing: 15) {
-                            Text("Complete your profile")
-                                .font(.title2)
-                                .fontWeight(.medium)
-                            Text("Add more details to help others connect with you!")
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding()
+                        profileContentSection
                     }
-                    
-                    Spacer(minLength: 50)
                     
                     // Action Buttons
-                    VStack(spacing: 15) {
-                        // Edit Profile Button
-                        NavigationLink(destination: EditProfileView(userMember: userMember)) {
-                            HStack {
-                                Image(systemName: "pencil")
-                                Text(userMember == nil ? "Complete Profile" : "Edit Profile")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                        }
-                        
-                        // Sign Out Button
-                        Button(action: {
-                            userSession.signOut()
-                        }) {
-                            HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text("Sign Out")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        }
-                    }
-                    .padding(.horizontal)
+                    actionButtonsSection
+                    
+                    Spacer(minLength: 40)
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+            }
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                await refreshProfile()
             }
         }
         .onAppear {
             loadUserMemberProfile()
         }
+        .sheet(isPresented: $showEditProfile) {
+            EditProfileView(userMember: userMember)
+        }
     }
+    
+    // MARK: - UI Components
+    
+    private var profileHeaderSection: some View {
+        VStack(spacing: 16) {
+            // Profile Image
+            profileImageView
+            
+            // User Name and Age
+            VStack(spacing: 8) {
+                Text(userSession.currentUser?.firstName ?? "Unknown User")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                if let userMember = userMember, let age = userMember.age {
+                    HStack(spacing: 8) {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                        Text("\(age) years old")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var profileImageView: some View {
+        Group {
+            if let imageUrl = currentUserImageUrl, !imageUrl.isEmpty {
+                AsyncImage(url: URL(string: imageUrl)) { phase in
+                    switch phase {
+                    case .empty:
+                        profileImagePlaceholder(isLoading: true)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 140, height: 140)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue.opacity(0.3), lineWidth: 4)
+                            )
+                            .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+                    case .failure(_):
+                        profileImagePlaceholder(isLoading: false)
+                    @unknown default:
+                        profileImagePlaceholder(isLoading: false)
+                    }
+                }
+            } else if let legacyPhoto = userSession.currentUser?.profilePhoto, !legacyPhoto.isEmpty {
+                AsyncImage(url: URL(string: legacyPhoto)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 140, height: 140)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue.opacity(0.3), lineWidth: 4)
+                            )
+                            .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+                    default:
+                        profileImagePlaceholder(isLoading: false)
+                    }
+                }
+            } else {
+                profileImagePlaceholder(isLoading: false)
+            }
+        }
+    }
+    
+    private func profileImagePlaceholder(isLoading: Bool) -> some View {
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 140, height: 140)
+                .overlay(
+                    Circle()
+                        .stroke(Color.blue.opacity(0.3), lineWidth: 4)
+                )
+                .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+            
+            if isLoading {
+                ProgressView()
+                    .scaleEffect(1.2)
+            } else {
+                VStack(spacing: 8) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.secondary)
+                    
+                    if let firstName = userSession.currentUser?.firstName {
+                        Text(firstName.prefix(1).uppercased())
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var loadingSection: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("Loading profile...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+    }
+    
+    private var profileContentSection: some View {
+        VStack(spacing: 20) {
+            if let userMember = userMember {
+                profileInfoSection(userMember)
+            } else {
+                emptyProfileSection
+            }
+        }
+    }
+    
+    private func profileInfoSection(_ member: FirebaseMember) -> some View {
+        VStack(spacing: 16) {
+            // Location
+            if let city = member.city {
+                InfoCardView(
+                    icon: "mappin.and.ellipse",
+                    title: "Location",
+                    value: city,
+                    iconColor: .blue
+                )
+            }
+            
+            // Approach Tip
+            if let approachTip = member.approachTip, !approachTip.isEmpty {
+                InfoCardView(
+                    icon: "lightbulb.fill",
+                    title: "Best way to approach me",
+                    value: approachTip,
+                    iconColor: .orange
+                )
+            }
+            
+            // Attracted To
+            if let attractedTo = member.attractedTo, !attractedTo.isEmpty {
+                InfoCardView(
+                    icon: "heart.fill",
+                    title: "Looking for",
+                    value: attractedTo.capitalized,
+                    iconColor: .pink
+                )
+            }
+            
+            // Instagram Handle
+            if let handle = member.instagramHandle, !handle.isEmpty {
+                InfoCardView(
+                    icon: "camera.fill",
+                    title: "Instagram",
+                    value: handle.hasPrefix("@") ? handle : "@\(handle)",
+                    iconColor: .purple
+                )
+            }
+            
+            // Profile Completeness
+            profileCompletenessCard(member)
+        }
+    }
+    
+    private var emptyProfileSection: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "person.crop.circle.badge.plus")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: 12) {
+                Text("Complete Your Profile")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Text("Add details to help others connect with you and discover compatible matches.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
+            }
+        }
+        .padding(.vertical, 32)
+    }
+    
+    private func profileCompletenessCard(_ member: FirebaseMember) -> some View {
+        let completeness = calculateProfileCompleteness(member)
+        let percentage = Int(completeness * 100)
+        
+        return VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .foregroundColor(.green)
+                    .font(.title3)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Profile Completeness")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text("\(percentage)% complete")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            
+            // Progress Bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(height: 8)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.green, .blue],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * completeness, height: 8)
+                        .cornerRadius(4)
+                        .animation(.easeInOut(duration: 1.0), value: completeness)
+                }
+            }
+            .frame(height: 8)
+        }
+        .padding(20)
+        .background(Color(.systemGray6))
+        .cornerRadius(16)
+    }
+    
+    private var actionButtonsSection: some View {
+        VStack(spacing: 16) {
+            // Edit Profile Button
+            Button(action: {
+                Haptics.lightImpact()
+                showEditProfile = true
+            }) {
+                HStack {
+                    Image(systemName: "pencil")
+                        .font(.headline)
+                    Text(userMember == nil ? "Complete Profile" : "Edit Profile")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [Color.blue, Color.blue.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+            }
+            
+            // Sign Out Button
+            Button(action: {
+                Haptics.lightImpact()
+                userSession.signOut()
+            }) {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.headline)
+                    Text("Sign Out")
+                        .font(.headline)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(.red)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                )
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
     
     private func loadUserMemberProfile() {
         guard let currentUser = userSession.currentUser else {
@@ -163,41 +363,27 @@ struct ProfileView: View {
             return
         }
         
-        print("🔍 ProfileView: Loading profile for user: \(currentUser.firstName ?? "Unknown")")
-        
-        // First, load the current user's updated document to get migrated image URL
         Task {
             await loadCurrentUserImageUrl()
         }
         
-        // Fetch the user's member profile
         membersService.fetchMembers()
         
-        // Find the member profile for the current user
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            // Try to find by Firebase document ID first (most reliable)
             if let userId = currentUser.id {
                 userMember = membersService.members.first { member in
                     member.id == userId || member.userId == userId
                 }
             }
             
-            // Fallback: find by first name match
             if userMember == nil {
                 userMember = membersService.members.first { member in
                     member.firstName.lowercased() == currentUser.firstName?.lowercased()
                 }
             }
             
-            print("🔍 ProfileView: Found user member: \(userMember?.firstName ?? "nil")")
-            if let userMember = userMember {
-                print("🔍 ProfileView: Member image URLs - profileImageUrl: \(userMember.profileImageUrl ?? "nil"), firebaseImageUrl: \(userMember.firebaseImageUrl ?? "nil")")
-                
-                // Use the member's image URL if current user doesn't have one
-                if currentUserImageUrl == nil {
-                    currentUserImageUrl = userMember.profileImageUrl ?? userMember.firebaseImageUrl
-                    print("🔍 ProfileView: Using member image URL: \(currentUserImageUrl ?? "nil")")
-                }
+            if let userMember = userMember, currentUserImageUrl == nil {
+                currentUserImageUrl = userMember.profileImageUrl ?? userMember.firebaseImageUrl
             }
             
             isLoading = false
@@ -208,9 +394,6 @@ struct ProfileView: View {
         guard let currentUser = userSession.currentUser,
               let userId = currentUser.id else { return }
         
-        print("🔍 ProfileView: Loading current user document for migrated image URL")
-        
-        // Load the user's document directly to get migrated fields
         do {
             let db = Firestore.firestore()
             let document = try await db.collection("users").document(userId).getDocument()
@@ -221,47 +404,91 @@ struct ProfileView: View {
                 let firebaseImageUrl = data?["firebaseImageUrl"] as? String
                 let profilePhoto = data?["profilePhoto"] as? String
                 
-                print("🔍 ProfileView: Document data - profileImageUrl: \(profileImageUrl ?? "nil"), firebaseImageUrl: \(firebaseImageUrl ?? "nil"), profilePhoto: \(profilePhoto ?? "nil")")
-                
                 await MainActor.run {
-                    // Use the migrated URL first, fallback to legacy
                     currentUserImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto
-                    print("🔍 ProfileView: Set currentUserImageUrl: \(currentUserImageUrl ?? "nil")")
                 }
-            } else {
-                print("🔍 ProfileView: User document does not exist")
             }
         } catch {
-            print("🔍 ProfileView: Error loading user document: \(error)")
+            print("Error loading user document: \(error)")
         }
+    }
+    
+    private func refreshProfile() async {
+        isLoading = true
+        
+        await loadCurrentUserImageUrl()
+        membersService.refreshMembers()
+        
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        
+        await MainActor.run {
+            loadUserMemberProfile()
+        }
+    }
+    
+    private func calculateProfileCompleteness(_ member: FirebaseMember) -> Double {
+        var completenessScore: Double = 0.0
+        let totalFields: Double = 6.0
+        
+        if member.profileImageUrl != nil || member.firebaseImageUrl != nil {
+            completenessScore += 1.0
+        }
+        if member.age != nil {
+            completenessScore += 1.0
+        }
+        if member.city != nil && !member.city!.isEmpty {
+            completenessScore += 1.0
+        }
+        if member.gender != nil && !member.gender!.isEmpty {
+            completenessScore += 1.0
+        }
+        if member.approachTip != nil && !member.approachTip!.isEmpty {
+            completenessScore += 1.0
+        }
+        if member.instagramHandle != nil && !member.instagramHandle!.isEmpty {
+            completenessScore += 1.0
+        }
+        
+        return completenessScore / totalFields
     }
 }
 
-// Info Row Component
-struct InfoRow: View {
+// MARK: - Supporting Views
+
+struct InfoCardView: View {
     let icon: String
-    let label: String
+    let title: String
     let value: String
+    let iconColor: Color
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: 16) {
+            // Icon
             Image(systemName: icon)
-                .frame(width: 20)
-                .foregroundColor(.blue)
+                .font(.title2)
+                .foregroundColor(iconColor)
+                .frame(width: 32, height: 32)
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
+            // Content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
                     .font(.caption)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                
                 Text(value)
                     .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
             }
             
             Spacer()
         }
-        .padding()
+        .padding(20)
         .background(Color(.systemGray6))
-        .cornerRadius(10)
+        .cornerRadius(16)
     }
 }
 

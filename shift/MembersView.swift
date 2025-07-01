@@ -16,96 +16,32 @@ struct MembersView: View {
     @State private var displayedMembers: [FirebaseMember] = []
     @State private var isLoadingMore = false
     private let membersPerPage = 20
+    
+    private let filters = ["Compatible", "Nearby", "All", "Online"]
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Clean Search and Filter Section
-                VStack(spacing: 12) {
-                    // Search Bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-                        TextField("Search Members...", text: $searchText)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    // Filter Options
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(["Compatible", "Nearby", "All", "Online"], id: \.self) { filter in
-                                Button(filter) {
-                                    selectedFilter = filter
-                                    filterMembers()
-                                }
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 10)
-                                .background(selectedFilter == filter ? Color.blue : Color.white)
-                                .foregroundColor(selectedFilter == filter ? .white : .primary)
-                                .cornerRadius(25)
-                                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                }
-                .padding(.vertical, 16)
-                .background(Color(.systemBackground))
+                // Header Section
+                headerSection
                 
-                // Members List
+                // Content Section
                 if isRefreshing {
-                    ProgressView("Loading compatible members...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    loadingView
                 } else if displayedMembers.isEmpty {
                     emptyStateView
                 } else {
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible(), spacing: 16),
-                            GridItem(.flexible(), spacing: 16)
-                        ], spacing: 20) {
-                            ForEach(displayedMembers, id: \.uniqueID) { member in
-                                MemberCardView(member: member)
-                                    .frame(maxWidth: .infinity)
-                                    .aspectRatio(0.8, contentMode: .fit)
-                                    .onAppear {
-                                        if member.uniqueID == displayedMembers.last?.uniqueID {
-                                            loadMoreMembers()
-                                        }
-                                    }
-                            }
-                            
-                            // Clean loading indicator
-                            if isLoadingMore && filteredMembers.count > displayedMembers.count {
-                                HStack {
-                                    ProgressView()
-                                        .scaleEffect(0.9)
-                                    Text("Loading more...")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                }
-                                .frame(height: 60)
-                                .gridCellColumns(2)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                    }
-                    .refreshable {
-                        await refreshMembers()
-                    }
+                    membersGridView
                 }
             }
-        }
-        .navigationTitle("Members (\(displayedMembers.count))")
-                        .onAppear {
-            loadUserPreferences()
-            if membersService.members.isEmpty {
-                membersService.fetchMembers()
-                    } else {
-                filterMembers()
+            .navigationTitle("Discover")
+            .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                await refreshMembers()
             }
+        }
+        .onAppear {
+            setupInitialState()
         }
         .onChange(of: membersService.members) {
             filterMembers()
@@ -115,21 +51,119 @@ struct MembersView: View {
         }
     }
     
+    // MARK: - UI Components
+    
+    private var headerSection: some View {
+        VStack(spacing: 16) {
+            // Search Bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 16, weight: .medium))
+                
+                TextField("Search members...", text: $searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .autocorrectionDisabled()
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .padding(.horizontal, 20)
+            
+            // Filter Pills
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(filters, id: \.self) { filter in
+                        FilterPill(
+                            title: filter,
+                            isSelected: selectedFilter == filter
+                        ) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedFilter = filter
+                                filterMembers()
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            
+            // Results Counter
+            if !displayedMembers.isEmpty {
+                HStack {
+                    Text("\(displayedMembers.count) members")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.vertical, 16)
+        .background(Color(.systemBackground))
+    }
+    
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("Finding compatible members...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var membersGridView: some View {
+        ScrollView {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16)
+            ], spacing: 20) {
+                ForEach(displayedMembers, id: \.uniqueID) { member in
+                    MemberCardView(member: member)
+                        .onAppear {
+                            if member.uniqueID == displayedMembers.last?.uniqueID {
+                                loadMoreMembers()
+                            }
+                        }
+                }
+                
+                // Loading More Indicator
+                if isLoadingMore && filteredMembers.count > displayedMembers.count {
+                    LoadingMoreView()
+                        .gridCellColumns(2)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+    }
+    
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Image(systemName: "person.3")
                 .font(.system(size: 60))
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
             
-            VStack(spacing: 10) {
-                Text("No compatible members found")
+            VStack(spacing: 12) {
+                Text("No members found")
                     .font(.title2)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                 
-                Text("Try adjusting your filters or check back later")
+                Text("Try adjusting your filters or check back later for new members to discover")
                     .font(.body)
-                                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
             }
             
             Button("Refresh") {
@@ -137,13 +171,23 @@ struct MembersView: View {
                     await refreshMembers()
                 }
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
         }
-        .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
     
-    // MARK: - User Preferences Loading
+    // MARK: - Helper Functions
+    
+    private func setupInitialState() {
+        loadUserPreferences()
+        if membersService.members.isEmpty {
+            membersService.fetchMembers()
+        } else {
+            filterMembers()
+        }
+    }
+    
     private func loadUserPreferences() {
         guard let currentUser = userSession.currentUser else { return }
         
@@ -155,7 +199,6 @@ struct MembersView: View {
         )
     }
     
-    // MARK: - Smart Filtering Based on Preferences
     private func filterMembers() {
         guard let currentUser = userSession.currentUser else {
             filteredMembers = []
@@ -165,7 +208,7 @@ struct MembersView: View {
         
         var filtered = membersService.members
         
-        // Exclude the current user
+        // Exclude current user
         filtered = filtered.filter { member in
             member.id != currentUser.id && 
             member.userId != currentUser.id &&
@@ -181,7 +224,7 @@ struct MembersView: View {
             }
         }
         
-        // Apply compatibility filters
+        // Apply selected filter
         switch selectedFilter {
         case "Compatible":
             filtered = applyCompatibilityFilter(to: filtered)
@@ -193,32 +236,43 @@ struct MembersView: View {
             break // "All" - no additional filtering
         }
         
-        // Sort by compatibility score (members with images first, then by age/distance)
-        filtered = filtered.sorted { member1, member2 in
-            // Prioritize members with profile images
-            let hasImage1 = member1.profileImageUrl != nil || member1.firebaseImageUrl != nil
-            let hasImage2 = member2.profileImageUrl != nil || member2.firebaseImageUrl != nil
-            
-            if hasImage1 != hasImage2 {
-                return hasImage1 // Members with images come first
-            }
-            
-            // Then sort by age (closer to current user's age is better)
-            if let currentAge = currentUser.age,
-               let age1 = member1.age,
-               let age2 = member2.age {
-                let diff1 = abs(age1 - currentAge)
-                let diff2 = abs(age2 - currentAge)
-                return diff1 < diff2
-            }
-            
-            // Finally, sort alphabetically
-            return member1.firstName < member2.firstName
-        }
+        // Sort members intelligently
+        filtered = rankMembersByCompatibility(filtered, currentUser: currentUser)
         
         filteredMembers = filtered
         displayedMembers = Array(filtered.prefix(membersPerPage))
     }
+    
+    private func loadMoreMembers() {
+        guard !isLoadingMore else { return }
+        
+        let currentCount = displayedMembers.count
+        let totalCount = filteredMembers.count
+        
+        guard currentCount < totalCount else { return }
+        
+        isLoadingMore = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            let nextBatch = Array(filteredMembers[currentCount..<min(currentCount + membersPerPage, totalCount)])
+            displayedMembers.append(contentsOf: nextBatch)
+            isLoadingMore = false
+        }
+    }
+    
+    private func refreshMembers() async {
+        isRefreshing = true
+        membersService.refreshMembers()
+        
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        
+        await MainActor.run {
+            filterMembers()
+            isRefreshing = false
+        }
+    }
+    
+    // MARK: - Filtering Logic
     
     private func applyCompatibilityFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
         guard let currentUser = userSession.currentUser else {
@@ -227,16 +281,12 @@ struct MembersView: View {
         
         let userAttractedTo = currentUser.attractedTo?.lowercased() ?? ""
         
-        // Filter based on what user is attracted to
         let filtered = members.filter { member in
-            // If user hasn't set preferences, show everyone
             if userAttractedTo.isEmpty || userAttractedTo == "everyone" || userAttractedTo == "anyone" {
                 return true
             }
             
             let memberGender = member.gender?.lowercased() ?? ""
-            
-            // Dating app logic: show people user is attracted to
             return checkGenderCompatibility(userAttractedTo: userAttractedTo, memberGender: memberGender)
         }
         
@@ -247,7 +297,6 @@ struct MembersView: View {
         guard let attractedTo = userAttractedTo?.lowercased() else { return true }
         guard let gender = memberGender?.lowercased() else { return true }
         
-        // Handle various attraction preferences
         switch attractedTo {
         case "women", "woman", "female":
             return gender.contains("woman") || gender.contains("female")
@@ -256,7 +305,7 @@ struct MembersView: View {
         case "everyone", "all", "anyone", "both":
             return true
         default:
-            return true // If unclear, include them
+            return true
         }
     }
     
@@ -268,23 +317,18 @@ struct MembersView: View {
         
         return members.filter { member in
             guard let memberCity = member.city?.lowercased() else { return false }
-            
-            // Same city or nearby area
             return memberCity.contains(userCity) || userCity.contains(memberCity)
         }
     }
     
     private func applyOnlineFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
-        // For now, return members who have been active recently or have complete profiles
         return members.filter { member in
             member.profileImageUrl != nil || member.firebaseImageUrl != nil
         }
     }
     
-    // MARK: - Compatibility Ranking
     private func rankMembersByCompatibility(_ members: [FirebaseMember], currentUser: FirebaseUser?) -> [FirebaseMember] {
         guard let currentUser = currentUser else {
-            // If no current user, just return members sorted by profile completeness
             return members.sorted { member1, member2 in
                 let score1 = calculateProfileCompleteness(member1)
                 let score2 = calculateProfileCompleteness(member2)
@@ -292,7 +336,6 @@ struct MembersView: View {
             }
         }
         
-        // Sort members by comprehensive compatibility score
         return members.sorted { member1, member2 in
             let score1 = calculateCompatibilityScore(member1, with: currentUser)
             let score2 = calculateCompatibilityScore(member2, with: currentUser)
@@ -346,146 +389,100 @@ struct MembersView: View {
         var completenessScore: Double = 0.0
         let totalFields: Double = 6.0
         
-        // Has profile image
         if member.profileImageUrl != nil || member.firebaseImageUrl != nil {
             completenessScore += 1.0
         }
-        
-        // Has age
         if member.age != nil {
             completenessScore += 1.0
         }
-        
-        // Has city
         if member.city != nil && !member.city!.isEmpty {
             completenessScore += 1.0
         }
-        
-        // Has gender
         if member.gender != nil && !member.gender!.isEmpty {
             completenessScore += 1.0
         }
-        
-        // Has approach tip
         if member.approachTip != nil && !member.approachTip!.isEmpty {
             completenessScore += 1.0
         }
-        
-        // Has Instagram handle
         if member.instagramHandle != nil && !member.instagramHandle!.isEmpty {
             completenessScore += 1.0
         }
         
         return completenessScore / totalFields
     }
+}
+
+// MARK: - Supporting Views
+
+struct FilterPill: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
     
-    // MARK: - Lazy Loading
-    private func loadMoreMembers() {
-        guard !isLoadingMore else { return }
-        
-        let currentCount = displayedMembers.count
-        let totalCount = filteredMembers.count
-        
-        guard currentCount < totalCount else { return }
-        
-        isLoadingMore = true
-        
-        // Simulate loading delay for smooth UX
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let nextBatch = Array(filteredMembers[currentCount..<min(currentCount + membersPerPage, totalCount)])
-            displayedMembers.append(contentsOf: nextBatch)
-            isLoadingMore = false
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(isSelected ? .white : .primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color.blue : Color(.systemGray6))
+                )
         }
-    }
-    
-    private func refreshMembers() async {
-        isRefreshing = true
-        membersService.refreshMembers()
-        
-        // Wait a moment for data to load
-        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-        
-        await MainActor.run {
-            filterMembers()
-            isRefreshing = false
-        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
-// MARK: - User Preferences Structure
-struct UserPreferences {
-    let attractedTo: String?
-    let city: String?
-    let ageRange: (min: Int, max: Int)
-    let maxDistance: Int // miles
+struct LoadingMoreView: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .scaleEffect(0.8)
+            Text("Loading more...")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(height: 60)
+    }
 }
 
-// Aesthetic Card View for each member
+// MARK: - Enhanced Member Card View
+
 struct MemberCardView: View {
     let member: FirebaseMember
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Clean Profile Image
+        VStack(spacing: 0) {
+            // Profile Image
             AsyncImage(url: member.profileImageURL) { phase in
                 switch phase {
                 case .empty:
-                    ZStack {
-                        Rectangle()
-                            .fill(LinearGradient(
-                                colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
-                            .frame(height: 180)
-                        VStack(spacing: 8) {
-                            Image(systemName: "person.crop.circle")
-                                .font(.system(size: 35))
-                                .foregroundColor(.gray.opacity(0.6))
-                            Text("Loading...")
-                                .font(.caption)
-                                .foregroundColor(.gray.opacity(0.8))
-                        }
-                    }
+                    loadingImageView
                 case .success(let image):
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 180)
+                        .frame(height: 200)
                         .clipped()
                 case .failure(_):
-                    ZStack {
-                        Rectangle()
-                            .fill(LinearGradient(
-                                colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
-                            .frame(height: 180)
-                        VStack(spacing: 8) {
-                            Image(systemName: "person.crop.circle.fill")
-                                .font(.system(size: 35))
-                                .foregroundColor(.gray.opacity(0.6))
-                            Text(member.firstName.prefix(1).uppercased())
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.gray.opacity(0.8))
-                        }
-                    }
+                    fallbackImageView
                 @unknown default:
-                        Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 180)
+                    Color.gray.opacity(0.2)
+                        .frame(height: 200)
                 }
             }
             
+            // Member Info
             VStack(alignment: .leading, spacing: 8) {
-                // Name and Age
                 HStack {
                     Text(member.name)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
+                        .lineLimit(1)
                     
                     Spacer()
                     
@@ -497,200 +494,82 @@ struct MemberCardView: View {
                     }
                 }
                 
-                // City
-                if let city = member.city, !city.isEmpty {
+                if let city = member.city {
                     HStack(spacing: 4) {
-                        Image(systemName: "location.fill")
+                        Image(systemName: "mappin")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.secondary)
                         Text(city)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .lineLimit(1)
                     }
                 }
                 
-                // Approach Tip (prioritized for dating context)
-                if let approachTip = member.approachTip, !approachTip.isEmpty {
-                    Text("💬 \(approachTip)")
+                if let tip = member.approachTip, !tip.isEmpty {
+                    Text(tip)
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                 }
-                
-                // Instagram Handle
-                if let instagram = member.instagramHandle, !instagram.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "camera.fill")
-                            .font(.caption)
-                            .foregroundColor(.purple)
-                        Text("@\(instagram)")
-                            .font(.caption)
-                            .foregroundColor(.purple)
-                    }
-                }
-                
-                    Spacer()
             }
-            .padding(14)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
-        )
-        .onTapGesture {
-            // Navigate to member detail or send message
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    }
+    
+    private var loadingImageView: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 200)
+            
+            VStack(spacing: 8) {
+                ProgressView()
+                    .scaleEffect(0.8)
+                Text("Loading...")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private var fallbackImageView: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 200)
+            
+            VStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.gray.opacity(0.6))
+                Text(member.firstName.prefix(1).uppercased())
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gray.opacity(0.8))
+            }
         }
     }
 }
 
-// MARK: - TEST IMAGE VIEW
-struct TestFirebaseImageView: View {
-    // Test with real images from all three Firebase Storage collections
-    let profileImageURL = URL(string: "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/100_1751052272118.jpeg")
-    let eventImageURL = URL(string: "https://storage.googleapis.com/shift-12948.firebasestorage.app/event_images/127_1751052295829.png")
-    let placeImageURL = URL(string: "https://storage.googleapis.com/shift-12948.firebasestorage.app/place_images/10_1751052347060.jpeg")
-    
-    var body: some View {
-        VStack(spacing: 10) {
-            Text("🧪 FIREBASE IMAGE COLLECTION TEST")
-                .font(.headline)
-                .foregroundColor(.blue)
-            
-            HStack(spacing: 12) {
-                // Profile image test (User ID: 100)
-                VStack(spacing: 4) {
-                    AsyncImage(url: profileImageURL) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: 70, height: 70)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 70, height: 70)
-                                .clipShape(Circle())
-                                .onAppear {
-                                    print("✅ PROFILE IMAGE LOADED! (User ID: 100)")
-                                }
-                        case .failure(let error):
-                            VStack {
-                                Image(systemName: "person.crop.circle.fill.badge.xmark")
-                                    .foregroundColor(.red)
-                                    .font(.title2)
-                            }
-                            .frame(width: 70, height: 70)
-                            .onAppear {
-                                print("❌ Profile image failed: \(error)")
-                            }
-                        @unknown default:
-                            Circle()
-                                .fill(Color.gray)
-                                .frame(width: 70, height: 70)
-                        }
-                    }
-                    Text("👤 Profile")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                    Text("ID: 100")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Event image test (Event ID: 127)
-                VStack(spacing: 4) {
-                    AsyncImage(url: eventImageURL) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: 70, height: 70)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 70, height: 70)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .onAppear {
-                                    print("✅ EVENT IMAGE LOADED! (Event ID: 127)")
-                                }
-                        case .failure(let error):
-                            VStack {
-                                Image(systemName: "calendar.badge.exclamationmark")
-                                    .foregroundColor(.red)
-                                    .font(.title2)
-                            }
-                            .frame(width: 70, height: 70)
-                            .onAppear {
-                                print("❌ Event image failed: \(error)")
-                            }
-                        @unknown default:
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray)
-                                .frame(width: 70, height: 70)
-                        }
-                    }
-                    Text("🎉 Event")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                    Text("ID: 127")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Place image test (Place ID: 10)
-                VStack(spacing: 4) {
-                    AsyncImage(url: placeImageURL) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: 70, height: 70)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 70, height: 70)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .onAppear {
-                                    print("✅ PLACE IMAGE LOADED! (Place ID: 10)")
-                                }
-                        case .failure(let error):
-                            VStack {
-                                Image(systemName: "location.fill.viewfinder")
-                                    .foregroundColor(.red)
-                                    .font(.title2)
-                            }
-                            .frame(width: 70, height: 70)
-                            .onAppear {
-                                print("❌ Place image failed: \(error)")
-                            }
-                        @unknown default:
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray)
-                                .frame(width: 70, height: 70)
-                        }
-                    }
-                    Text("📍 Place")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                    Text("ID: 10")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            Text("Testing real images from your migrated collections")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding()
-        .background(Color.green.opacity(0.15))
-        .cornerRadius(12)
-    }
+// MARK: - Supporting Structures
+
+struct UserPreferences {
+    let attractedTo: String?
+    let city: String?
+    let ageRange: (min: Int, max: Int)
+    let maxDistance: Int
 }
 
 #Preview {

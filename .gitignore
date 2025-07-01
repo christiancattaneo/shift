@@ -101,4 +101,8 @@ iOSInjectionProject/
 
 # Firebase Storage Backup Data (Local Only)
 # Keep the 3.8GB backup locally but don't commit to git
-data_backup/ 
+data_backup/
+
+# Firebase Admin Key
+firebase-admin-key.json
+
