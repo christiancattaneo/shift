@@ -8,7 +8,7 @@ struct MembersView: View {
     @StateObject private var userSession = FirebaseUserSession.shared
     @State private var searchText = ""
     @State private var isRefreshing = false
-    @State private var selectedFilter = "Compatible"
+    @State private var selectedFilter = "All"
     @State private var filteredMembers: [FirebaseMember] = []
     @State private var currentUserPreferences: UserPreferences?
     
@@ -16,7 +16,7 @@ struct MembersView: View {
     @State private var displayedMembers: [FirebaseMember] = []
     @State private var isLoadingMore = false
     private let membersPerPage = 20
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -82,8 +82,8 @@ struct MembersView: View {
                                     ProgressView()
                                         .scaleEffect(0.9)
                                     Text("Loading more...")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                                 }
                                 .frame(height: 60)
                                 .gridCellColumns(2)
@@ -99,11 +99,11 @@ struct MembersView: View {
             }
         }
         .navigationTitle("Members (\(displayedMembers.count))")
-        .onAppear {
+                        .onAppear {
             loadUserPreferences()
             if membersService.members.isEmpty {
                 membersService.fetchMembers()
-            } else {
+                    } else {
                 filterMembers()
             }
         }
@@ -128,7 +128,7 @@ struct MembersView: View {
                 
                 Text("Try adjusting your filters or check back later")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                                    .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
             
@@ -221,26 +221,26 @@ struct MembersView: View {
     }
     
     private func applyCompatibilityFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
-        guard let currentUser = userSession.currentUser,
-              let userAttractedTo = currentUser.attractedTo?.lowercased() else {
-            return members
+        guard let currentUser = userSession.currentUser else {
+            return rankMembersByCompatibility(members, currentUser: nil)
         }
         
-        return members.filter { member in
-            // Check if current user is attracted to this member's gender
-            let isUserAttractedToMember = checkGenderCompatibility(
-                userAttractedTo: userAttractedTo,
-                memberGender: member.gender
-            )
+        let userAttractedTo = currentUser.attractedTo?.lowercased() ?? ""
+        
+        // Filter based on what user is attracted to
+        let filtered = members.filter { member in
+            // If user hasn't set preferences, show everyone
+            if userAttractedTo.isEmpty || userAttractedTo == "everyone" || userAttractedTo == "anyone" {
+                return true
+            }
             
-            // Check if member is attracted to current user's gender
-            let isMemberAttractedToUser = checkGenderCompatibility(
-                userAttractedTo: member.attractedTo?.lowercased(),
-                memberGender: currentUser.gender
-            )
+            let memberGender = member.gender?.lowercased() ?? ""
             
-            return isUserAttractedToMember && isMemberAttractedToUser
+            // Dating app logic: show people user is attracted to
+            return checkGenderCompatibility(userAttractedTo: userAttractedTo, memberGender: memberGender)
         }
+        
+        return rankMembersByCompatibility(filtered, currentUser: currentUser)
     }
     
     private func checkGenderCompatibility(userAttractedTo: String?, memberGender: String?) -> Bool {
@@ -279,6 +279,104 @@ struct MembersView: View {
         return members.filter { member in
             member.profileImageUrl != nil || member.firebaseImageUrl != nil
         }
+    }
+    
+    // MARK: - Compatibility Ranking
+    private func rankMembersByCompatibility(_ members: [FirebaseMember], currentUser: FirebaseUser?) -> [FirebaseMember] {
+        guard let currentUser = currentUser else {
+            // If no current user, just return members sorted by profile completeness
+            return members.sorted { member1, member2 in
+                let score1 = calculateProfileCompleteness(member1)
+                let score2 = calculateProfileCompleteness(member2)
+                return score1 > score2
+            }
+        }
+        
+        // Sort members by comprehensive compatibility score
+        return members.sorted { member1, member2 in
+            let score1 = calculateCompatibilityScore(member1, with: currentUser)
+            let score2 = calculateCompatibilityScore(member2, with: currentUser)
+            return score1 > score2
+        }
+    }
+    
+    private func calculateCompatibilityScore(_ member: FirebaseMember, with currentUser: FirebaseUser) -> Double {
+        var score: Double = 0.0
+        
+        // Profile completeness (0-30 points)
+        score += calculateProfileCompleteness(member) * 30
+        
+        // Age compatibility (0-25 points)
+        if let memberAge = member.age, let userAge = currentUser.age {
+            let ageDiff = abs(memberAge - userAge)
+            let ageScore = max(0, 25 - Double(ageDiff))
+            score += ageScore
+        }
+        
+        // Location compatibility (0-20 points)
+        if let memberCity = member.city?.lowercased(),
+           let userCity = currentUser.city?.lowercased() {
+            if memberCity == userCity {
+                score += 20
+            } else if memberCity.contains(userCity) || userCity.contains(memberCity) {
+                score += 15
+            }
+        }
+        
+        // Attraction compatibility (0-15 points)
+        if let userAttractedTo = currentUser.attractedTo?.lowercased(),
+           let memberGender = member.gender?.lowercased() {
+            if checkGenderCompatibility(userAttractedTo: userAttractedTo, memberGender: memberGender) {
+                score += 15
+            }
+        }
+        
+        // Profile activity indicators (0-10 points)
+        if member.instagramHandle != nil && !member.instagramHandle!.isEmpty {
+            score += 5
+        }
+        if member.approachTip != nil && !member.approachTip!.isEmpty {
+            score += 5
+        }
+        
+        return score
+    }
+    
+    private func calculateProfileCompleteness(_ member: FirebaseMember) -> Double {
+        var completenessScore: Double = 0.0
+        let totalFields: Double = 6.0
+        
+        // Has profile image
+        if member.profileImageUrl != nil || member.firebaseImageUrl != nil {
+            completenessScore += 1.0
+        }
+        
+        // Has age
+        if member.age != nil {
+            completenessScore += 1.0
+        }
+        
+        // Has city
+        if member.city != nil && !member.city!.isEmpty {
+            completenessScore += 1.0
+        }
+        
+        // Has gender
+        if member.gender != nil && !member.gender!.isEmpty {
+            completenessScore += 1.0
+        }
+        
+        // Has approach tip
+        if member.approachTip != nil && !member.approachTip!.isEmpty {
+            completenessScore += 1.0
+        }
+        
+        // Has Instagram handle
+        if member.instagramHandle != nil && !member.instagramHandle!.isEmpty {
+            completenessScore += 1.0
+        }
+        
+        return completenessScore / totalFields
     }
     
     // MARK: - Lazy Loading
@@ -375,7 +473,7 @@ struct MemberCardView: View {
                         }
                     }
                 @unknown default:
-                    Rectangle()
+                        Rectangle()
                         .fill(Color.gray.opacity(0.2))
                         .frame(height: 180)
                 }
@@ -432,7 +530,7 @@ struct MemberCardView: View {
                     }
                 }
                 
-                Spacer()
+                    Spacer()
             }
             .padding(14)
         }
