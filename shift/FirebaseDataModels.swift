@@ -560,6 +560,9 @@ extension FirebaseUser {
 
 extension FirebaseMember {
     var name: String {
+        if let lastName = lastName, !lastName.isEmpty {
+            return "\(firstName) \(lastName)"
+        }
         return firstName
     }
     
@@ -573,20 +576,25 @@ extension FirebaseMember {
     
     // Helper to get profile image URL from Firebase Storage
     var profileImageURL: URL? {
-        // PRIORITY 1: Try Firebase Storage URLs first (these work!)
-        if let firebaseUrl = profileImageUrl ?? firebaseImageUrl, !firebaseUrl.isEmpty {
-            print("✅ Using Firebase Storage URL for \(firstName): \(firebaseUrl)")
-            return URL(string: firebaseUrl)
+        // PRIORITY 1: Try Firebase Storage URLs first (NEW - these work!)
+        if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
+            return URL(string: firebaseImageUrl)
         }
         
-        // PRIORITY 2: Try profileImage field (should now contain proper URLs)
-        if let profileImage = profileImage, !profileImage.isEmpty, profileImage.hasPrefix("http") {
-            print("✅ Using profileImage URL for \(firstName): \(profileImage)")
+        if let profileImageUrl = profileImageUrl, !profileImageUrl.isEmpty {
+            return URL(string: profileImageUrl)
+        }
+        
+        // PRIORITY 2: Try profilePhoto field
+        if let profilePhoto = profilePhoto, !profilePhoto.isEmpty {
+            return URL(string: profilePhoto)
+        }
+        
+        // PRIORITY 3: Try legacy profileImage field (likely won't work but worth a try)
+        if let profileImage = profileImage, !profileImage.isEmpty {
             return URL(string: profileImage)
         }
         
-        // FALLBACK: No working URL found
-        print("❌ No working image URL found for \(firstName)")
         return nil
     }
 }
@@ -606,28 +614,21 @@ extension FirebaseEvent {
     
     // Helper to get event image URL from Firebase Storage
     var imageURL: URL? {
-        // PRIORITY 1: Try Firebase Storage URLs first (these work!)
-        if let firebaseUrl = imageUrl ?? firebaseImageUrl, !firebaseUrl.isEmpty {
-            print("✅ Using Firebase Storage URL for event \(displayName): \(firebaseUrl)")
-            return URL(string: firebaseUrl)
+        // PRIORITY 1: Try Firebase Storage URLs first (NEW - these work!)
+        if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
+            return URL(string: firebaseImageUrl)
         }
         
-        // PRIORITY 2: Fallback to legacy image field (likely dead Adalo URLs)
-        guard let image = image, !image.isEmpty else { 
-            print("🔍 No image for event: \(displayName)")
-            return nil 
+        if let imageUrl = imageUrl, !imageUrl.isEmpty {
+            return URL(string: imageUrl)
         }
         
-        if image.hasPrefix("http") {
-            print("⚠️ Using legacy Adalo URL for event \(displayName) (may be dead): \(image)")
+        // PRIORITY 2: Try legacy image field (likely won't work but worth a try)
+        if let image = image, !image.isEmpty {
             return URL(string: image)
         }
         
-        // If it's a Firebase Storage reference, construct the URL
-        let encodedPath = image.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? image
-        let constructedURL = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(encodedPath)?alt=media"
-        print("🔗 Constructed Firebase URL for event \(displayName): \(constructedURL)")
-        return URL(string: constructedURL)
+        return nil
     }
 }
 
@@ -652,4 +653,8 @@ extension FirebasePlace {
         // If it's a Firebase Storage reference, construct the URL
         return URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(placeImage)?alt=media")
     }
-} 
+}
+
+// MARK: - Additional Firebase Services
+// Note: FirebaseConversationsService is implemented in FirebaseServices.swift
+// Note: UserPreferences is implemented in MembersView.swift 

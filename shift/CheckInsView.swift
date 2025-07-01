@@ -230,7 +230,7 @@ struct CheckInsView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 ForEach(filteredEvents, id: \.uniqueID) { event in
-                    NavigationLink(destination: FirebaseEventDetailView(event: event)) {
+                    NavigationLink(destination: EventDetailView(event: event)) {
                         EventCardView(event: event)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -260,7 +260,6 @@ struct CheckInsView: View {
 
 struct EventCardView: View {
     let event: FirebaseEvent
-    @StateObject private var checkInsService = FirebaseCheckInsService()
     @State private var isCheckedIn = false
     @State private var checkInCount = 0
     
@@ -268,15 +267,52 @@ struct EventCardView: View {
         VStack(spacing: 0) {
             // Event Image/Header
             ZStack(alignment: .topTrailing) {
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(height: 120)
+                // Event Image with fallback gradient
+                AsyncImage(url: event.imageURL) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(height: 120)
+                            .overlay(
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .foregroundColor(.white.opacity(0.8))
+                            )
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 120)
+                            .clipped()
+                            .overlay(
+                                LinearGradient(
+                                    colors: [Color.black.opacity(0.3), Color.clear],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    case .failure(_):
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(height: 120)
+                    @unknown default:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 120)
+                }
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -382,7 +418,6 @@ struct EventCardView: View {
                         )
                         .cornerRadius(20)
                     }
-                    .disabled(checkInsService.isLoading)
                 }
             }
             .padding(16)
@@ -396,11 +431,7 @@ struct EventCardView: View {
         }
     }
     
-    private func toggleCheckIn() {
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else { return }
-        
+    func toggleCheckIn() {
         Haptics.lightImpact()
         
         if isCheckedIn {
@@ -408,33 +439,24 @@ struct EventCardView: View {
             isCheckedIn = false
             checkInCount = max(0, checkInCount - 1)
         } else {
-            // Check in
-            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
-                DispatchQueue.main.async {
-                    if success {
-                        Haptics.successNotification()
-                        isCheckedIn = true
-                        checkInCount += 1
-                    } else {
-                        Haptics.errorNotification()
-                        print("Failed to check in: \(error ?? "Unknown error")")
-                    }
-                }
-            }
+            // Check in logic - for now just toggle state
+            Haptics.successNotification()
+            isCheckedIn = true
+            checkInCount += 1
         }
     }
     
-    private func checkIfUserCheckedIn() {
+    func checkIfUserCheckedIn() {
         // TODO: Implement check if current user is checked into this event
         isCheckedIn = false
     }
     
-    private func loadCheckInCount() {
+    func loadCheckInCount() {
         // TODO: Load actual check-in count for this event
         checkInCount = Int.random(in: 2...15)
     }
     
-    private func formatEventDate(_ date: Date) -> String {
+    func formatEventDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         
         if Calendar.current.isDateInToday(date) {
@@ -448,6 +470,106 @@ struct EventCardView: View {
             formatter.timeStyle = .short
             return formatter.string(from: date)
         }
+    }
+}
+
+// MARK: - FilterPill Component
+struct FilterPill: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(isSelected ? .white : .primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color.blue : Color(.systemGray6))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Firebase Services (Placeholder)
+class FirebaseEventsService: ObservableObject {
+    @Published var events: [FirebaseEvent] = []
+    @Published var isLoading = false
+    
+    func fetchEvents() {
+        isLoading = true
+        // TODO: Implement Firebase event fetching
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.isLoading = false
+            // Add mock data for now
+            self.events = []
+        }
+    }
+}
+
+class FirebaseCheckInsService: ObservableObject {
+    @Published var isLoading = false
+    
+    func fetchCheckIns() {
+        // TODO: Implement Firebase check-ins fetching
+    }
+    
+    func checkIn(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
+        // TODO: Implement Firebase check-in
+        completion(true, nil)
+    }
+}
+
+// MARK: - Event Detail View (Placeholder)
+struct EventDetailView: View {
+    let event: FirebaseEvent
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                AsyncImage(url: event.imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 300)
+                            .clipped()
+                    default:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 300)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(event.eventName ?? "Event")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    
+                    if let venueName = event.venueName {
+                        Text(venueName)
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let location = event.eventLocation {
+                        Text(location)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding()
+                
+                Spacer()
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
