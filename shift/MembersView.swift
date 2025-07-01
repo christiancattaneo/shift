@@ -318,21 +318,35 @@ struct MembersView: View {
                             print("👥 Members grid appeared with \(filteredMembers.count) members")
                         }
                         
-                        // Data source indicator
-                        VStack(spacing: 5) {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                    .onTapGesture {
-                                        print("👥 SUCCESS ICON TAPPED - UI should be responsive")
+                                                    // Data source indicator
+                            VStack(spacing: 5) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                        .onTapGesture {
+                                            print("👥 SUCCESS ICON TAPPED - UI should be responsive")
+                                        }
+                                    Text("Loaded \(filteredMembers.count) members from Firebase")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .onTapGesture {
+                                            print("👥 SUCCESS TEXT TAPPED - UI should be responsive")
+                                        }
+                                }
+                                
+                                // FORCE REFRESH BUTTON after migration  
+                                Button("🔄 Force Refresh Data") {
+                                    print("🔄 FORCE REFRESH TAPPED - Clearing cache and fetching fresh data")
+                                    Task {
+                                        await forceRefreshFromFirestore()
                                     }
-                                Text("Loaded \(filteredMembers.count) members from Firebase")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .onTapGesture {
-                                        print("👥 SUCCESS TEXT TAPPED - UI should be responsive")
-                                    }
-                            }
+                                }
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 4)
+                                .background(Color.blue.opacity(0.1))
+                                .foregroundColor(.blue)
+                                .cornerRadius(6)
                             
                             // Debug info
                             Text("Total in service: \(membersService.members.count) • Loading: \(membersService.isLoading)")
@@ -416,6 +430,34 @@ struct MembersView: View {
                     print("👥 DRAG GESTURE DETECTED on MembersView - direction: \(value.translation)")
                 }
         )
+    }
+    
+    // MARK: - Force Refresh From Firestore (Clear Cache)
+    private func forceRefreshFromFirestore() async {
+        print("🔄 FORCE REFRESH: Clearing all cached data and fetching fresh from Firestore")
+        
+        await MainActor.run {
+            // Clear the members service cache
+            membersService.members = []
+            membersService.isLoading = true
+            membersService.errorMessage = nil
+        }
+        
+        // Wait a moment for UI to update
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        
+        // Force fresh fetch from Firestore
+        await MainActor.run {
+            print("🔄 Triggering fresh Firestore fetch...")
+            membersService.fetchMembers()
+        }
+        
+        // Additional refresh after 2 seconds to ensure data is loaded
+        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+        await MainActor.run {
+            print("🔄 Secondary refresh to ensure fresh data...")
+            membersService.refreshMembers()
+        }
     }
     
     // MARK: - Fix Missing Image URLs Function
