@@ -402,7 +402,7 @@ class FirebaseMembersService: ObservableObject {
                                 let _ = data["firebaseImageUrl"] as? String  
                                 let _ = data["profilePhoto"] as? String
                                 let profilePicture = data["profilePicture"] as? String
-                                let imageUrl = data["imageUrl"] as? String
+                                let legacyImageUrl = data["imageUrl"] as? String
                                 let photoUrl = data["photoUrl"] as? String
                                 
                                 print("🔍 === COMPLETE DOCUMENT DATA FOR \(firstName) ===")
@@ -410,7 +410,7 @@ class FirebaseMembersService: ObservableObject {
                                 print("🔍 All available fields: \(data.keys.sorted().joined(separator: ", "))")
                                 print("🔍 Legacy URLs detected but IGNORED (using UUID-only system)")
                                 print("🔍 profilePicture: \(profilePicture ?? "nil")")
-                                print("🔍 imageUrl: \(imageUrl ?? "nil")")
+                                print("🔍 legacyImageUrl: \(legacyImageUrl ?? "nil")")
                                 print("🔍 photoUrl: \(photoUrl ?? "nil")")
                                 print("🔍 user.profilePhoto: \(user.profilePhoto ?? "nil")")
                                 
@@ -440,7 +440,7 @@ class FirebaseMembersService: ObservableObject {
                                 print("🔧 Using universal image URL for \(firstName): \(imageUrl)")
                                 
                                 let member = FirebaseMember(
-                                    userId: user.id,
+                                    userId: document.documentID, // Use document ID (UUID v4) instead of Firebase Auth UID
                                     firstName: firstName,
                                     lastName: user.fullName, // Use fullName as lastName fallback
                                     age: user.age,
