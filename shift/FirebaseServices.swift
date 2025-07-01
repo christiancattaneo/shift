@@ -4,6 +4,15 @@ import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
 
+// MARK: - Array Extension for Batching
+extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        return stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
+        }
+    }
+}
+
 // MARK: - Firebase User Session Management
 class FirebaseUserSession: ObservableObject {
     static let shared = FirebaseUserSession()
@@ -862,9 +871,112 @@ class FirebaseCheckInsService: ObservableObject {
             }
     }
     
-    func getMembersAtEvent(_ eventId: String) -> [FirebaseMember] {
-        // This would need to be implemented with proper queries
-        return []
+    func getMembersAtEvent(_ eventId: String, completion: @escaping ([FirebaseMember]) -> Void) {
+        print("🔍 Fetching members checked in to event: \(eventId)")
+        
+        // First get all active check-ins for this event
+        db.collection("checkIns")
+            .whereField("eventId", isEqualTo: eventId)
+            .whereField("isActive", isEqualTo: true)
+            .getDocuments { [weak self] querySnapshot, error in
+                if let error = error {
+                    print("❌ Error fetching check-ins for event: \(error.localizedDescription)")
+                    completion([])
+                    return
+                }
+                
+                guard let documents = querySnapshot?.documents else {
+                    print("📝 No check-ins found for event: \(eventId)")
+                    completion([])
+                    return
+                }
+                
+                let userIds = documents.compactMap { document in
+                    document.data()["userId"] as? String
+                }
+                
+                print("👥 Found \(userIds.count) checked-in users for event")
+                
+                guard !userIds.isEmpty else {
+                    completion([])
+                    return
+                }
+                
+                // Now fetch the user details for these user IDs
+                self?.fetchMembersForUserIds(userIds) { members in
+                    print("✅ Successfully loaded \(members.count) members for event")
+                    completion(members)
+                }
+            }
+    }
+    
+    private func fetchMembersForUserIds(_ userIds: [String], completion: @escaping ([FirebaseMember]) -> Void) {
+        guard !userIds.isEmpty else {
+            completion([])
+            return
+        }
+        
+        // Firestore 'in' queries are limited to 10 items, so we need to batch
+        let batches = userIds.chunked(into: 10)
+        var allMembers: [FirebaseMember] = []
+        let dispatchGroup = DispatchGroup()
+        
+        for batch in batches {
+            dispatchGroup.enter()
+            
+            db.collection("users")
+                .whereField(FieldPath.documentID(), in: batch)
+                .getDocuments { querySnapshot, error in
+                    defer { dispatchGroup.leave() }
+                    
+                    if let error = error {
+                        print("❌ Error fetching users batch: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else { return }
+                    
+                    let members = documents.compactMap { document -> FirebaseMember? in
+                        do {
+                            // Try to decode as FirebaseMember first
+                            if let member = try? document.data(as: FirebaseMember.self) {
+                                return member
+                            }
+                            
+                            // Fallback: decode as FirebaseUser and convert
+                            let user = try document.data(as: FirebaseUser.self)
+                            guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
+                            
+                            return FirebaseMember(
+                                userId: document.documentID,
+                                firstName: firstName,
+                                lastName: user.fullName,
+                                age: user.age,
+                                city: user.city,
+                                attractedTo: user.attractedTo,
+                                approachTip: user.howToApproachMe,
+                                instagramHandle: user.instagramHandle,
+                                gender: user.gender
+                            )
+                        } catch {
+                            print("⚠️ Error decoding user \(document.documentID): \(error)")
+                            return nil
+                        }
+                    }
+                    
+                    allMembers.append(contentsOf: members)
+                }
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            completion(allMembers)
+        }
+    }
+    
+    func refreshCheckIns() {
+        print("🔄 Force refreshing check-ins...")
+        checkIns = []
+        fetchCheckIns()
     }
 }
 

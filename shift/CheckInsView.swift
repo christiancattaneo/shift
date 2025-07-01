@@ -1,6 +1,11 @@
 import SwiftUI
 import Combine
 
+// MARK: - Notification Extensions
+extension Notification.Name {
+    static let checkInStatusChanged = Notification.Name("checkInStatusChanged")
+}
+
 // MARK: - Cached AsyncImage Component
 struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     private let url: URL?
@@ -561,6 +566,13 @@ struct EventCardView: View {
             checkIfUserCheckedIn()
             loadCheckInCount()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .checkInStatusChanged)) { notification in
+            if let eventId = notification.userInfo?["eventId"] as? String, eventId == event.id {
+                print("🔄 Refreshing check-in status for event: \(event.name)")
+                checkIfUserCheckedIn()
+                loadCheckInCount()
+            }
+        }
     }
     
     private func toggleCheckIn() {
@@ -591,6 +603,13 @@ struct EventCardView: View {
                         self.checkInCount = max(0, self.checkInCount - 1)
                         Haptics.successNotification()
                         print("✅ Successfully checked out of event")
+                        
+                        // Notify other views about check-in status change
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged,
+                            object: nil,
+                            userInfo: ["eventId": eventId, "isCheckedIn": false]
+                        )
                     } else {
                         print("❌ Check out failed: \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -608,6 +627,13 @@ struct EventCardView: View {
                         self.checkInCount += 1
                         Haptics.successNotification()
                         print("✅ Successfully checked in to event")
+                        
+                        // Notify other views about check-in status change
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged,
+                            object: nil,
+                            userInfo: ["eventId": eventId, "isCheckedIn": true]
+                        )
                     } else {
                         print("❌ Check in failed: \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -645,9 +671,9 @@ struct EventCardView: View {
                 print("📊 Check-in count loaded: \(count)")
             }
         }
-    }
-    
-    private func formatEventDate(_ date: Date) -> String {
+         }
+      
+      private func formatEventDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         
         if Calendar.current.isDateInToday(date) {
@@ -688,57 +714,407 @@ struct EventCardView: View {
     }
 }
 
-
-
-// MARK: - Event Detail View (Placeholder)
+// MARK: - Enhanced Event Detail View
 struct EventDetailView: View {
     let event: FirebaseEvent
     
+    @StateObject private var checkInsService = FirebaseCheckInsService()
+    @State private var isCheckedIn = false
+    @State private var isProcessing = false
+    @State private var checkInCount = 0
+    @State private var attendees: [FirebaseMember] = []
+    @State private var isLoadingAttendees = false
+    
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                AsyncImage(url: event.imageURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
+            VStack(spacing: 0) {
+                // Event Image Header
+                ZStack(alignment: .bottomLeading) {
+                    AsyncImage(url: event.imageURL) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 300)
+                                .clipped()
+                        default:
+                            LinearGradient(
+                                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                             .frame(height: 300)
-                            .clipped()
-                    default:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 300)
+                            .overlay(
+                                VStack {
+                                    Image(systemName: "calendar.badge.clock")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Text("Event Image")
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                            )
+                        }
+                    }
+                    
+                    // Check-in count overlay
+                    if checkInCount > 0 {
+                        HStack(spacing: 6) {
+                            Image(systemName: "person.2.fill")
+                                .font(.caption)
+                            Text("\(checkInCount) attending")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(16)
                     }
                 }
                 
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(event.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                // Event Details Section
+                VStack(spacing: 20) {
+                    // Basic Info
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(event.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .lineLimit(3)
+                        
+                        if let venueName = event.venueName {
+                            HStack(spacing: 8) {
+                                Image(systemName: "building.2")
+                                    .foregroundColor(.secondary)
+                                Text(venueName)
+                                    .font(.title2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if let location = event.eventLocation {
+                            HStack(spacing: 8) {
+                                Image(systemName: "location")
+                                    .foregroundColor(.secondary)
+                                Text(location)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        // Event Time
+                        if let startTime = event.eventStartTime {
+                            HStack(spacing: 8) {
+                                Image(systemName: "clock")
+                                    .foregroundColor(.secondary)
+                                Text(startTime)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                
+                                if let endTime = event.eventEndTime {
+                                    Text("- \(endTime)")
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                     
-                    if let venueName = event.venueName {
-                        Text(venueName)
-                            .font(.title2)
-                            .foregroundColor(.secondary)
+                    // Check-in Button
+                    checkInButtonSection
+                    
+                    // Attendees Section
+                    if !attendees.isEmpty || isLoadingAttendees {
+                        attendeesSection
                     }
                     
-                    if let location = event.eventLocation {
-                        Text(location)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                    }
+                    Spacer(minLength: 100)
                 }
-                .padding()
-                
-                Spacer()
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            setupEventDetail()
+        }
+    }
+    
+    private var checkInButtonSection: some View {
+        VStack(spacing: 12) {
+            Button(action: toggleCheckIn) {
+                HStack(spacing: 8) {
+                    if isProcessing {
+                        ProgressView()
+                            .scaleEffect(0.9)
+                            .frame(width: 20, height: 20)
+                    } else {
+                        Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle.fill")
+                            .font(.title3)
+                    }
+                    
+                    Text(getCheckInButtonText())
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: isCheckedIn ? 
+                            [Color.green, Color.green.opacity(0.8)] :
+                            [Color.blue, Color.blue.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(16)
+                .shadow(color: isCheckedIn ? .green.opacity(0.3) : .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+            }
+            .disabled(isProcessing)
+            .buttonStyle(PlainButtonStyle())
+            
+            if isCheckedIn {
+                Text("You're checked in to this event!")
+                    .font(.caption)
+                    .foregroundColor(.green)
+                    .fontWeight(.medium)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var attendeesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Who's Attending")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Spacer()
+                if isLoadingAttendees {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            if attendees.isEmpty && !isLoadingAttendees {
+                VStack(spacing: 12) {
+                    Image(systemName: "person.3.sequence")
+                        .font(.system(size: 40))
+                        .foregroundColor(.secondary)
+                    Text("No one has checked in yet")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Text("Be the first to check in!")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 30)
+            } else {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    ForEach(attendees, id: \.uniqueID) { member in
+                        AttendeeCardView(member: member)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.top, 20)
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func setupEventDetail() {
+        checkIfUserCheckedIn()
+        loadCheckInCount()
+        loadAttendees()
+    }
+    
+    private func toggleCheckIn() {
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id,
+              let eventId = event.id else {
+            print("❌ Cannot check in: Missing user or event ID")
+            return
+        }
+        
+        guard !isProcessing else { return }
+        
+        print("🎯 Starting check-in process for user \(userId) at event \(eventId)")
+        Haptics.lightImpact()
+        isProcessing = true
+        
+        if isCheckedIn {
+            // Check out
+            checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
+                DispatchQueue.main.async {
+                    self.isProcessing = false
+                    if success {
+                        self.isCheckedIn = false
+                        self.checkInCount = max(0, self.checkInCount - 1)
+                        self.loadAttendees() // Refresh attendees list
+                        Haptics.successNotification()
+                        print("✅ Successfully checked out of event")
+                        
+                        // Notify other views about check-in status change
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged,
+                            object: nil,
+                            userInfo: ["eventId": eventId, "isCheckedIn": false]
+                        )
+                    } else {
+                        print("❌ Check out failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
+                    }
+                }
+            }
+        } else {
+            // Check in
+            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
+                DispatchQueue.main.async {
+                    self.isProcessing = false
+                    if success {
+                        self.isCheckedIn = true
+                        self.checkInCount += 1
+                        self.loadAttendees() // Refresh attendees list
+                        Haptics.successNotification()
+                        print("✅ Successfully checked in to event")
+                        
+                        // Notify other views about check-in status change
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged,
+                            object: nil,
+                            userInfo: ["eventId": eventId, "isCheckedIn": true]
+                        )
+                    } else {
+                        print("❌ Check in failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func checkIfUserCheckedIn() {
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id,
+              let eventId = event.id else {
+            return
+        }
+        
+        checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { isCheckedIn in
+            DispatchQueue.main.async {
+                self.isCheckedIn = isCheckedIn
+                print("📊 User check-in status: \(isCheckedIn ? "checked in" : "not checked in")")
+            }
+        }
+    }
+    
+    private func loadCheckInCount() {
+        guard let eventId = event.id else { return }
+        
+        checkInsService.getCheckInCount(for: eventId) { count in
+            DispatchQueue.main.async {
+                self.checkInCount = count
+                print("📊 Check-in count: \(count)")
+            }
+        }
+    }
+    
+    private func loadAttendees() {
+        guard let eventId = event.id else { return }
+        
+        isLoadingAttendees = true
+        checkInsService.getMembersAtEvent(eventId) { members in
+            DispatchQueue.main.async {
+                self.attendees = members
+                self.isLoadingAttendees = false
+                print("👥 Loaded \(members.count) attendees")
+            }
+        }
+    }
+    
+    private func getCheckInButtonText() -> String {
+        if isProcessing {
+            return isCheckedIn ? "Checking Out..." : "Checking In..."
+        } else {
+            return isCheckedIn ? "Check Out" : "Check In to Event"
+        }
     }
 }
 
-
+// MARK: - Attendee Card View
+struct AttendeeCardView: View {
+    let member: FirebaseMember
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            // Profile Image
+            AsyncImage(url: member.profileImageURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 60, height: 60)
+                        .clipShape(Circle())
+                case .failure(_), .empty:
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [.blue.opacity(0.7), .purple.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Text(member.firstName.prefix(1).uppercased())
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        )
+                @unknown default:
+                    Circle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 60, height: 60)
+                }
+            }
+            
+            // Name and Details
+            VStack(spacing: 2) {
+                Text(member.firstName)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                
+                if let age = member.age {
+                    Text("\(age)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                if let city = member.city {
+                    Text(city)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
 
 #Preview {
     CheckInsView()
