@@ -103,7 +103,8 @@ struct shiftApp: App {
     @StateObject private var userSession = FirebaseUserSession.shared
     
     init() {
-        FirebaseApp.configure()
+        // Firebase is already configured in AppDelegate
+        // No need to configure again here
         
         // Start background image sync for scalability
         Task {
