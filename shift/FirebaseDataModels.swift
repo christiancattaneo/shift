@@ -603,14 +603,41 @@ extension FirebaseEvent {
     var imageURL: URL? {
         let eventName = self.eventName ?? "Unknown"
         
-        // PRIORITY 1: Try Firebase Storage URLs first (NEW - these work!)
+        // PRIORITY 1: Try Firebase Storage URLs but CONVERT old format to new format
         if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
-            print("🖼️ EVENT: Using firebaseImageUrl for '\(eventName)': \(firebaseImageUrl)")
+            // If it's already a proper Firebase Storage URL, use it
+            if firebaseImageUrl.contains("firebasestorage.googleapis.com") && firebaseImageUrl.contains("alt=media") {
+                print("🖼️ EVENT: Using proper firebaseImageUrl for '\(eventName)': \(firebaseImageUrl)")
+                return URL(string: firebaseImageUrl)
+            }
+            // If it's an old storage.googleapis.com URL, convert it to proper format
+            else if firebaseImageUrl.contains("storage.googleapis.com") || firebaseImageUrl.contains("event_images/") {
+                // Extract filename from legacy URL
+                if let filename = firebaseImageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first {
+                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
+                    print("🔄 EVENT: Converting firebaseImageUrl for '\(eventName)': \(firebaseImageUrl) -> \(properUrl)")
+                    return URL(string: properUrl)
+                }
+            }
+            // Otherwise use as-is (fallback)
+            print("🖼️ EVENT: Using firebaseImageUrl as-is for '\(eventName)': \(firebaseImageUrl)")
             return URL(string: firebaseImageUrl)
         }
         
         if let imageUrl = imageUrl, !imageUrl.isEmpty {
-            print("🖼️ EVENT: Using imageUrl for '\(eventName)': \(imageUrl)")
+            // Apply same conversion logic to imageUrl field
+            if imageUrl.contains("firebasestorage.googleapis.com") && imageUrl.contains("alt=media") {
+                print("🖼️ EVENT: Using proper imageUrl for '\(eventName)': \(imageUrl)")
+                return URL(string: imageUrl)
+            }
+            else if imageUrl.contains("storage.googleapis.com") || imageUrl.contains("event_images/") {
+                if let filename = imageUrl.components(separatedBy: "/").last?.components(separatedBy: "?").first {
+                    let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(filename)?alt=media"
+                    print("🔄 EVENT: Converting imageUrl for '\(eventName)': \(imageUrl) -> \(properUrl)")
+                    return URL(string: properUrl)
+                }
+            }
+            print("🖼️ EVENT: Using imageUrl as-is for '\(eventName)': \(imageUrl)")
             return URL(string: imageUrl)
         }
         

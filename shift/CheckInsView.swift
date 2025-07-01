@@ -169,36 +169,56 @@ struct CheckInsView: View {
     
     var filteredEvents: [FirebaseEvent] {
         var events = eventsService.events
+        print("🎯 EVENTS: Starting with \(events.count) total events from service")
+        
+        // Debug: Print first few event names
+        for (index, event) in events.prefix(5).enumerated() {
+            print("🎯 EVENTS: Event \(index): '\(event.eventName ?? "nil")' - venue: '\(event.venueName ?? "nil")'")
+        }
         
         // Apply search filter
         if !searchText.isEmpty {
+            let beforeSearch = events.count
             events = events.filter { event in
                 (event.eventName?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 (event.eventLocation?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 (event.venueName?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
+            print("🔍 EVENTS: After search '\(searchText)': \(events.count) events (filtered out \(beforeSearch - events.count))")
         }
         
         // Apply date/location filters
+        let beforeFilter = events.count
         switch selectedFilter {
         case "Tonight":
-            return events.filter { event in
+            events = events.filter { event in
                 guard let eventDateString = event.eventDate,
-                      let eventDate = parseEventDate(eventDateString) else { return false }
+                      let eventDate = parseEventDate(eventDateString) else { 
+                    print("⚠️ EVENTS: Filtering out event '\(event.eventName ?? "Unknown")' - no valid date")
+                    return false 
+                }
                 return Calendar.current.isDateInToday(eventDate)
             }
+            print("🌙 EVENTS: After 'Tonight' filter: \(events.count) events (filtered out \(beforeFilter - events.count))")
         case "This Week":
-            return events.filter { event in
+            events = events.filter { event in
                 guard let eventDateString = event.eventDate,
-                      let eventDate = parseEventDate(eventDateString) else { return false }
+                      let eventDate = parseEventDate(eventDateString) else { 
+                    print("⚠️ EVENTS: Filtering out event '\(event.eventName ?? "Unknown")' - no valid date")
+                    return false 
+                }
                 return Calendar.current.isDate(eventDate, equalTo: Date(), toGranularity: .weekOfYear)
             }
+            print("📅 EVENTS: After 'This Week' filter: \(events.count) events (filtered out \(beforeFilter - events.count))")
         case "Nearby":
             // For now, return all events. Could implement actual location filtering
-            return events
+            print("📍 EVENTS: 'Nearby' filter: keeping all \(events.count) events")
         default:
-            return events
+            print("🌐 EVENTS: 'All' filter: keeping all \(events.count) events")
         }
+        
+        print("🎯 EVENTS: Final result: \(events.count) events will be displayed")
+        return events
     }
 
 
@@ -213,10 +233,19 @@ struct CheckInsView: View {
             // Content Section
             if eventsService.isLoading {
                 loadingSection
+                    .onAppear {
+                        print("🔄 EVENTS UI: Showing loading section")
+                    }
             } else if filteredEvents.isEmpty {
                 emptyStateSection
+                    .onAppear {
+                        print("❌ EVENTS UI: Showing empty state - isLoading: \(eventsService.isLoading), serviceEvents: \(eventsService.events.count), filteredEvents: \(filteredEvents.count)")
+                    }
             } else {
                 eventsListSection
+                    .onAppear {
+                        print("✅ EVENTS UI: Showing events list with \(filteredEvents.count) events")
+                    }
             }
         }
         .refreshable {
@@ -389,8 +418,12 @@ struct CheckInsView: View {
     // MARK: - Helper Functions
     
     private func setupInitialState() {
+        print("🚀 EVENTS: Setting up initial state")
+        print("🚀 EVENTS: eventsService.isLoading = \(eventsService.isLoading)")
+        print("🚀 EVENTS: eventsService.events.count = \(eventsService.events.count)")
         eventsService.fetchEvents()
         checkInsService.fetchCheckIns()
+        print("🚀 EVENTS: Fetch initiated - eventsService.isLoading = \(eventsService.isLoading)")
     }
     
     private func refreshEvents() async {
