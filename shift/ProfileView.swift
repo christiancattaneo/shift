@@ -393,16 +393,11 @@ struct ProfileView: View {
                         print("✅ User data loaded: \(data.keys.joined(separator: ", "))")
                         userData = data
                         
-                        // All migrated users have UUID v4 document IDs with matching images
+                        // Universal image URL construction for ALL users (migrated + future)
                         let documentId = document.documentID
-                        if documentId.contains("-") && documentId.count == 36 {
-                            let uuidImageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
-                            profileImageUrl = uuidImageUrl
-                            print("🖼️ Using migrated user image URL: \(uuidImageUrl)")
-                        } else {
-                            profileImageUrl = nil
-                            print("🖼️ Unexpected document ID format: \(documentId)")
-                        }
+                        let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
+                        profileImageUrl = imageUrl
+                        print("🖼️ Using universal image URL for \(documentId): \(imageUrl)")
                     } else {
                         print("❌ No user document found for email: \(userEmail)")
                         userData = [:]

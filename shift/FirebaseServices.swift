@@ -435,16 +435,9 @@ class FirebaseMembersService: ObservableObject {
                                 
                                 print("🔍 ===================================================")
                                 
-                                // MIXED SYSTEM: Handle both migrated users (UUID v4) and new users (Firebase Auth UID)
-                                print("🔧 Document ID format check for \(firstName): \(document.documentID)")
-                                if document.documentID.contains("-") && document.documentID.count == 36 {
-                                    // UUID v4 format - migrated user with actual image (Firebase Storage API format)
-                                    let uuidImageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(document.documentID).jpg?alt=media"
-                                    print("🔧 Using migrated user image URL for \(firstName): \(uuidImageUrl)")
-                                } else {
-                                    // Firebase Auth UID format - new user without image
-                                    print("🔧 New user detected: \(firstName) - no profile image available yet")
-                                }
+                                // UNIVERSAL SYSTEM: Same image URL construction for ALL users (migrated + future)
+                                let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(document.documentID).jpg?alt=media"
+                                print("🔧 Using universal image URL for \(firstName): \(imageUrl)")
                                 
                                 let member = FirebaseMember(
                                     userId: user.id,

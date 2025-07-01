@@ -92,8 +92,8 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
                let urlValue = photoDict["url"]?.value as? String {
                 // If it's just a filename, construct the Firebase Storage URL
                 if !urlValue.hasPrefix("http") {
-                    self.profilePhoto = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(urlValue)"
-                    print("🔗 Constructed Firebase URL from user filename: \(urlValue)")
+                    self.profilePhoto = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(urlValue)?alt=media"
+                    print("🔗 Constructed Firebase Storage API URL from user filename: \(urlValue)")
                 } else {
                     self.profilePhoto = urlValue
                     print("🔗 Using direct URL from user photo dict: \(urlValue)")
@@ -363,7 +363,7 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
                let urlValue = imageDict["url"]?.value as? String {
                 // If it's just a filename, construct the Firebase Storage URL using events/ directory
                 if !urlValue.hasPrefix("http") {
-                    self.image = "https://storage.googleapis.com/shift-12948.firebasestorage.app/events/\(urlValue)"
+                    self.image = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(urlValue)?alt=media"
                     print("🔗 Using clean event image: \(urlValue)")
                 } else {
                     self.image = urlValue
@@ -553,8 +553,9 @@ extension FirebaseUser {
             return URL(string: profilePhoto)
         }
         
-        // If it's a Firebase Storage reference, construct the URL
-        return URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(profilePhoto)?alt=media")
+        // If it's a Firebase Storage reference, construct the URL with proper encoding
+        let encodedPath = profilePhoto.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? profilePhoto
+        return URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(encodedPath)?alt=media")
     }
 }
 
@@ -574,20 +575,14 @@ extension FirebaseMember {
         return approachTip ?? "Say hello"
     }
     
-    // Helper to get profile image URL from Firebase Storage - Mixed System
+    // Helper to get profile image URL from Firebase Storage - Universal System
     var profileImageURL: URL? {
         guard let documentId = id, !documentId.isEmpty else { return nil }
         
-        // Check if this is a UUID v4 format (migrated user) or Firebase Auth UID (new user)
-        if documentId.contains("-") && documentId.count == 36 {
-            // UUID v4 format - migrated users with actual images (Firebase Storage API format)
-            let uuidImageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
-            return URL(string: uuidImageUrl)
-        } else {
-            // Firebase Auth UID format - new users without images yet
-            // Return nil so the UI shows placeholder
-            return nil
-        }
+        // Universal Firebase Storage API URL construction for ALL users
+        // Works for both migrated users (UUID v4) and future users (Firebase Auth UID)
+        let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
+        return URL(string: imageUrl)
     }
 }
 
@@ -642,8 +637,9 @@ extension FirebasePlace {
             return URL(string: placeImage)
         }
         
-        // If it's a Firebase Storage reference, construct the URL
-        return URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(placeImage)?alt=media")
+        // If it's a Firebase Storage reference, construct the URL with proper encoding
+        let encodedPath = placeImage.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? placeImage
+        return URL(string: "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/\(encodedPath)?alt=media")
     }
 }
 
