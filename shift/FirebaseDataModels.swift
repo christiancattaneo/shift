@@ -92,7 +92,7 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
                let urlValue = photoDict["url"]?.value as? String {
                 // If it's just a filename, construct the Firebase Storage URL
                 if !urlValue.hasPrefix("http") {
-                    self.profilePhoto = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(urlValue)"
+                    self.profilePhoto = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(urlValue)"
                     print("🔗 Constructed Firebase URL from user filename: \(urlValue)")
                 } else {
                     self.profilePhoto = urlValue
@@ -361,10 +361,10 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
             // Try to decode as a dictionary and extract URL
             if let imageDict = try? container.decodeIfPresent([String: AnyDecodable].self, forKey: .image),
                let urlValue = imageDict["url"]?.value as? String {
-                // If it's just a filename, construct the Firebase Storage URL
+                // If it's just a filename, construct the Firebase Storage URL using events/ directory
                 if !urlValue.hasPrefix("http") {
-                    self.image = "https://storage.googleapis.com/shift-12948.firebasestorage.app/event_images/\(urlValue)"
-                    print("🔗 Constructed Firebase URL from filename: \(urlValue)")
+                    self.image = "https://storage.googleapis.com/shift-12948.firebasestorage.app/events/\(urlValue)"
+                    print("🔗 Using clean event image: \(urlValue)")
                 } else {
                     self.image = urlValue
                     print("🔗 Using direct URL from image dict: \(urlValue)")

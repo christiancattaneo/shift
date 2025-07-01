@@ -1,33 +1,44 @@
 rules_version = '2';
 
-// Firebase Storage Security Rules for Shift App
+// Firebase Storage Security Rules for Shift App - UUID System
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Profile images - allow public read, authenticated write
+    // NEW: Profile images - UUID-based system  
+    match /profiles/{userId} {
+      allow read: if true; // Public read for profile images
+      allow write: if request.auth != null && request.auth.uid == userId; // Users can only update their own image
+    }
+    
+    // NEW: Event images - clean naming system
+    match /events/{imageId} {
+      allow read: if true; // Public read for event images
+      allow write: if request.auth != null; // Authenticated users can manage events
+    }
+    
+    // NEW: Place images - clean naming system  
+    match /places/{imageId} {
+      allow read: if true; // Public read for place images
+      allow write: if request.auth != null; // Authenticated users can manage places
+    }
+    
+    // LEGACY: Old directories (read-only for cleanup)
     match /profile_images/{imageId} {
-      allow read: if true; // Anyone can read profile images (for public profiles)
-      allow write: if true; // Allow uploads during migration - tighten later
+      allow read: if true; // Read-only access to legacy images
+      allow write: if false; // No new uploads to legacy directory
     }
     
-    // Event images - allow public read, authenticated write  
     match /event_images/{imageId} {
-      allow read: if true; // Anyone can read event images
-      allow write: if true; // Allow uploads during migration - tighten later
+      allow read: if true; // Read-only access to legacy images
+      allow write: if false; // No new uploads to legacy directory
     }
     
-    // Place images - allow public read, authenticated write
     match /place_images/{imageId} {
-      allow read: if true; // Anyone can read place images  
-      allow write: if true; // Allow uploads during migration - tighten later
+      allow read: if true; // Read-only access to legacy images  
+      allow write: if false; // No new uploads to legacy directory
     }
     
-    // Temp uploads folder for migration scripts
-    match /temp_uploads/{imageId} {
-      allow read, write: if true; // Temporary for migration
-    }
-    
-    // Test files
+    // Test files for debugging
     match /test-connection.txt {
       allow read, write: if true;
     }

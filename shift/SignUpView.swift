@@ -475,7 +475,7 @@ struct SignUpView: View {
     private func uploadProfileImage(imageData: Data) {
         guard let userId = FirebaseUserSession.shared.currentUser?.id else { return }
         
-        let imagePath = "profile_images/\(userId)/profile.jpg"
+                        let imagePath = "profiles/\(userId).jpg"
         FirebaseStorageService().uploadImage(imageData, path: imagePath) { imageUrl, error in
             if let imageUrl = imageUrl {
                 // Update user profile with image URL

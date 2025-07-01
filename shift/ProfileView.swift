@@ -1,15 +1,15 @@
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @StateObject private var userSession = FirebaseUserSession.shared
-    @ObservedObject private var membersService = FirebaseMembersService.shared
-    @State private var userMember: FirebaseMember?
     @State private var isLoading = true
-    @State private var currentUserImageUrl: String?
     @State private var showEditProfile = false
+    @State private var userData: [String: Any] = [:]
+    @State private var profileImageUrl: String?
     
     var body: some View {
         NavigationStack {
@@ -40,10 +40,10 @@ struct ProfileView: View {
             }
         }
         .onAppear {
-            loadUserMemberProfile()
+            loadUserProfile()
         }
         .sheet(isPresented: $showEditProfile) {
-            EditProfileView(userMember: userMember)
+            EditProfileView(userData: userData, profileImageUrl: profileImageUrl)
         }
     }
     
@@ -56,12 +56,12 @@ struct ProfileView: View {
             
             // User Name and Age
             VStack(spacing: 8) {
-                Text(userSession.currentUser?.firstName ?? "Unknown User")
+                Text(getDisplayName())
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                 
-                if let userMember = userMember, let age = userMember.age {
+                if let age = userData["age"] as? Int {
                     HStack(spacing: 8) {
                         Image(systemName: "calendar")
                             .foregroundColor(.secondary)
@@ -77,13 +77,15 @@ struct ProfileView: View {
     
     private var profileImageView: some View {
         Group {
-            if let imageUrl = currentUserImageUrl, !imageUrl.isEmpty {
+            if let imageUrl = profileImageUrl, !imageUrl.isEmpty {
                 AsyncImage(url: URL(string: imageUrl)) { phase in
                     switch phase {
                     case .empty:
-                        profileImagePlaceholder(isLoading: true)
+                        let _ = print("🖼️ PROFILE: Starting to load image from: \(imageUrl)")
+                        return profileImagePlaceholder(isLoading: true)
                     case .success(let image):
-                        image
+                        let _ = print("✅ PROFILE: Image loaded successfully from: \(imageUrl)")
+                        return image
                             .resizable()
                             .scaledToFill()
                             .frame(width: 140, height: 140)
@@ -93,32 +95,18 @@ struct ProfileView: View {
                                     .stroke(Color.blue.opacity(0.3), lineWidth: 4)
                             )
                             .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
-                    case .failure(_):
-                        profileImagePlaceholder(isLoading: false)
+                    case .failure(let error):
+                        let _ = print("❌ PROFILE: Image failed to load from: \(imageUrl)")
+                        let _ = print("❌ PROFILE: Error details: \(error.localizedDescription)")
+                        return profileImagePlaceholder(isLoading: false)
                     @unknown default:
-                        profileImagePlaceholder(isLoading: false)
-                    }
-                }
-            } else if let legacyPhoto = userSession.currentUser?.profilePhoto, !legacyPhoto.isEmpty {
-                AsyncImage(url: URL(string: legacyPhoto)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 140, height: 140)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.blue.opacity(0.3), lineWidth: 4)
-                            )
-                            .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
-                    default:
-                        profileImagePlaceholder(isLoading: false)
+                        let _ = print("⚠️ PROFILE: Unknown image loading phase for: \(imageUrl)")
+                        return profileImagePlaceholder(isLoading: false)
                     }
                 }
             } else {
-                profileImagePlaceholder(isLoading: false)
+                let _ = print("❌ PROFILE: No profile image URL available")
+                return profileImagePlaceholder(isLoading: false)
             }
         }
     }
@@ -149,12 +137,10 @@ struct ProfileView: View {
                         .font(.system(size: 50))
                         .foregroundColor(.secondary)
                     
-                    if let firstName = userSession.currentUser?.firstName {
-                        Text(firstName.prefix(1).uppercased())
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.secondary)
-                    }
+                    Text(getDisplayName().prefix(1).uppercased())
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.secondary)
                 }
             }
         }
@@ -173,18 +159,18 @@ struct ProfileView: View {
     
     private var profileContentSection: some View {
         VStack(spacing: 20) {
-            if let userMember = userMember {
-                profileInfoSection(userMember)
+            if hasProfileData() {
+                profileInfoSection
             } else {
                 emptyProfileSection
             }
         }
     }
     
-    private func profileInfoSection(_ member: FirebaseMember) -> some View {
+    private var profileInfoSection: some View {
         VStack(spacing: 16) {
             // Location
-            if let city = member.city {
+            if let city = userData["city"] as? String, !city.isEmpty {
                 InfoCardView(
                     icon: "mappin.and.ellipse",
                     title: "Location",
@@ -193,8 +179,18 @@ struct ProfileView: View {
                 )
             }
             
+            // Gender
+            if let gender = userData["gender"] as? String, !gender.isEmpty {
+                InfoCardView(
+                    icon: "person.fill",
+                    title: "Gender",
+                    value: gender.capitalized,
+                    iconColor: .purple
+                )
+            }
+            
             // Approach Tip
-            if let approachTip = member.approachTip, !approachTip.isEmpty {
+            if let approachTip = userData["howToApproachMe"] as? String, !approachTip.isEmpty {
                 InfoCardView(
                     icon: "lightbulb.fill",
                     title: "Best way to approach me",
@@ -204,7 +200,7 @@ struct ProfileView: View {
             }
             
             // Attracted To
-            if let attractedTo = member.attractedTo, !attractedTo.isEmpty {
+            if let attractedTo = userData["attractedTo"] as? String, !attractedTo.isEmpty {
                 InfoCardView(
                     icon: "heart.fill",
                     title: "Looking for",
@@ -214,7 +210,7 @@ struct ProfileView: View {
             }
             
             // Instagram Handle
-            if let handle = member.instagramHandle, !handle.isEmpty {
+            if let handle = userData["instagramHandle"] as? String, !handle.isEmpty {
                 InfoCardView(
                     icon: "camera.fill",
                     title: "Instagram",
@@ -224,7 +220,7 @@ struct ProfileView: View {
             }
             
             // Profile Completeness
-            profileCompletenessCard(member)
+            profileCompletenessCard
         }
     }
     
@@ -250,8 +246,8 @@ struct ProfileView: View {
         .padding(.vertical, 32)
     }
     
-    private func profileCompletenessCard(_ member: FirebaseMember) -> some View {
-        let completeness = calculateProfileCompleteness(member)
+    private var profileCompletenessCard: some View {
+        let completeness = calculateProfileCompleteness()
         let percentage = Int(completeness * 100)
         
         return VStack(spacing: 12) {
@@ -312,7 +308,7 @@ struct ProfileView: View {
                 HStack {
                     Image(systemName: "pencil")
                         .font(.headline)
-                    Text(userMember == nil ? "Complete Profile" : "Edit Profile")
+                    Text(hasProfileData() ? "Edit Profile" : "Complete Profile")
                         .font(.headline)
                         .fontWeight(.semibold)
                 }
@@ -357,95 +353,114 @@ struct ProfileView: View {
     
     // MARK: - Helper Functions
     
-    private func loadUserMemberProfile() {
-        guard let currentUser = userSession.currentUser else {
+    private func loadUserProfile() {
+        // Use Firebase Auth UID directly instead of relying on currentUser.id
+        guard let firebaseAuthUser = userSession.firebaseAuthUser else {
+            print("❌ No Firebase Auth user found")
             isLoading = false
             return
         }
         
+        let userId = firebaseAuthUser.uid
+        print("🔐 Loading profile for authenticated user: \(userId)")
+        
+        isLoading = true
+        
         Task {
-            await loadCurrentUserImageUrl()
-        }
-        
-        membersService.fetchMembers()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            if let userId = currentUser.id {
-                userMember = membersService.members.first { member in
-                    member.id == userId || member.userId == userId
-                }
-            }
-            
-            if userMember == nil {
-                userMember = membersService.members.first { member in
-                    member.firstName.lowercased() == currentUser.firstName?.lowercased()
-                }
-            }
-            
-            if let userMember = userMember, currentUserImageUrl == nil {
-                currentUserImageUrl = userMember.profileImageUrl ?? userMember.firebaseImageUrl
-            }
-            
-            isLoading = false
-        }
-    }
-    
-    private func loadCurrentUserImageUrl() async {
-        guard let currentUser = userSession.currentUser,
-              let userId = currentUser.id else { return }
-        
-        do {
-            let db = Firestore.firestore()
-            let document = try await db.collection("users").document(userId).getDocument()
-            
-            if document.exists {
-                let data = document.data()
-                let profileImageUrl = data?["profileImageUrl"] as? String
-                let firebaseImageUrl = data?["firebaseImageUrl"] as? String
-                let profilePhoto = data?["profilePhoto"] as? String
+            do {
+                let db = Firestore.firestore()
+                let document = try await db.collection("users").document(userId).getDocument()
                 
                 await MainActor.run {
-                    currentUserImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto
+                    if document.exists, let data = document.data() {
+                        print("✅ User data loaded: \(data.keys.joined(separator: ", "))")
+                        userData = data
+                        
+                        // First check for stored image URLs, then construct UUID-based URL
+                        profileImageUrl = data["profileImageUrl"] as? String ??
+                                        data["firebaseImageUrl"] as? String ??
+                                        data["profilePhoto"] as? String
+                        
+                        // If no stored URL, try the new UUID-based system
+                        if profileImageUrl == nil || profileImageUrl!.isEmpty {
+                            let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(userId).jpg"
+                            profileImageUrl = uuidImageUrl
+                            print("🖼️ Using UUID-based image URL: \(uuidImageUrl)")
+                        } else {
+                            print("🖼️ Using stored image URL: \(profileImageUrl!)")
+                        }
+                    } else {
+                        print("❌ User document does not exist")
+                        userData = [:]
+                        profileImageUrl = nil
+                    }
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ Error loading user profile: \(error)")
+                    isLoading = false
                 }
             }
-        } catch {
-            print("Error loading user document: \(error)")
         }
     }
     
     private func refreshProfile() async {
-        isLoading = true
-        
-        await loadCurrentUserImageUrl()
-        membersService.refreshMembers()
-        
+        loadUserProfile()
         try? await Task.sleep(nanoseconds: 1_000_000_000)
-        
-        await MainActor.run {
-            loadUserMemberProfile()
-        }
     }
     
-    private func calculateProfileCompleteness(_ member: FirebaseMember) -> Double {
-        var completenessScore: Double = 0.0
-        let totalFields: Double = 6.0
+    private func getDisplayName() -> String {
+        if let firstName = userData["firstName"] as? String, !firstName.isEmpty {
+            return firstName
+        }
+        return userSession.currentUser?.firstName ?? "Unknown User"
+    }
+    
+    private func hasProfileData() -> Bool {
+        let city = userData["city"] as? String ?? ""
+        let age = userData["age"] as? Int
+        let gender = userData["gender"] as? String ?? ""
         
-        if member.profileImageUrl != nil || member.firebaseImageUrl != nil {
+        return !city.isEmpty && age != nil && !gender.isEmpty
+    }
+    
+    private func calculateProfileCompleteness() -> Double {
+        var completenessScore: Double = 0.0
+        let totalFields: Double = 7.0
+        
+        // Profile image
+        if profileImageUrl != nil && !profileImageUrl!.isEmpty {
             completenessScore += 1.0
         }
-        if member.age != nil {
+        
+        // Age
+        if userData["age"] as? Int != nil {
             completenessScore += 1.0
         }
-        if member.city != nil && !member.city!.isEmpty {
+        
+        // City
+        if let city = userData["city"] as? String, !city.isEmpty {
             completenessScore += 1.0
         }
-        if member.gender != nil && !member.gender!.isEmpty {
+        
+        // Gender
+        if let gender = userData["gender"] as? String, !gender.isEmpty {
             completenessScore += 1.0
         }
-        if member.approachTip != nil && !member.approachTip!.isEmpty {
+        
+        // Approach tip
+        if let tip = userData["howToApproachMe"] as? String, !tip.isEmpty {
             completenessScore += 1.0
         }
-        if member.instagramHandle != nil && !member.instagramHandle!.isEmpty {
+        
+        // Attracted to
+        if let attractedTo = userData["attractedTo"] as? String, !attractedTo.isEmpty {
+            completenessScore += 1.0
+        }
+        
+        // Instagram handle
+        if let handle = userData["instagramHandle"] as? String, !handle.isEmpty {
             completenessScore += 1.0
         }
         

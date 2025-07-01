@@ -1,11 +1,14 @@
 import SwiftUI
 import PhotosUI
-import Combine
+import FirebaseFirestore
+import FirebaseStorage
+import FirebaseAuth
 
 struct EditProfileView: View {
     @State private var firstName: String
     @State private var age: String
     @State private var city: String
+    @State private var gender: String
     @State private var attractedTo: String
     @State private var approachTip: String
     @State private var instagramHandle: String
@@ -14,26 +17,29 @@ struct EditProfileView: View {
     @State private var isLoading = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
-    @State private var showingImagePicker = false
+    @State private var uploadProgress: Double = 0.0
+    @State private var isUploadingImage = false
     
-    @ObservedObject private var membersService = FirebaseMembersService.shared
     @StateObject private var userSession = FirebaseUserSession.shared
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
-    private let existingMember: FirebaseMember?
+    private let userData: [String: Any]
+    private let existingImageUrl: String?
     private let isCreatingNew: Bool
     
-    init(userMember: FirebaseMember?) {
-        self.existingMember = userMember
-        self.isCreatingNew = userMember == nil
+    init(userData: [String: Any] = [:], profileImageUrl: String? = nil) {
+        self.userData = userData
+        self.existingImageUrl = profileImageUrl
+        self.isCreatingNew = userData.isEmpty || userData.count <= 2 // Just basic auth fields
         
-        _firstName = State(initialValue: userMember?.firstName ?? "")
-        _age = State(initialValue: userMember?.age?.description ?? "")
-        _city = State(initialValue: userMember?.city ?? "")
-        _attractedTo = State(initialValue: userMember?.attractedTo ?? "")
-        _approachTip = State(initialValue: userMember?.approachTip ?? "")
-        _instagramHandle = State(initialValue: userMember?.instagramHandle ?? "")
+        _firstName = State(initialValue: userData["firstName"] as? String ?? "")
+        _age = State(initialValue: (userData["age"] as? Int)?.description ?? "")
+        _city = State(initialValue: userData["city"] as? String ?? "")
+        _gender = State(initialValue: userData["gender"] as? String ?? "")
+        _attractedTo = State(initialValue: userData["attractedTo"] as? String ?? "")
+        _approachTip = State(initialValue: userData["howToApproachMe"] as? String ?? "")
+        _instagramHandle = State(initialValue: userData["instagramHandle"] as? String ?? "")
     }
 
     var body: some View {
@@ -112,8 +118,8 @@ struct EditProfileView: View {
                             Circle()
                                 .stroke(Color.blue.opacity(0.3), lineWidth: 3)
                         )
-                } else if let profileImage = existingMember?.profileImage, !profileImage.isEmpty {
-                    AsyncImage(url: URL(string: profileImage)) { phase in
+                } else if let imageUrl = existingImageUrl, !imageUrl.isEmpty {
+                    AsyncImage(url: URL(string: imageUrl)) { phase in
                         switch phase {
                         case .empty:
                             Circle()
@@ -175,9 +181,19 @@ struct EditProfileView: View {
                 .frame(width: 140, height: 140)
             }
             
+            if isUploadingImage {
+                VStack(spacing: 8) {
+                    ProgressView(value: uploadProgress)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                    Text("Uploading image... \(Int(uploadProgress * 100))%")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } else {
             Text("Tap to update photo")
                 .font(.caption)
                 .foregroundColor(.secondary)
+            }
         }
     }
     
@@ -233,18 +249,81 @@ struct EditProfileView: View {
                         icon: "mappin",
                         isRequired: true
                     )
+                    
+                    // Gender Picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "person.2")
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                            Text("Gender")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            Text("*")
+                                .font(.subheadline)
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
+                        
+                        Menu {
+                            Button("Male") { gender = "Male"; Haptics.lightImpact() }
+                            Button("Female") { gender = "Female"; Haptics.lightImpact() }
+                            Button("Non-binary") { gender = "Non-binary"; Haptics.lightImpact() }
+                            Button("Other") { gender = "Other"; Haptics.lightImpact() }
+                        } label: {
+                            HStack {
+                                Text(gender.isEmpty ? "Select Gender" : gender)
+                                    .foregroundColor(gender.isEmpty ? .secondary : .primary)
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        }
+                    }
                 }
             }
             
             // Preferences Section
             formSectionCard(title: "Dating Preferences") {
                 VStack(spacing: 16) {
-                    EnhancedTextField(
-                        title: "Attracted To",
-                        placeholder: "e.g., Men, Women, Everyone",
-                        text: $attractedTo,
-                        icon: "heart"
-                    )
+                    // Attracted To Picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "heart")
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                            Text("Attracted To")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            Spacer()
+                        }
+                        
+                        Menu {
+                            Button("Men") { attractedTo = "Men"; Haptics.lightImpact() }
+                            Button("Women") { attractedTo = "Women"; Haptics.lightImpact() }
+                            Button("Everyone") { attractedTo = "Everyone"; Haptics.lightImpact() }
+                        } label: {
+                            HStack {
+                                Text(attractedTo.isEmpty ? "Select Preference" : attractedTo)
+                                    .foregroundColor(attractedTo.isEmpty ? .secondary : .primary)
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        }
+                    }
                     
                     EnhancedTextField(
                         title: "Approach Tip",
@@ -260,9 +339,9 @@ struct EditProfileView: View {
             formSectionCard(title: "Social Media") {
                 EnhancedTextField(
                     title: "Instagram Handle",
-                    placeholder: "@username (optional)",
+                    placeholder: "username (optional)",
                     text: $instagramHandle,
-                    icon: "at",
+                    icon: "camera",
                     prefix: "@"
                 )
             }
@@ -353,15 +432,24 @@ struct EditProfileView: View {
     private var isFormValid: Bool {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !age.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !gender.isEmpty
     }
     
     private var completionPercentage: Double {
-        let fields = [firstName, age, city, attractedTo, approachTip, instagramHandle]
-        let completedFields = fields.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        let imageCompletion = selectedImageData != nil || (existingMember?.profileImage != nil) ? 1 : 0
+        var completed = 0.0
+        let total = 7.0
         
-        return Double(completedFields.count + imageCompletion) / 7.0 * 100
+        if !firstName.isEmpty { completed += 1 }
+        if !age.isEmpty { completed += 1 }
+        if !city.isEmpty { completed += 1 }
+        if !gender.isEmpty { completed += 1 }
+        if !attractedTo.isEmpty { completed += 1 }
+        if !approachTip.isEmpty { completed += 1 }
+        if !instagramHandle.isEmpty { completed += 1 }
+        if selectedImageData != nil || existingImageUrl != nil { completed += 1 }
+        
+        return (completed / (total + 1)) * 100
     }
     
     // MARK: - Helper Functions
@@ -373,58 +461,118 @@ struct EditProfileView: View {
             return
         }
         
-        isLoading = true
-        Haptics.lightImpact()
-        
-        let ageInt = Int(age)
-        
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id else {
+        guard let firebaseAuthUser = userSession.firebaseAuthUser else {
             alertMessage = "User not authenticated"
             showingAlert = true
-            isLoading = false
             return
         }
         
-        let member = FirebaseMember(
-            userId: userId,
-            firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
-            age: ageInt,
-            city: city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : city.trimmingCharacters(in: .whitespacesAndNewlines),
-            attractedTo: attractedTo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : attractedTo.trimmingCharacters(in: .whitespacesAndNewlines),
-            approachTip: approachTip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : approachTip.trimmingCharacters(in: .whitespacesAndNewlines),
-            instagramHandle: instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines),
-            profileImage: nil // TODO: Handle image upload
-        )
+        let userId = firebaseAuthUser.uid
         
-        let action = isCreatingNew ? "created" : "updated"
+        isLoading = true
+        Haptics.lightImpact()
         
-        if isCreatingNew {
-            membersService.createMember(member) { success, error in
-                DispatchQueue.main.async {
+        Task {
+            do {
+                var updatedData: [String: Any] = [
+                    "firstName": firstName.trimmingCharacters(in: .whitespacesAndNewlines),
+                    "age": Int(age) ?? 0,
+                    "city": city.trimmingCharacters(in: .whitespacesAndNewlines),
+                    "gender": gender,
+                    "updatedAt": FieldValue.serverTimestamp()
+                ]
+                
+                // Add optional fields only if they have values
+                if !attractedTo.isEmpty {
+                    updatedData["attractedTo"] = attractedTo
+                }
+                
+                let trimmedApproachTip = approachTip.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmedApproachTip.isEmpty {
+                    updatedData["howToApproachMe"] = trimmedApproachTip
+                }
+                
+                let trimmedInstagram = instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmedInstagram.isEmpty {
+                    updatedData["instagramHandle"] = trimmedInstagram
+                }
+                
+                // Handle image upload if new image is selected
+                if let imageData = selectedImageData {
+                    let imageUrl = try await uploadProfileImage(imageData, userId: userId)
+                    updatedData["profileImageUrl"] = imageUrl
+                    updatedData["firebaseImageUrl"] = imageUrl
+                }
+                
+                // Save to Firestore
+                let db = Firestore.firestore()
+                try await db.collection("users").document(userId).updateData(updatedData)
+                
+                await MainActor.run {
                     isLoading = false
-                    if success {
                         Haptics.successNotification()
-                        alertMessage = "Profile \(action) successfully!"
-                    } else {
+                    alertMessage = "Profile updated successfully!"
+                    showingAlert = true
+                }
+                
+            } catch {
+                await MainActor.run {
+                    isLoading = false
                         Haptics.errorNotification()
-                        alertMessage = error ?? "Failed to \(action.dropLast()) profile"
-                    }
+                    alertMessage = "Failed to update profile: \(error.localizedDescription)"
                     showingAlert = true
                 }
             }
-        } else {
-            membersService.updateMember(member) { success, error in
-                DispatchQueue.main.async {
-                    isLoading = false
-                    if success {
-                        Haptics.successNotification()
-                        alertMessage = "Profile \(action) successfully!"
+        }
+    }
+    
+    private func uploadProfileImage(_ imageData: Data, userId: String) async throws -> String {
+        await MainActor.run {
+            isUploadingImage = true
+            uploadProgress = 0.0
+        }
+        
+        let storage = Storage.storage()
+        let storageRef = storage.reference()
+        let imageRef = storageRef.child("profiles/\(userId).jpg")
+        
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            let uploadTask = imageRef.putData(imageData, metadata: metadata) { _, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                imageRef.downloadURL { url, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else if let url = url {
+                        continuation.resume(returning: url.absoluteString)
                     } else {
-                        Haptics.errorNotification()
-                        alertMessage = error ?? "Failed to \(action.dropLast()) profile"
+                        continuation.resume(throwing: NSError(domain: "Upload", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get download URL"]))
                     }
-                    showingAlert = true
+                }
+            }
+            
+            uploadTask.observe(.progress) { snapshot in
+                let progress = Double(snapshot.progress?.completedUnitCount ?? 0) / Double(snapshot.progress?.totalUnitCount ?? 1)
+                DispatchQueue.main.async {
+                    self.uploadProgress = progress
+                }
+            }
+            
+            uploadTask.observe(.success) { _ in
+                DispatchQueue.main.async {
+                    self.isUploadingImage = false
+                }
+            }
+            
+            uploadTask.observe(.failure) { _ in
+                DispatchQueue.main.async {
+                    self.isUploadingImage = false
                 }
             }
         }
@@ -502,47 +650,27 @@ struct EnhancedTextField: View {
                 if isMultiline {
                     TextField(placeholder, text: $text, axis: .vertical)
                         .lineLimit(3...6)
-                        .textFieldStyle(PlainTextFieldStyle())
+                        .keyboardType(keyboardType)
                         .focused($isFocused)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, prefix != nil ? 4 : 16)
                 } else {
                     TextField(placeholder, text: $text)
                         .keyboardType(keyboardType)
-                        .textFieldStyle(PlainTextFieldStyle())
                         .focused($isFocused)
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, prefix != nil ? 4 : 16)
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(colorScheme == .dark ? Color(white: 0.15) : Color(.systemGray6))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(
-                                isFocused ? Color.blue : 
-                                (isRequired && text.isEmpty ? Color.red.opacity(0.5) : Color.clear),
-                                lineWidth: isFocused ? 2 : 1
-                            )
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isFocused ? Color.blue.opacity(0.5) : Color.clear, lineWidth: 1)
                     )
-            )
-            .animation(.easeInOut(duration: 0.2), value: isFocused)
-            
-            // Validation Message
-            if isRequired && text.isEmpty && !isFocused {
-                Text("This field is required")
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .transition(.opacity)
-            }
         }
-        .animation(.easeInOut(duration: 0.2), value: text.isEmpty)
     }
 }
 
 #Preview {
-    NavigationView {
-        EditProfileView(userMember: nil)
-    }
+    EditProfileView()
 }
+

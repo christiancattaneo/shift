@@ -19,6 +19,11 @@ class FirebaseUserSession: ObservableObject {
     private var authStateListener: AuthStateDidChangeListenerHandle?
     private var isLoadingUserData = false  // Prevent redundant user data loads
     
+    // Public access to Firebase Auth user
+    var firebaseAuthUser: FirebaseAuth.User? {
+        return auth.currentUser
+    }
+    
     private init() {
         print("🔐 FirebaseUserSession init: Thread=MAIN")
         
@@ -434,28 +439,14 @@ class FirebaseMembersService: ObservableObject {
                                 // Use the first available image URL
                                 let bestImageUrl = profileImageUrl ?? firebaseImageUrl ?? profilePhoto ?? profilePicture ?? imageUrl ?? photoUrl ?? user.profilePhoto
                                 
-                                // CRITICAL FIX: If no image URL found, try to construct from adaloId
+                                // NEW UUID-BASED SYSTEM: Construct image URL from document ID (Firebase UID)
                                 var finalImageUrl = bestImageUrl
-                                if finalImageUrl == nil, let adaloId = data["adaloId"] as? Int {
-                                    let constructedUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(adaloId)_1751051525259.jpeg"
-                                    print("🔧 CONSTRUCTED URL from adaloId \(adaloId) for \(firstName): \(constructedUrl)")
-                                    finalImageUrl = constructedUrl
-                                } else if finalImageUrl == nil {
-                                    print("🔧 ❌ NO adaloId found for \(firstName) - cannot construct image URL")
-                                }
-                                
-                                // FALLBACK: Try to find ANY numeric field that might be the original ID
-                                if finalImageUrl == nil {
-                                    print("🔧 FALLBACK: Searching for numeric ID fields...")
-                                    for (key, value) in data {
-                                        if let intValue = value as? Int, intValue < 10000 {
-                                            let testUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(intValue)_1751051525259.jpeg"
-                                            print("🔧 TESTING: \(key)=\(intValue) → \(testUrl)")
-                                            // For now, just use the first numeric ID we find
-                                            finalImageUrl = testUrl
-                                            break
-                                        }
-                                    }
+                                if finalImageUrl == nil || finalImageUrl!.isEmpty {
+                                    let uuidImageUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(document.documentID).jpg"
+                                    finalImageUrl = uuidImageUrl
+                                    print("🔧 Using UUID-based image URL for \(firstName): \(uuidImageUrl)")
+                                } else {
+                                    print("🔧 Using stored image URL for \(firstName): \(finalImageUrl!)")
                                 }
                                 
                                 let member = FirebaseMember(
@@ -1020,52 +1011,41 @@ class FirebaseServices {
         print("🔧 FirebaseServices singleton initialized")
     }
     
-    // MARK: - SCALABLE IMAGE UPLOAD SYSTEM
+    // MARK: - UUID-BASED IMAGE UPLOAD SYSTEM
     func uploadProfileImage(_ image: UIImage, for userId: String, adaloId: Int?) async throws -> String {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw NSError(domain: "ImageError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])
         }
         
-        // Create proper filename with adaloId for future compatibility
-        let timestamp = Int(Date().timeIntervalSince1970 * 1000)
-        let filename: String
-        
-        if let adaloId = adaloId {
-            filename = "\(adaloId)_\(timestamp).jpeg"
-        } else {
-            // For new users without adaloId, use Firebase UID
-            filename = "firebase_\(userId)_\(timestamp).jpeg"
-        }
+        // Use UUID-based filename (cleaner system)
+        let filename = "\(userId).jpg"
         
         let storageRef = Storage.storage().reference()
-        let imageRef = storageRef.child("profile_images/\(filename)")
+        let imageRef = storageRef.child("profiles/\(filename)")
         
-        print("📸 Uploading image: \(filename)")
+        print("📸 Uploading UUID-based image: \(filename)")
         
         // Upload the image
         let metadata = StorageMetadata()
         metadata.contentType = "image/jpeg"
         metadata.customMetadata = [
             "userId": userId,
-            "uploadedAt": String(timestamp),
-            "adaloId": adaloId != nil ? String(adaloId!) : "none"
+            "uploadedAt": String(Int(Date().timeIntervalSince1970))
         ]
         
         _ = try await imageRef.putDataAsync(imageData, metadata: metadata)
         
-        // Get the public URL
-        let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(filename)"
+        // Get the public URL (UUID-based)
+        let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profiles/\(filename)"
         
-        // IMMEDIATELY update Firestore with the image URL (SCALABLE!)
+        // Update Firestore with the image URL
         let db = Firestore.firestore()
         try await db.collection("users").document(userId).updateData([
-            "profileImageUrl": publicUrl,
-            "firebaseImageUrl": publicUrl,
-            "profileImageUpdatedAt": FieldValue.serverTimestamp(),
-            "imageFilename": filename
+            "hasProfileImage": true,
+            "profileImageUpdatedAt": FieldValue.serverTimestamp()
         ])
         
-        print("✅ Image uploaded and database updated: \(publicUrl)")
+        print("✅ UUID-based image uploaded: \(publicUrl)")
         return publicUrl
     }
     
@@ -1111,54 +1091,5 @@ class FirebaseServices {
         return userId
     }
     
-    // MARK: - BACKGROUND SYNC FOR EXISTING USERS
-    func syncExistingUserImages() async {
-        print("🔄 Starting background image sync...")
-        
-        let db = Firestore.firestore()
-        
-        do {
-            // Get users without profile images
-            let usersSnapshot = try await db.collection("users")
-                .whereField("profileImageUrl", isEqualTo: NSNull())
-                .getDocuments()
-            
-            let storage = Storage.storage()
-            let storageRef = storage.reference().child("profile_images")
-            
-            // List all profile images
-            let result = try await storageRef.listAll()
-            
-            var updateCount = 0
-            
-            for document in usersSnapshot.documents {
-                let userData = document.data()
-                
-                // Try to find matching image
-                if let adaloId = userData["adaloId"] as? Int {
-                    let matchingImages = result.items.filter { item in
-                        item.name.hasPrefix("\(adaloId)_")
-                    }
-                    
-                    if let imageRef = matchingImages.first {
-                        let publicUrl = "https://storage.googleapis.com/shift-12948.firebasestorage.app/profile_images/\(imageRef.name)"
-                        
-                        try await document.reference.updateData([
-                            "profileImageUrl": publicUrl,
-                            "firebaseImageUrl": publicUrl,
-                            "profileImageMappedAt": FieldValue.serverTimestamp()
-                        ])
-                        
-                        updateCount += 1
-                        print("✅ Synced image for user with adaloId \(adaloId)")
-                    }
-                }
-            }
-            
-            print("🎉 Background sync completed: \(updateCount) users updated")
-            
-        } catch {
-            print("❌ Background sync error: \(error)")
-        }
-    }
+    // Legacy sync removed - using UUID-based system now
 } 

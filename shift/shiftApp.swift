@@ -24,10 +24,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Print memory info
         printMemoryUsage()
         
-        // Start background image sync for scalability
-        Task {
-            await FirebaseServices.shared.syncExistingUserImages()
-        }
+        // Image sync removed - using UUID-based system now
         
         return true
     }
@@ -106,10 +103,7 @@ struct shiftApp: App {
         // Firebase is already configured in AppDelegate
         // No need to configure again here
         
-        // Start background tasks for scalability
-        Task {
-            await FirebaseServices.shared.syncExistingUserImages()
-        }
+        // Background tasks removed - using UUID-based system now
         
         // Preload events and members for better UX
         Task {

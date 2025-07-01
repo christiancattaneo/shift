@@ -107,7 +107,7 @@ struct MembersView: View {
                 .padding(.horizontal, 16)
             }
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
         .background(Color(.systemBackground))
     }
     
@@ -119,7 +119,8 @@ struct MembersView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 40)
     }
     
     private var membersGridView: some View {
@@ -147,7 +148,7 @@ struct MembersView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.top, 8)
             .padding(.bottom, 16)
         }
     }
@@ -177,8 +178,9 @@ struct MembersView: View {
             }
             .buttonStyle(.borderedProminent)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+        .padding(.horizontal, 20)
     }
     
     // MARK: - Helper Functions

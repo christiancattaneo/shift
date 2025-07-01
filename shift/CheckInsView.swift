@@ -38,27 +38,51 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     }
     
     private func loadImage() {
-        guard let url = url, cachedImage == nil && !isLoading else { return }
+        guard let url = url, cachedImage == nil && !isLoading else { 
+            if url == nil {
+                print("❌ CACHED: No URL provided for image")
+            }
+            return 
+        }
+        
+        print("🖼️ CACHED: Starting to load image from: \(url.absoluteString)")
         
         // Check cache first
         if let cachedImage = ImageCache.shared.getImage(for: url.absoluteString) {
+            print("✅ CACHED: Found image in cache for: \(url.absoluteString)")
             self.cachedImage = cachedImage
             return
         }
         
+        print("🔄 CACHED: Image not in cache, downloading from: \(url.absoluteString)")
         isLoading = true
         
         Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
+                let (data, response) = try await URLSession.shared.data(from: url)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 CACHED: HTTP Response \(httpResponse.statusCode) for: \(url.absoluteString)")
+                    if httpResponse.statusCode != 200 {
+                        print("❌ CACHED: HTTP error \(httpResponse.statusCode) for: \(url.absoluteString)")
+                    }
+                }
+                
                 if let uiImage = UIImage(data: data) {
+                    print("✅ CACHED: Successfully loaded image (\(data.count) bytes) from: \(url.absoluteString)")
                     await MainActor.run {
                         ImageCache.shared.setImage(uiImage, for: url.absoluteString)
                         self.cachedImage = uiImage
                         self.isLoading = false
                     }
+                } else {
+                    print("❌ CACHED: Failed to create UIImage from data (\(data.count) bytes) for: \(url.absoluteString)")
+                    await MainActor.run {
+                        self.isLoading = false
+                    }
                 }
             } catch {
+                print("❌ CACHED: Network error loading \(url.absoluteString): \(error.localizedDescription)")
                 await MainActor.run {
                     self.isLoading = false
                 }
