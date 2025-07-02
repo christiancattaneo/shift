@@ -34,20 +34,12 @@ class FirebaseUserSession: ObservableObject {
     }
     
     private init() {
-        print("🔐 FirebaseUserSession init: Thread=MAIN")
-        
         // Listen for auth state changes
         authStateListener = auth.addStateDidChangeListener { [weak self] _, user in
-            print("🔐 Auth state changed: user=\(user?.uid ?? "nil")")
-            print("🔐 Auth state change: Thread=BACKGROUND")
-            
             DispatchQueue.main.async {
-                print("🔐 Processing auth state change on main thread")
                 if let user = user {
-                    print("🔐 Firebase auth state: User signed in (\(user.uid))")
                     self?.loadUserDataIfNeeded(uid: user.uid)
                 } else {
-                    print("🔐 Firebase auth state: User signed out")
                     self?.currentUser = nil
                     self?.isLoggedIn = false
                     self?.isLoadingUserData = false
@@ -56,55 +48,41 @@ class FirebaseUserSession: ObservableObject {
         }
         
         // Check current auth state immediately
-        print("🔐 Checking current auth state immediately")
         checkCurrentAuthState()
     }
     
     private func checkCurrentAuthState() {
-        print("🔐 checkCurrentAuthState: Thread=MAIN")
-        
         if let currentUser = auth.currentUser {
-            print("🔐 Found existing authenticated user: \(currentUser.uid)")
             loadUserDataIfNeeded(uid: currentUser.uid)
         } else {
-            print("🔐 No existing authenticated user found")
             isLoggedIn = false
         }
     }
     
     deinit {
-        print("🔐 FirebaseUserSession deinit")
         if let listener = authStateListener {
             auth.removeStateDidChangeListener(listener)
         }
     }
     
     func signUp(email: String, password: String, firstName: String, completion: @escaping (Bool, String?) -> Void) {
-        print("🔐 Starting signUp: Thread=MAIN")
         isLoading = true
         errorMessage = nil
         
         auth.createUser(withEmail: email, password: password) { [weak self] result, error in
-            print("🔐 SignUp auth response: Thread=BACKGROUND")
-            
             DispatchQueue.main.async {
-                print("🔐 Processing signUp response on main thread")
                 self?.isLoading = false
                 
                 if let error = error {
-                    print("🔐 SignUp error: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
                     completion(false, error.localizedDescription)
                     return
                 }
                 
                 guard let uid = result?.user.uid else {
-                    print("🔐 SignUp error: Failed to get user ID")
                     completion(false, "Failed to get user ID")
                     return
                 }
-                
-                print("🔐 SignUp success, creating user document for UID: \(uid)")
                 
                 // Create user document in Firestore
                 let newUser = FirebaseUser(
@@ -113,7 +91,6 @@ class FirebaseUserSession: ObservableObject {
                 )
                 
                 self?.createUserDocument(user: newUser, uid: uid) { success, error in
-                    print("🔐 User document creation result: success=\(success), error=\(error ?? "none")")
                     completion(success, error)
                 }
             }
@@ -952,153 +929,194 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     func checkIn(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
-        print("🔥 FIREBASE CHECKIN: Starting check-in process...")
-        print("🔥 FIREBASE CHECKIN: userId=\(userId), eventId=\(eventId)")
+        print("🔥 FIREBASE CHECKIN: Starting check-in process for user \(userId) to \(eventId)")
         
-        // Check if user is already checked in to this event
+        // Check if user is already checked in
         isUserCheckedIn(userId: userId, eventId: eventId) { [weak self] isAlreadyCheckedIn in
             if isAlreadyCheckedIn {
-                print("⚠️ FIREBASE CHECKIN: User already checked in to this event")
-                completion(false, "You are already checked in to this event")
+                print("⚠️ FIREBASE CHECKIN: User already checked in")
+                completion(false, "You are already checked in")
                 return
             }
             
-            // Create check-in document
-            let checkIn = FirebaseCheckIn(
-                userId: userId,
-                eventId: eventId
-            )
-            
-            print("🔥 FIREBASE CHECKIN: Created check-in object: \(checkIn)")
-            
-            do {
-                print("🔥 FIREBASE CHECKIN: Attempting to add document to Firestore...")
-                try self?.db.collection("checkIns").addDocument(from: checkIn) { error in
-                    print("🔥 FIREBASE CHECKIN: Firestore addDocument callback received")
-                    DispatchQueue.main.async {
-                        print("🔥 FIREBASE CHECKIN: Processing on main thread")
-                        if let error = error {
-                            print("❌ FIREBASE CHECKIN: Failed with error: \(error.localizedDescription)")
-                            completion(false, error.localizedDescription)
-                        } else {
-                            print("✅ FIREBASE CHECKIN: SUCCESS - User \(userId) checked in to event \(eventId)")
+            // Try to add user to places collection first
+            self?.addUserToCollection(userId: userId, itemId: eventId, collection: "places") { success in
+                if success {
+                    print("✅ FIREBASE CHECKIN: SUCCESS - Added user to place")
+                    completion(true, nil)
+                } else {
+                    // If not a place, try events collection
+                    self?.addUserToCollection(userId: userId, itemId: eventId, collection: "events") { success in
+                        if success {
+                            print("✅ FIREBASE CHECKIN: SUCCESS - Added user to event")
                             completion(true, nil)
+                        } else {
+                            print("❌ FIREBASE CHECKIN: Failed to add user to either places or events")
+                            completion(false, "Item not found")
                         }
                     }
                 }
-            } catch {
-                print("❌ FIREBASE CHECKIN: Exception during addDocument: \(error.localizedDescription)")
-                completion(false, error.localizedDescription)
+            }
+        }
+    }
+    
+    private func addUserToCollection(userId: String, itemId: String, collection: String, completion: @escaping (Bool) -> Void) {
+        db.collection(collection).document(itemId).getDocument { document, error in
+            guard let doc = document, doc.exists else {
+                completion(false)
+                return
+            }
+            
+            var data = doc.data() ?? [:]
+            var users = data["Users"] as? [Any] ?? []
+            let userIdStrings = users.compactMap { "\($0)" }
+            
+            // Add user if not already present
+            if !userIdStrings.contains(userId) {
+                users.append(userId)
+                data["Users"] = users
+                
+                self.db.collection(collection).document(itemId).updateData(data) { error in
+                    DispatchQueue.main.async {
+                        completion(error == nil)
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    completion(true) // Already present
+                }
             }
         }
     }
     
     func checkOut(userId: String, eventId: String, completion: @escaping (Bool, String?) -> Void) {
-        print("🔥 FIREBASE CHECKOUT: Starting check-out process...")
+        print("🔥 FIREBASE CHECKOUT: Starting check-out process for user \(userId) from \(eventId)")
         
-        // Find the active check-in for this user and event
-        db.collection("checkIns")
-            .whereField("userId", isEqualTo: userId)
-            .whereField("eventId", isEqualTo: eventId)
-            .whereField("isActive", isEqualTo: true)
-            .getDocuments { querySnapshot, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("❌ FIREBASE CHECKOUT: Error finding check-in: \(error.localizedDescription)")
-                        completion(false, error.localizedDescription)
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents, let checkInDoc = documents.first else {
-                        print("❌ FIREBASE CHECKOUT: No active check-in found")
-                        completion(false, "No active check-in found")
-                        return
-                    }
-                    
-                    // Update the check-in to mark it as inactive
-                    checkInDoc.reference.updateData([
-                        "isActive": false,
-                        "checkedOutAt": Timestamp()
-                    ]) { error in
-                        DispatchQueue.main.async {
-                            if let error = error {
-                                print("❌ FIREBASE CHECKOUT: Failed with error: \(error.localizedDescription)")
-                                completion(false, error.localizedDescription)
-                            } else {
-                                print("✅ FIREBASE CHECKOUT: SUCCESS - User \(userId) checked out of event \(eventId)")
-                                completion(true, nil)
-                            }
-                        }
+        // Try to remove user from places collection first
+        removeUserFromCollection(userId: userId, itemId: eventId, collection: "places") { [weak self] success in
+            if success {
+                print("✅ FIREBASE CHECKOUT: SUCCESS - Removed user from place")
+                completion(true, nil)
+            } else {
+                // If not a place, try events collection
+                self?.removeUserFromCollection(userId: userId, itemId: eventId, collection: "events") { success in
+                    if success {
+                        print("✅ FIREBASE CHECKOUT: SUCCESS - Removed user from event")
+                        completion(true, nil)
+                    } else {
+                        print("❌ FIREBASE CHECKOUT: User not found in either places or events")
+                        completion(false, "Not checked in")
                     }
                 }
             }
+        }
+    }
+    
+    private func removeUserFromCollection(userId: String, itemId: String, collection: String, completion: @escaping (Bool) -> Void) {
+        db.collection(collection).document(itemId).getDocument { document, error in
+            guard let doc = document, doc.exists else {
+                completion(false)
+                return
+            }
+            
+            var data = doc.data() ?? [:]
+            var users = data["Users"] as? [Any] ?? []
+            let userIdStrings = users.compactMap { "\($0)" }
+            
+            // Remove user if present
+            if let index = userIdStrings.firstIndex(of: userId) {
+                users.remove(at: index)
+                data["Users"] = users
+                
+                self.db.collection(collection).document(itemId).updateData(data) { error in
+                    DispatchQueue.main.async {
+                        completion(error == nil)
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    completion(false) // User not found
+                }
+            }
+        }
     }
     
     func isUserCheckedIn(userId: String, eventId: String, completion: @escaping (Bool) -> Void) {
-        print("🔍 FIREBASE CHECKIN: Checking if user is already checked in...")
-        print("🔍 FIREBASE CHECKIN: userId=\(userId), eventId=\(eventId)")
+        print("🔍 FIREBASE CHECKIN: Checking if user \(userId) is checked in to \(eventId)")
         
-        db.collection("checkIns")
-            .whereField("userId", isEqualTo: userId)
-            .whereField("eventId", isEqualTo: eventId)
-            .whereField("isActive", isEqualTo: true)
-            .getDocuments { querySnapshot, error in
+        // First check places collection
+        db.collection("places").document(eventId).getDocument { document, error in
+            if let doc = document, doc.exists, let data = doc.data(),
+               let users = data["Users"] as? [Any] {
+                let userIdStrings = users.compactMap { "\($0)" }
+                let isCheckedIn = userIdStrings.contains(userId)
+                print("🔍 FIREBASE CHECKIN: User check-in status in place: \(isCheckedIn)")
                 DispatchQueue.main.async {
-                    if let error = error {
-                        print("❌ FIREBASE CHECKIN: Error checking status: \(error.localizedDescription)")
-                        completion(false)
-                        return
-                    }
-                    
-                    let isCheckedIn = !(querySnapshot?.documents.isEmpty ?? true)
-                    print("🔍 FIREBASE CHECKIN: User check-in status: \(isCheckedIn)")
                     completion(isCheckedIn)
                 }
+                return
             }
-    }
-    
-    func getCheckInCount(for eventId: String, completion: @escaping (Int) -> Void) {
-        print("📊 FIREBASE CHECKIN: Getting check-in count for event: \(eventId)")
-        
-        db.collection("checkIns")
-            .whereField("eventId", isEqualTo: eventId)
-            .whereField("isActive", isEqualTo: true)
-            .getDocuments { querySnapshot, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("❌ FIREBASE CHECKIN: Error getting count: \(error.localizedDescription)")
-                        completion(0)
-                        return
+            
+            // If not found in places, check events collection
+            self.db.collection("events").document(eventId).getDocument { document, error in
+                if let doc = document, doc.exists, let data = doc.data(),
+                   let users = data["Users"] as? [Any] {
+                    let userIdStrings = users.compactMap { "\($0)" }
+                    let isCheckedIn = userIdStrings.contains(userId)
+                    print("🔍 FIREBASE CHECKIN: User check-in status in event: \(isCheckedIn)")
+                    DispatchQueue.main.async {
+                        completion(isCheckedIn)
                     }
-                    
-                    let count = querySnapshot?.documents.count ?? 0
-                    print("📊 FIREBASE CHECKIN: Event \(eventId) has \(count) check-ins")
-                    completion(count)
+                } else {
+                    print("🔍 FIREBASE CHECKIN: User not checked in (item not found)")
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
                 }
             }
+        }
     }
     
-    // ENHANCED: Get historical check-in data from user documents
+    func getCheckInCount(for itemId: String, completion: @escaping (Int) -> Void) {
+        print("📊 FIREBASE CHECKIN: Getting check-in count for item: \(itemId)")
+        
+        // First try to get count from places collection (which has Users array)
+        db.collection("places").document(itemId).getDocument { document, error in
+            if let doc = document, doc.exists, let data = doc.data(),
+               let users = data["Users"] as? [Any] {
+                let count = users.count
+                print("📊 FIREBASE CHECKIN: Place \(itemId) has \(count) check-ins from Users array")
+                DispatchQueue.main.async {
+                    completion(count)
+                }
+                return
+            }
+            
+            // If not found in places, try events collection
+            self.db.collection("events").document(itemId).getDocument { document, error in
+                if let doc = document, doc.exists, let data = doc.data(),
+                   let users = data["Users"] as? [Any] {
+                    let count = users.count
+                    print("📊 FIREBASE CHECKIN: Event \(itemId) has \(count) check-ins from Users array")
+                    DispatchQueue.main.async {
+                        completion(count)
+                    }
+                } else {
+                    print("📊 FIREBASE CHECKIN: No check-ins found for \(itemId)")
+                    DispatchQueue.main.async {
+                        completion(0)
+                    }
+                }
+            }
+        }
+    }
+    
+    // Get check-in count from actual Firebase data structure
     func getHistoricalCheckInCount(for itemId: String, itemType: String = "event", completion: @escaping (Int) -> Void) {
-        print("📊 FIREBASE CHECKIN: Getting historical check-in count from user documents for \(itemType): \(itemId)")
+        print("📊 FIREBASE CHECKIN: Getting check-in count from \(itemType) document: \(itemId)")
         
-        let fieldPath = itemType == "event" ? "checkInHistory.events" : "checkInHistory.places"
-        
-        db.collection("users")
-            .whereField(fieldPath, arrayContains: itemId)
-            .getDocuments { querySnapshot, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("❌ FIREBASE CHECKIN: Error getting historical count: \(error.localizedDescription)")
-                        completion(0)
-                        return
-                    }
-                    
-                    let count = querySnapshot?.documents.count ?? 0
-                    print("📊 FIREBASE CHECKIN: \(itemType.capitalized) \(itemId) has \(count) historical check-ins")
-                    completion(count)
-                }
-            }
+        // Use the same logic as getCheckInCount since historical = current in our data structure
+        getCheckInCount(for: itemId, completion: completion)
     }
     
     // ENHANCED: Get combined check-in count (real-time + historical)
@@ -1169,106 +1187,64 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     func getMembersAtEvent(_ eventId: String, completion: @escaping ([FirebaseMember]) -> Void) {
-        print("👥 FIREBASE CHECKIN: Getting ALL members who have EVER checked in to event: \(eventId)")
+        print("👥 FIREBASE CHECKIN: Getting members who checked in to event: \(eventId)")
         
-        var allUserIds: Set<String> = []
-        let dispatchGroup = DispatchGroup()
-        
-        // Get ALL check-ins for this event (current AND historical)
-        dispatchGroup.enter()
-        db.collection("checkIns")
-            .whereField("eventId", isEqualTo: eventId)
-            .getDocuments { querySnapshot, error in
-                if let error = error {
-                    print("❌ FIREBASE CHECKIN: Error getting check-ins: \(error.localizedDescription)")
-                } else if let documents = querySnapshot?.documents {
-                    let userIds = documents.compactMap { document -> String? in
-                        return document.data()["userId"] as? String
-                    }
-                    allUserIds.formUnion(userIds)
-                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in checkIns collection")
+        // Get the event document and extract Users array
+        db.collection("events").document(eventId).getDocument { document, error in
+            if let error = error {
+                print("❌ FIREBASE CHECKIN: Error getting event: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    completion([])
                 }
-                dispatchGroup.leave()
-            }
-        
-        // ALSO get users from checkInHistory in user documents
-        dispatchGroup.enter()
-        db.collection("users")
-            .whereField("checkInHistory.events", arrayContains: eventId)
-            .getDocuments { querySnapshot, error in
-                if let error = error {
-                    print("❌ FIREBASE CHECKIN: Error getting historical check-ins: \(error.localizedDescription)")
-                } else if let documents = querySnapshot?.documents {
-                    let userIds = documents.map { $0.documentID }
-                    allUserIds.formUnion(userIds)
-                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in user history")
-                }
-                dispatchGroup.leave()
-            }
-        
-        dispatchGroup.notify(queue: .main) {
-            let finalUserIds = Array(allUserIds)
-            guard !finalUserIds.isEmpty else {
-                print("📊 FIREBASE CHECKIN: No user IDs found in total")
-                completion([])
                 return
             }
             
-            print("📊 FIREBASE CHECKIN: Total unique users found: \(finalUserIds.count)")
-            // Batch fetch user profiles for all users who have ever checked in
-            self.fetchMembersById(userIds: finalUserIds, completion: completion)
+            guard let doc = document, doc.exists, let data = doc.data(),
+                  let userIds = data["Users"] as? [Any] else {
+                print("📊 FIREBASE CHECKIN: No users found for event \(eventId)")
+                DispatchQueue.main.async {
+                    completion([])
+                }
+                return
+            }
+            
+            // Convert to string array
+            let userIdStrings = userIds.compactMap { "\($0)" }
+            print("📊 FIREBASE CHECKIN: Found \(userIdStrings.count) users for event")
+            
+            // Fetch user profiles for these user IDs
+            self.fetchMembersById(userIds: userIdStrings, completion: completion)
         }
     }
     
     func getMembersAtPlace(_ placeId: String, completion: @escaping ([FirebaseMember]) -> Void) {
-        print("👥 FIREBASE CHECKIN: Getting ALL members who have EVER checked in to place: \(placeId)")
+        print("👥 FIREBASE CHECKIN: Getting members who checked in to place: \(placeId)")
         
-        var allUserIds: Set<String> = []
-        let dispatchGroup = DispatchGroup()
-        
-        // Get ALL check-ins for this place (current AND historical)
-        dispatchGroup.enter()
-        db.collection("checkIns")
-            .whereField("eventId", isEqualTo: placeId)
-            .getDocuments { querySnapshot, error in
-                if let error = error {
-                    print("❌ FIREBASE CHECKIN: Error getting place check-ins: \(error.localizedDescription)")
-                } else if let documents = querySnapshot?.documents {
-                    let userIds = documents.compactMap { document -> String? in
-                        return document.data()["userId"] as? String
-                    }
-                    allUserIds.formUnion(userIds)
-                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in checkIns collection for place")
+        // Get the place document and extract Users array
+        db.collection("places").document(placeId).getDocument { document, error in
+            if let error = error {
+                print("❌ FIREBASE CHECKIN: Error getting place: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    completion([])
                 }
-                dispatchGroup.leave()
-            }
-        
-        // ALSO get users from checkInHistory in user documents
-        dispatchGroup.enter()
-        db.collection("users")
-            .whereField("checkInHistory.places", arrayContains: placeId)
-            .getDocuments { querySnapshot, error in
-                if let error = error {
-                    print("❌ FIREBASE CHECKIN: Error getting historical place check-ins: \(error.localizedDescription)")
-                } else if let documents = querySnapshot?.documents {
-                    let userIds = documents.map { $0.documentID }
-                    allUserIds.formUnion(userIds)
-                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in place history")
-                }
-                dispatchGroup.leave()
-            }
-        
-        dispatchGroup.notify(queue: .main) {
-            let finalUserIds = Array(allUserIds)
-            guard !finalUserIds.isEmpty else {
-                print("📊 FIREBASE CHECKIN: No user IDs found for place")
-                completion([])
                 return
             }
             
-            print("📊 FIREBASE CHECKIN: Total unique users found for place: \(finalUserIds.count)")
-            // Batch fetch user profiles for all users who have ever checked in
-            self.fetchMembersById(userIds: finalUserIds, completion: completion)
+            guard let doc = document, doc.exists, let data = doc.data(),
+                  let userIds = data["Users"] as? [Any] else {
+                print("📊 FIREBASE CHECKIN: No users found for place \(placeId)")
+                DispatchQueue.main.async {
+                    completion([])
+                }
+                return
+            }
+            
+            // Convert to string array
+            let userIdStrings = userIds.compactMap { "\($0)" }
+            print("📊 FIREBASE CHECKIN: Found \(userIdStrings.count) users for place")
+            
+            // Fetch user profiles for these user IDs
+            self.fetchMembersById(userIds: userIdStrings, completion: completion)
         }
     }
     
