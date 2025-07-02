@@ -588,4 +588,328 @@ exports.fixUserImage = functions.https.onRequest(async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
-}); 
+});
+
+// MARK: - Event Ranking and Popularity System
+
+// Cloud function to calculate and update event popularity scores
+exports.updateEventPopularity = functions.pubsub.schedule('every 30 minutes').onRun(async (context) => {
+  console.log('🔥 Starting event popularity update...');
+  
+  try {
+    const db = admin.firestore();
+    const now = admin.firestore.Timestamp.now();
+    const oneDayAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - (24 * 60 * 60 * 1000));
+    const oneWeekAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - (7 * 24 * 60 * 60 * 1000));
+    
+    // Get all active check-ins from the last 24 hours
+    const recentCheckInsSnapshot = await db.collection('checkIns')
+      .where('isActive', '==', true)
+      .where('checkedInAt', '>=', oneDayAgo)
+      .get();
+    
+    // Get all check-ins from the last week
+    const weeklyCheckInsSnapshot = await db.collection('checkIns')
+      .where('isActive', '==', true)
+      .where('checkedInAt', '>=', oneWeekAgo)
+      .get();
+    
+    console.log(`📊 Found ${recentCheckInsSnapshot.size} check-ins in last 24h`);
+    console.log(`📊 Found ${weeklyCheckInsSnapshot.size} check-ins in last week`);
+    
+    // Calculate popularity scores by event
+    const eventPopularity = {};
+    
+    // Weight recent check-ins more heavily
+    recentCheckInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const eventId = data.eventId;
+      if (!eventPopularity[eventId]) {
+        eventPopularity[eventId] = { recent: 0, weekly: 0, total: 0 };
+      }
+      eventPopularity[eventId].recent += 1;
+    });
+    
+    weeklyCheckInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const eventId = data.eventId;
+      if (!eventPopularity[eventId]) {
+        eventPopularity[eventId] = { recent: 0, weekly: 0, total: 0 };
+      }
+      eventPopularity[eventId].weekly += 1;
+    });
+    
+    // Get total check-ins for each event
+    const allCheckInsSnapshot = await db.collection('checkIns')
+      .where('isActive', '==', true)
+      .get();
+    
+    allCheckInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const eventId = data.eventId;
+      if (!eventPopularity[eventId]) {
+        eventPopularity[eventId] = { recent: 0, weekly: 0, total: 0 };
+      }
+      eventPopularity[eventId].total += 1;
+    });
+    
+    // Calculate composite popularity score
+    // Formula: (recent * 5) + (weekly * 2) + (total * 0.5)
+    const popularityScores = {};
+    for (const [eventId, stats] of Object.entries(eventPopularity)) {
+      const score = (stats.recent * 5) + (stats.weekly * 2) + (stats.total * 0.5);
+      popularityScores[eventId] = {
+        score: score,
+        recentCheckIns: stats.recent,
+        weeklyCheckIns: stats.weekly,
+        totalCheckIns: stats.total,
+        lastUpdated: now
+      };
+    }
+    
+    console.log(`📈 Calculated popularity for ${Object.keys(popularityScores).length} events`);
+    
+    // Update events with popularity scores
+    const batch = db.batch();
+    let updateCount = 0;
+    
+    for (const [eventId, popularity] of Object.entries(popularityScores)) {
+      const eventRef = db.collection('events').doc(eventId);
+      batch.update(eventRef, {
+        popularityScore: popularity.score,
+        recentCheckIns: popularity.recentCheckIns,
+        weeklyCheckIns: popularity.weeklyCheckIns,
+        totalCheckIns: popularity.totalCheckIns,
+        popularityUpdatedAt: popularity.lastUpdated
+      });
+      updateCount++;
+    }
+    
+    // Also reset popularity for events with no recent activity
+    const allEventsSnapshot = await db.collection('events').get();
+    allEventsSnapshot.docs.forEach(doc => {
+      const eventId = doc.id;
+      if (!popularityScores[eventId]) {
+        batch.update(doc.ref, {
+          popularityScore: 0,
+          recentCheckIns: 0,
+          weeklyCheckIns: 0,
+          totalCheckIns: 0,
+          popularityUpdatedAt: now
+        });
+        updateCount++;
+      }
+    });
+    
+    await batch.commit();
+    console.log(`✅ Updated popularity scores for ${updateCount} events`);
+    
+    return { success: true, eventsUpdated: updateCount };
+    
+  } catch (error) {
+    console.error('❌ Error updating event popularity:', error);
+    throw error;
+  }
+});
+
+// HTTP function to get trending events
+exports.getTrendingEvents = functions.https.onRequest(async (req, res) => {
+  console.log('📈 Getting trending events...');
+  
+  try {
+    const db = admin.firestore();
+    const { city, limit = 20, timeframe = 'recent' } = req.query;
+    
+    let query = db.collection('events');
+    
+    // Filter by city if provided
+    if (city) {
+      query = query.where('city', '==', city);
+    }
+    
+    // Order by popularity score (descending)
+    query = query.orderBy('popularityScore', 'desc').limit(parseInt(limit));
+    
+    const eventsSnapshot = await query.get();
+    
+    const trendingEvents = eventsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        eventName: data.eventName,
+        venueName: data.venueName,
+        eventLocation: data.eventLocation,
+        city: data.city,
+        imageUrl: data.imageUrl,
+        popularityScore: data.popularityScore || 0,
+        recentCheckIns: data.recentCheckIns || 0,
+        weeklyCheckIns: data.weeklyCheckIns || 0,
+        totalCheckIns: data.totalCheckIns || 0,
+        coordinates: data.coordinates
+      };
+    });
+    
+    console.log(`📊 Returning ${trendingEvents.length} trending events`);
+    
+    res.status(200).json({
+      success: true,
+      events: trendingEvents,
+      totalCount: trendingEvents.length,
+      city: city || 'all',
+      timeframe: timeframe
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting trending events:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// HTTP function to update a single event's popularity when new check-in happens
+exports.updateEventPopularityOnCheckIn = functions.firestore
+  .document('checkIns/{checkInId}')
+  .onCreate(async (snap, context) => {
+    const checkInData = snap.data();
+    const eventId = checkInData.eventId;
+    
+    if (!eventId) {
+      console.log('⚠️ Check-in created without eventId');
+      return null;
+    }
+    
+    console.log(`🔥 New check-in created for event ${eventId}, updating popularity...`);
+    
+    try {
+      const db = admin.firestore();
+      const eventRef = db.collection('events').doc(eventId);
+      
+      // Get current event data
+      const eventDoc = await eventRef.get();
+      if (!eventDoc.exists) {
+        console.log(`⚠️ Event ${eventId} not found`);
+        return null;
+      }
+      
+      const eventData = eventDoc.data();
+      const currentScore = eventData.popularityScore || 0;
+      const currentRecent = eventData.recentCheckIns || 0;
+      const currentTotal = eventData.totalCheckIns || 0;
+      
+      // Increment counters and recalculate score
+      const newRecentCount = currentRecent + 1;
+      const newTotalCount = currentTotal + 1;
+      const newScore = currentScore + 5; // Add 5 points for recent check-in
+      
+      await eventRef.update({
+        popularityScore: newScore,
+        recentCheckIns: newRecentCount,
+        totalCheckIns: newTotalCount,
+        popularityUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log(`✅ Updated event ${eventId} popularity: score ${currentScore} → ${newScore}`);
+      
+      return null;
+    } catch (error) {
+      console.error(`❌ Error updating event popularity for ${eventId}:`, error);
+      return null;
+    }
+  });
+
+// MARK: - Location-based Event Discovery
+
+// HTTP function to get nearby events
+exports.getNearbyEvents = functions.https.onRequest(async (req, res) => {
+  console.log('📍 Getting nearby events...');
+  
+  try {
+    const { latitude, longitude, radius = 40000, limit = 50 } = req.query; // radius in meters, default 25 miles
+    
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        error: 'Latitude and longitude are required'
+      });
+    }
+    
+    const userLat = parseFloat(latitude);
+    const userLng = parseFloat(longitude);
+    const radiusInMeters = parseInt(radius);
+    
+    console.log(`📍 Searching for events within ${radiusInMeters}m of (${userLat}, ${userLng})`);
+    
+    const db = admin.firestore();
+    
+    // Get all events with coordinates
+    const eventsSnapshot = await db.collection('events')
+      .where('coordinates', '!=', null)
+      .limit(parseInt(limit) * 2) // Get more to filter by distance
+      .get();
+    
+    const nearbyEvents = [];
+    
+    eventsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const coordinates = data.coordinates;
+      
+      if (coordinates && coordinates.latitude && coordinates.longitude) {
+        const distance = calculateDistance(
+          userLat, userLng,
+          coordinates.latitude, coordinates.longitude
+        );
+        
+        if (distance <= radiusInMeters) {
+          nearbyEvents.push({
+            id: doc.id,
+            ...data,
+            distanceMeters: Math.round(distance),
+            distanceMiles: Math.round(distance * 0.000621371 * 10) / 10
+          });
+        }
+      }
+    });
+    
+    // Sort by distance, then by popularity
+    nearbyEvents.sort((a, b) => {
+      const distanceDiff = a.distanceMeters - b.distanceMeters;
+      if (distanceDiff !== 0) return distanceDiff;
+      return (b.popularityScore || 0) - (a.popularityScore || 0);
+    });
+    
+    // Limit results
+    const limitedEvents = nearbyEvents.slice(0, parseInt(limit));
+    
+    console.log(`📊 Found ${limitedEvents.length} events within ${radiusInMeters}m`);
+    
+    res.status(200).json({
+      success: true,
+      events: limitedEvents,
+      totalCount: limitedEvents.length,
+      searchCenter: { latitude: userLat, longitude: userLng },
+      radiusMeters: radiusInMeters
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting nearby events:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in meters
+} 

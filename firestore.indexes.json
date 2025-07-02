@@ -49,6 +49,30 @@
       ]
     },
     {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "city", "mode": "ASCENDING" },
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" },
+        { "fieldPath": "createdAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "coordinates", "mode": "ASCENDING" },
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "checkIns",
       "queryScope": "COLLECTION",
       "fields": [
@@ -68,7 +92,33 @@
       "collectionGroup": "checkIns",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "eventId", "mode": "ASCENDING" },
+        { "fieldPath": "isActive", "mode": "ASCENDING" },
+        { "fieldPath": "checkedInAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkIns",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "userId", "mode": "ASCENDING" },
+        { "fieldPath": "eventId", "mode": "ASCENDING" },
+        { "fieldPath": "isActive", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkIns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "mode": "ASCENDING" },
+        { "fieldPath": "checkedInAt", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkIns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "mode": "ASCENDING" },
         { "fieldPath": "checkedInAt", "mode": "DESCENDING" }
       ]
     },
@@ -113,13 +163,5 @@
       ]
     }
   ],
-  "fieldOverrides": [
-    {
-      "collectionGroup": "messages",
-      "fieldPath": "messageText",
-      "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION" }
-      ]
-    }
-  ]
+  "fieldOverrides": []
 }

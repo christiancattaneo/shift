@@ -308,6 +308,12 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     let eventCategory: String?
     let eventDate: String?
     let place: String?
+    // NEW: Location data for distance-based check-ins
+    let coordinates: EventCoordinates?
+    let city: String?
+    let state: String?
+    let country: String?
+    let address: String?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
     
@@ -380,6 +386,9 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
             }
         }
         
+        // NEW: Handle coordinates
+        self.coordinates = try? container.decode(EventCoordinates.self, forKey: .coordinates)
+        
         // Standard fields
         self.eventName = try? container.decode(String.self, forKey: .eventName)
         self.venueName = try? container.decode(String.self, forKey: .venueName)
@@ -388,6 +397,11 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.eventCategory = try? container.decode(String.self, forKey: .eventCategory)
         self.eventDate = try? container.decode(String.self, forKey: .eventDate)
         self.place = try? container.decode(String.self, forKey: .place)
+        // NEW: Location fields
+        self.city = try? container.decode(String.self, forKey: .city)
+        self.state = try? container.decode(String.self, forKey: .state)
+        self.country = try? container.decode(String.self, forKey: .country)
+        self.address = try? container.decode(String.self, forKey: .address)
         self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
         self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
         
@@ -410,6 +424,12 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         try container.encodeIfPresent(eventCategory, forKey: .eventCategory)
         try container.encodeIfPresent(eventDate, forKey: .eventDate)
         try container.encodeIfPresent(place, forKey: .place)
+        // NEW: Location fields
+        try container.encodeIfPresent(coordinates, forKey: .coordinates)
+        try container.encodeIfPresent(city, forKey: .city)
+        try container.encodeIfPresent(state, forKey: .state)
+        try container.encodeIfPresent(country, forKey: .country)
+        try container.encodeIfPresent(address, forKey: .address)
         try container.encodeIfPresent(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
     }
@@ -417,7 +437,8 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     // Coding keys
     private enum CodingKeys: String, CodingKey {
         case eventName, venueName, eventLocation, eventStartTime, eventEndTime
-        case image, imageUrl, firebaseImageUrl, isEventFree, eventCategory, eventDate, place, createdAt, updatedAt
+        case image, imageUrl, firebaseImageUrl, isEventFree, eventCategory, eventDate, place
+        case coordinates, city, state, country, address, createdAt, updatedAt
     }
     
     // Manual initializer for local creation (not from Firestore)
@@ -435,9 +456,21 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.eventCategory = nil
         self.eventDate = nil
         self.place = nil
+        // NEW: Initialize location fields
+        self.coordinates = nil
+        self.city = nil
+        self.state = nil
+        self.country = nil
+        self.address = nil
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
     }
+}
+
+// MARK: - Location Support Types
+struct EventCoordinates: Codable, Hashable {
+    let latitude: Double
+    let longitude: Double
 }
 
 // MARK: - Place Models
@@ -449,6 +482,12 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
     let imageUrl: String?            // NEW Firebase Storage field (working URLs)
     let firebaseImageUrl: String?    // Alternative Firebase field name
     let isPlaceFree: Bool?
+    // NEW: Location data
+    let coordinates: EventCoordinates?
+    let city: String?
+    let state: String?
+    let country: String?
+    let address: String?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
     
@@ -461,6 +500,12 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
         self.imageUrl = nil
         self.firebaseImageUrl = nil
         self.isPlaceFree = nil
+        // NEW: Initialize location fields
+        self.coordinates = nil
+        self.city = nil
+        self.state = nil
+        self.country = nil
+        self.address = nil
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
     }
