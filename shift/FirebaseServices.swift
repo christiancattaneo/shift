@@ -1034,6 +1034,8 @@ class FirebaseMembersService: ObservableObject {
                         do {
                             // Try direct decoding first
                             if let member = try? document.data(as: FirebaseMember.self) {
+                                // 🔧 CRITICAL DEBUG: Direct FirebaseMember decode
+                                print("🔧 DIRECT MEMBER: \(member.firstName) | Tip: '\(member.approachTip ?? "nil")'")
                                 return member
                             }
                             
