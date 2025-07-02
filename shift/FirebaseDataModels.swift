@@ -650,10 +650,6 @@ extension FirebaseEvent {
         return eventName ?? venueName ?? "Unnamed Event"
     }
     
-    var address: String? {
-        return eventLocation
-    }
-    
     var displayName: String {
         // Same fallback logic for display name
         return eventName ?? venueName ?? "Unnamed Event"
@@ -709,10 +705,6 @@ extension FirebaseEvent {
 extension FirebasePlace {
     var name: String {
         return placeName ?? "Unnamed Place"
-    }
-    
-    var address: String? {
-        return placeLocation
     }
     
     // Helper to get place image URL from Firebase Storage - Universal System

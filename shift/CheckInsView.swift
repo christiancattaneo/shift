@@ -1363,59 +1363,7 @@ struct AttendeeCardView: View {
     CheckInsView()
 }
 
-// MARK: - Location Permission Alert
-struct LocationPermissionAlert: View {
-    @Binding var isPresented: Bool
-    let onRequestPermission: () -> Void
-    let onOpenSettings: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "location.circle")
-                .font(.system(size: 60))
-                .foregroundStyle(.blue)
-            
-            VStack(spacing: 12) {
-                Text("Location Access Needed")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Text("To check in to events and find nearby experiences, Shift needs access to your location.")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-            }
-            
-            VStack(spacing: 12) {
-                Button("Allow Location Access") {
-                    onRequestPermission()
-                    isPresented = false
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                
-                Button("Open Settings") {
-                    onOpenSettings()
-                    isPresented = false
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                
-                Button("Not Now") {
-                    isPresented = false
-                }
-                .buttonStyle(.borderless)
-                .foregroundColor(.secondary)
-            }
-        }
-        .padding(32)
-        .background(Color(.systemBackground))
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-        .padding(20)
-    }
-}
+
 
 // MARK: - Helper Functions
 extension CheckInsView {
@@ -1439,18 +1387,5 @@ extension DateFormatter {
     func with(_ configurator: (DateFormatter) -> Void) -> DateFormatter {
         configurator(self)
         return self
-    }
-}
-
-// MARK: - Extensions
-extension FirebaseEvent {
-    var name: String {
-        return eventName ?? venueName ?? "Unknown Event"
-    }
-    
-    var imageURL: URL? {
-        // Prioritize new Firebase Storage URLs over legacy Adalo URLs
-        let urlString = imageUrl ?? firebaseImageUrl ?? image
-        return urlString != nil ? URL(string: urlString!) : nil
     }
 } 
