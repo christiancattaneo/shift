@@ -505,15 +505,7 @@ class FirebaseMembersService: ObservableObject {
                         do {
                             // First try to decode as FirebaseMember directly
                             if let member = try? document.data(as: FirebaseMember.self) {
-                                print("✅ DIRECT DECODE: '\(member.firstName)' - Document ID: '\(member.id ?? "nil")'")
                                 return member
-                            }
-                            
-                            // Log why direct decoding failed
-                            do {
-                                let _ = try document.data(as: FirebaseMember.self)
-                            } catch {
-                                print("❌ DIRECT DECODE FAILED for \(document.documentID): \(error)")
                             }
                             
                             // Fallback: decode as FirebaseUser and convert
@@ -535,7 +527,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                howToApproachMe: user.howToApproachMe,
+                                approachTip: user.howToApproachMe,  // Map from Firestore field to property
                                 instagramHandle: user.instagramHandle,
                                 profileImage: nil, // No legacy URLs
                                 profileImageUrl: nil, // No legacy URLs
@@ -556,9 +548,6 @@ class FirebaseMembersService: ObservableObject {
                                 profilePhoto: nil,
                                 profileImageName: nil
                             )
-                            
-                            print("🔧 MANUAL CREATION: '\(member.firstName)' - Document ID: '\(member.id ?? "nil")' | User ID: '\(member.userId ?? "nil")'")
-                            print("🔧 MANUAL CREATION: Expected to use userId '\(document.documentID)' for image URL")
                             
                             // Debug: Log approach tip data
                             if let tip = member.approachTip, !tip.isEmpty {
@@ -720,7 +709,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                howToApproachMe: user.howToApproachMe,
+                                approachTip: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 gender: user.gender
                             )
@@ -856,7 +845,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                howToApproachMe: user.howToApproachMe,
+                                approachTip: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 gender: user.gender
                             )
@@ -987,7 +976,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                howToApproachMe: user.howToApproachMe,
+                                approachTip: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 gender: user.gender
                             )
@@ -1067,7 +1056,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                howToApproachMe: user.howToApproachMe,
+                                approachTip: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 profileImage: nil,
                                 profileImageUrl: nil,
@@ -1125,7 +1114,7 @@ class FirebaseMembersService: ObservableObject {
                                     age: user.age,
                                     city: user.city,
                                     attractedTo: user.attractedTo,
-                                    howToApproachMe: user.howToApproachMe,
+                                    approachTip: user.howToApproachMe,
                                     instagramHandle: user.instagramHandle,
                                     profileImage: nil,
                                     profileImageUrl: nil,
@@ -1233,7 +1222,7 @@ class FirebaseMembersService: ObservableObject {
                 age: 28,
                 city: "San Francisco",
                 attractedTo: "Men",
-                howToApproachMe: "Ask me about my travels!",
+                approachTip: "Ask me about my travels!",
                 instagramHandle: "@sarah_travels",
                 profileImage: "https://picsum.photos/400/400?random=101"
             ),
@@ -1243,7 +1232,7 @@ class FirebaseMembersService: ObservableObject {
                 age: 32,
                 city: "San Francisco",
                 attractedTo: "Women",
-                howToApproachMe: "Let's grab coffee and talk tech",
+                approachTip: "Let's grab coffee and talk tech",
                 instagramHandle: "@jake_codes",
                 profileImage: "https://picsum.photos/400/400?random=102"
             ),
@@ -1253,7 +1242,7 @@ class FirebaseMembersService: ObservableObject {
                 age: 26,
                 city: "San Francisco",
                 attractedTo: "Anyone",
-                howToApproachMe: "I love discussing books and art",
+                approachTip: "I love discussing books and art",
                 instagramHandle: "@emma_reads",
                 profileImage: "https://picsum.photos/400/400?random=103"
             )
@@ -2034,7 +2023,7 @@ class FirebaseCheckInsService: ObservableObject {
                         age: data["age"] as? Int,
                         city: data["city"] as? String,
                         attractedTo: data["attractedTo"] as? String,
-                        howToApproachMe: data["howToApproachMe"] as? String, // Note: different field name
+                        approachTip: data["howToApproachMe"] as? String, // Map from Firestore field
                         instagramHandle: data["instagramHandle"] as? String,
                         profileImage: nil, // Legacy field - not used
                         profileImageUrl: nil, // Legacy field - not used 
