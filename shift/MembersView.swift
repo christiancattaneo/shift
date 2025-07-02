@@ -568,10 +568,11 @@ struct MemberCardView: View {
                 case .success(let image):
                     image
                         .resizable()
-                        .aspectRatio(1, contentMode: .fill)
+                        .aspectRatio(contentMode: .fill)
                         .frame(width: 160, height: 160)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipped()
                         .background(Color.gray.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 case .failure(_):
                     fallbackImageView
                 @unknown default:
@@ -638,8 +639,6 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(width: 160, height: 160)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
             
             VStack(spacing: 8) {
                 ProgressView()
@@ -649,6 +648,10 @@ struct MemberCardView: View {
                     .foregroundColor(.secondary)
             }
         }
+        .frame(width: 160, height: 160)
+        .clipped()
+        .background(Color.gray.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
     private var fallbackImageView: some View {
@@ -658,8 +661,6 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(width: 160, height: 160)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
             
             VStack(spacing: 8) {
                 Image(systemName: "person.crop.circle.fill")
@@ -671,6 +672,10 @@ struct MemberCardView: View {
                     .foregroundColor(.gray.opacity(0.8))
             }
         }
+        .frame(width: 160, height: 160)
+        .clipped()
+        .background(Color.gray.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
