@@ -3,6 +3,53 @@ import Firebase
 import FirebaseFirestore
 import FirebaseStorage
 
+// MARK: - Cached AsyncImage Component
+struct CachedAsyncImage<Content: View, Placeholder: View>: View {
+    private let url: URL?
+    private let content: (Image) -> Content
+    private let placeholder: () -> Placeholder
+    
+    @State private var cachedImage: UIImage?
+    @State private var isLoading = false
+    
+    init(
+        url: URL?,
+        @ViewBuilder content: @escaping (Image) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
+        self.url = url
+        self.content = content
+        self.placeholder = placeholder
+    }
+    
+    var body: some View {
+        Group {
+            if let cachedImage = cachedImage {
+                content(Image(uiImage: cachedImage))
+            } else {
+                placeholder()
+                    .onAppear {
+                        loadImage()
+                    }
+            }
+        }
+    }
+    
+    private func loadImage() {
+        guard let url = url, !isLoading else { return }
+        isLoading = true
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                isLoading = false
+                if let data = data, let uiImage = UIImage(data: data) {
+                    cachedImage = uiImage
+                }
+            }
+        }.resume()
+    }
+}
+
 struct MembersView: View {
     @StateObject private var membersService = FirebaseMembersService.shared
     @EnvironmentObject private var userSession: FirebaseUserSession
