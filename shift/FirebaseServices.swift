@@ -872,7 +872,12 @@ class FirebaseEventsService: ObservableObject {
                         var eventDecodingErrors = 0
                         let events = documents.compactMap { document -> FirebaseEvent? in
                             do {
-                                return try document.data(as: FirebaseEvent.self)
+                                let event = try document.data(as: FirebaseEvent.self)
+                                // Log if document ID is missing for debugging
+                                if event.id == nil || event.id?.isEmpty == true {
+                                    print("🔧 DEBUG: Event '\(event.eventName ?? "Unknown")' missing document ID (will use computed uniqueID)")
+                                }
+                                return event
                             } catch {
                                 eventDecodingErrors += 1
                                 // Only log first few errors to avoid spam
@@ -1073,7 +1078,12 @@ class FirebasePlacesService: ObservableObject {
                         
                         do {
                             let fetchedPlaces = try documents.compactMap { document -> FirebasePlace? in
-                                return try document.data(as: FirebasePlace.self)
+                                let place = try document.data(as: FirebasePlace.self)
+                                // Log if document ID is missing for debugging
+                                if place.id == nil || place.id?.isEmpty == true {
+                                    print("🔧 DEBUG: Place '\(place.placeName ?? "Unknown")' missing document ID (will use computed uniqueID)")
+                                }
+                                return place
                             }
                             
                             print("✅ Fetched \(fetchedPlaces.count) places from Firebase")
@@ -1200,6 +1210,27 @@ class FirebaseCheckInsService: ObservableObject {
     
     private func addUserToCollection(userId: String, itemId: String, collection: String, completion: @escaping (Bool) -> Void) {
         print("🔍 FIREBASE CHECKIN: Checking \(collection) collection for document: \(itemId)")
+        
+        // ENHANCED: If itemId looks like a computed uniqueID, try to find the real document first
+        if itemId.contains("_") && !itemId.contains("-") {
+            print("🔧 FIREBASE CHECKIN: Detected computed ID '\(itemId)', searching for real document...")
+            findEventByComputedId(itemId: itemId, collection: collection) { [weak self] realDocumentId in
+                if let realId = realDocumentId {
+                    print("✅ FIREBASE CHECKIN: Found real document ID: \(realId)")
+                    self?.addUserToCollection(userId: userId, itemId: realId, collection: collection, completion: completion)
+                } else {
+                    // Fallback to original logic
+                    self?.directDocumentLookup(userId: userId, itemId: itemId, collection: collection, completion: completion)
+                }
+            }
+            return
+        }
+        
+        // Normal direct lookup for proper UUIDs
+        directDocumentLookup(userId: userId, itemId: itemId, collection: collection, completion: completion)
+    }
+    
+    private func directDocumentLookup(userId: String, itemId: String, collection: String, completion: @escaping (Bool) -> Void) {
         db.collection(collection).document(itemId).getDocument { document, error in
             if let error = error {
                 print("❌ FIREBASE CHECKIN: Error getting document from \(collection): \(error.localizedDescription)")
@@ -1588,6 +1619,88 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     // Helper function to search for similar items when exact match fails
+    // NEW: Find real document ID by computed uniqueID
+    private func findEventByComputedId(itemId: String, collection: String, completion: @escaping (String?) -> Void) {
+        // Parse the computed ID to extract event/place name
+        let components = itemId.components(separatedBy: "_")
+        guard components.count >= 2 else {
+            completion(nil)
+            return
+        }
+        
+        let searchName = components[0].trimmingCharacters(in: .whitespacesAndNewlines)
+        let venueName = components.count > 2 ? components[1].trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        
+        print("🔍 FIREBASE CHECKIN: Searching \(collection) for name '\(searchName)' or venue '\(venueName)'")
+        
+        // Search by event/place name
+        var query = db.collection(collection).limit(to: 10)
+        
+        if collection == "events" {
+            // For events, search by eventName or venueName
+            if !venueName.isEmpty {
+                query = db.collection(collection)
+                    .whereField("venueName", isGreaterThanOrEqualTo: venueName)
+                    .whereField("venueName", isLessThan: venueName + "\u{f8ff}")
+                    .limit(to: 5)
+            } else {
+                query = db.collection(collection)
+                    .whereField("eventName", isGreaterThanOrEqualTo: searchName)
+                    .whereField("eventName", isLessThan: searchName + "\u{f8ff}")
+                    .limit(to: 5)
+            }
+        } else {
+            // For places, search by placeName
+            query = db.collection(collection)
+                .whereField("placeName", isGreaterThanOrEqualTo: searchName)
+                .whereField("placeName", isLessThan: searchName + "\u{f8ff}")
+                .limit(to: 5)
+        }
+        
+        query.getDocuments { snapshot, error in
+            if let error = error {
+                print("❌ FIREBASE CHECKIN: Error searching \(collection): \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+            
+            guard let documents = snapshot?.documents else {
+                print("📭 FIREBASE CHECKIN: No documents found in \(collection) search")
+                completion(nil)
+                return
+            }
+            
+            // Find the best match
+            for document in documents {
+                let data = document.data()
+                
+                if collection == "events" {
+                    let eventName = (data["eventName"] as? String ?? "").lowercased()
+                    let venue = (data["venueName"] as? String ?? "").lowercased()
+                    
+                    if eventName.contains(searchName.lowercased()) || 
+                       venue.contains(searchName.lowercased()) ||
+                       (!venueName.isEmpty && venue.contains(venueName.lowercased())) {
+                        print("✅ FIREBASE CHECKIN: Found matching event: \(document.documentID)")
+                        completion(document.documentID)
+                        return
+                    }
+                } else {
+                    let placeName = (data["placeName"] as? String ?? "").lowercased()
+                    
+                    if placeName.contains(searchName.lowercased()) {
+                        print("✅ FIREBASE CHECKIN: Found matching place: \(document.documentID)")
+                        completion(document.documentID)
+                        return
+                    }
+                }
+            }
+            
+            print("❌ FIREBASE CHECKIN: No matching document found for '\(searchName)'")
+            completion(nil)
+        }
+    }
+    
     private func debugSearchForSimilarItems(searchId: String, completion: @escaping ([String]) -> Void) {
         print("🔍 FIREBASE CHECKIN: Searching for similar items to: \(searchId)")
         var foundItems: [String] = []
