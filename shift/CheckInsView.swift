@@ -788,7 +788,17 @@ struct EventCardView: View {
                eventId == (event.id ?? event.uniqueID) {
                 print("🔄 EventCard: Received check-in status change for event \(event.name): \(isCheckedIn)")
                 DispatchQueue.main.async {
+                    let wasCheckedIn = self.isCheckedIn
                     self.isCheckedIn = isCheckedIn
+                    
+                    // Update count immediately based on state change
+                    if isCheckedIn && !wasCheckedIn {
+                        self.checkInCount += 1
+                    } else if !isCheckedIn && wasCheckedIn {
+                        self.checkInCount = max(0, self.checkInCount - 1)
+                    }
+                    
+                    // Then refresh from server for accuracy
                     self.loadCheckInCount()
                 }
             }
@@ -880,11 +890,13 @@ struct EventCardView: View {
                     if success {
                         isCheckedIn = false
                         loadCheckInCount()
+                        let notificationData = ["eventId": eventId, "isCheckedIn": false] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
                             object: nil,
-                            userInfo: ["eventId": eventId, "isCheckedIn": false]
+                            userInfo: notificationData
                         )
+                        print("📢 EventCard: Posted check-out notification for eventId: \(eventId)")
                     } else {
                         print("❌ Check out failed: \(error ?? "Unknown error")")
                     }
@@ -902,11 +914,13 @@ struct EventCardView: View {
                     if success {
                         isCheckedIn = true
                         loadCheckInCount()
+                        let notificationData = ["eventId": eventId, "isCheckedIn": true] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
                             object: nil,
-                            userInfo: ["eventId": eventId, "isCheckedIn": true]
+                            userInfo: notificationData
                         )
+                        print("📢 EventCard: Posted check-in notification for eventId: \(eventId)")
                     } else {
                         locationError = error
                         showLocationAlert = true
@@ -1100,7 +1114,17 @@ struct PlaceCardView: View {
                placeId == place.id {
                 print("🔄 PlaceCard: Received check-in status change for place \(place.name): \(isCheckedIn)")
                 DispatchQueue.main.async {
+                    let wasCheckedIn = self.isCheckedIn
                     self.isCheckedIn = isCheckedIn
+                    
+                    // Update count immediately based on state change
+                    if isCheckedIn && !wasCheckedIn {
+                        self.checkInCount += 1
+                    } else if !isCheckedIn && wasCheckedIn {
+                        self.checkInCount = max(0, self.checkInCount - 1)
+                    }
+                    
+                    // Then refresh from server for accuracy
                     self.loadCheckInCount()
                 }
             }
@@ -1190,11 +1214,13 @@ struct PlaceCardView: View {
                     if success {
                         isCheckedIn = false
                         loadCheckInCount()
+                        let notificationData = ["placeId": placeId, "isCheckedIn": false] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
                             object: nil,
-                            userInfo: ["placeId": placeId, "isCheckedIn": false]
+                            userInfo: notificationData
                         )
+                        print("📢 PlaceCard: Posted check-out notification for placeId: \(placeId)")
                     } else {
                         print("❌ Place check out failed: \(error ?? "Unknown error")")
                     }
@@ -1208,11 +1234,13 @@ struct PlaceCardView: View {
                     if success {
                         isCheckedIn = true
                         loadCheckInCount()
+                        let notificationData = ["placeId": placeId, "isCheckedIn": true] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
                             object: nil,
-                            userInfo: ["placeId": placeId, "isCheckedIn": true]
+                            userInfo: notificationData
                         )
+                        print("📢 PlaceCard: Posted check-in notification for placeId: \(placeId)")
                     } else {
                         locationError = error
                         showLocationAlert = true
@@ -1364,24 +1392,29 @@ struct PlaceDetailView: View {
                placeId == place.id {
                 print("🔄 PlaceDetail: Received check-in status change - placeId: \(placeId), newStatus: \(newIsCheckedIn)")
                 
-                // Store old value before updating
-                let wasCheckedIn = self.isCheckedIn
-                
-                // Update local check-in status immediately
-                self.isCheckedIn = newIsCheckedIn
-                
-                // Update check-in count based on state change
-                if newIsCheckedIn && !wasCheckedIn {
-                    self.checkInCount += 1
-                } else if !newIsCheckedIn && wasCheckedIn {
-                    self.checkInCount = max(0, self.checkInCount - 1)
+                DispatchQueue.main.async {
+                    // Store old value before updating
+                    let wasCheckedIn = self.isCheckedIn
+                    let oldCount = self.checkInCount
+                    
+                    // Update local check-in status immediately for responsive UI
+                    self.isCheckedIn = newIsCheckedIn
+                    
+                    // Update check-in count based on state change
+                    if newIsCheckedIn && !wasCheckedIn {
+                        self.checkInCount += 1
+                    } else if !newIsCheckedIn && wasCheckedIn {
+                        self.checkInCount = max(0, self.checkInCount - 1)
+                    }
+                    
+                    print("🔄 PlaceDetail: Updated local state immediately - isCheckedIn: \(wasCheckedIn) → \(self.isCheckedIn), count: \(oldCount) → \(self.checkInCount)")
+                    
+                    // Trigger Firebase update if needed and reload from server for accuracy
+                    if !self.isProcessing {
+                        self.loadAttendees()
+                        self.loadCheckInCount()
+                    }
                 }
-                
-                // Reload attendees and count from server for accuracy
-                loadAttendees()
-                loadCheckInCount()
-                
-                print("🔄 PlaceDetail: Updated local state - isCheckedIn: \(self.isCheckedIn), count: \(self.checkInCount)")
             }
         }
     }
@@ -1524,11 +1557,13 @@ struct PlaceDetailView: View {
                         isCheckedIn = false
                         checkInCount = max(0, checkInCount - 1)
                         Haptics.successNotification()
+                        let notificationData = ["placeId": placeId, "isCheckedIn": false] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
                             object: nil,
-                            userInfo: ["placeId": placeId, "isCheckedIn": false]
+                            userInfo: notificationData
                         )
+                        print("📢 PlaceDetail: Posted check-out notification for placeId: \(placeId)")
                     } else {
                         print("❌ Place check out failed: \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -1544,11 +1579,13 @@ struct PlaceDetailView: View {
                         isCheckedIn = true
                         checkInCount += 1
                         Haptics.successNotification()
+                        let notificationData = ["placeId": placeId, "isCheckedIn": true] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
                             object: nil,
-                            userInfo: ["placeId": placeId, "isCheckedIn": true]
+                            userInfo: notificationData
                         )
+                        print("📢 PlaceDetail: Posted check-in notification for placeId: \(placeId)")
                     } else {
                         print("❌ Place check in failed: \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -1801,24 +1838,29 @@ struct EventDetailView: View {
                eventId == (event.id ?? event.uniqueID) {
                 print("🔄 EventDetail: Received check-in status change - eventId: \(eventId), newStatus: \(newIsCheckedIn)")
                 
-                // Store old value before updating
-                let wasCheckedIn = self.isCheckedIn
-                
-                // Update local check-in status immediately
-                self.isCheckedIn = newIsCheckedIn
-                
-                // Update check-in count based on state change
-                if newIsCheckedIn && !wasCheckedIn {
-                    self.checkInCount += 1
-                } else if !newIsCheckedIn && wasCheckedIn {
-                    self.checkInCount = max(0, self.checkInCount - 1)
+                DispatchQueue.main.async {
+                    // Store old value before updating
+                    let wasCheckedIn = self.isCheckedIn
+                    let oldCount = self.checkInCount
+                    
+                    // Update local check-in status immediately for responsive UI
+                    self.isCheckedIn = newIsCheckedIn
+                    
+                    // Update check-in count based on state change
+                    if newIsCheckedIn && !wasCheckedIn {
+                        self.checkInCount += 1
+                    } else if !newIsCheckedIn && wasCheckedIn {
+                        self.checkInCount = max(0, self.checkInCount - 1)
+                    }
+                    
+                    print("🔄 EventDetail: Updated local state immediately - isCheckedIn: \(wasCheckedIn) → \(self.isCheckedIn), count: \(oldCount) → \(self.checkInCount)")
+                    
+                    // Trigger Firebase update if needed and reload from server for accuracy
+                    if !self.isProcessing {
+                        self.loadAttendees()
+                        self.loadCheckInCount()
+                    }
                 }
-                
-                // Reload attendees and count from server for accuracy
-                loadAttendees()
-                loadCheckInCount()
-                
-                print("🔄 EventDetail: Updated local state - isCheckedIn: \(self.isCheckedIn), count: \(self.checkInCount)")
             }
         }
     }
@@ -2111,12 +2153,13 @@ struct EventDetailView: View {
                         print("✅ Successfully checked out of event")
                         
                         // Notify other views about check-in status change
+                        let notificationData = ["eventId": eventId, "isCheckedIn": false] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged,
                             object: nil,
-                            userInfo: ["eventId": eventId, "isCheckedIn": false]
+                            userInfo: notificationData
                         )
-                        print("📢 Posted checkInStatusChanged notification")
+                        print("📢 EventDetail: Posted check-out notification for eventId: \(eventId)")
                     } else {
                         print("❌ CHECKOUT: Failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -2143,12 +2186,13 @@ struct EventDetailView: View {
                         print("✅ Successfully checked in to event")
                         
                         // Notify other views about check-in status change
+                        let notificationData = ["eventId": eventId, "isCheckedIn": true] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged,
                             object: nil,
-                            userInfo: ["eventId": eventId, "isCheckedIn": true]
+                            userInfo: notificationData
                         )
-                        print("📢 Posted checkInStatusChanged notification")
+                        print("📢 EventDetail: Posted check-in notification for eventId: \(eventId)")
                     } else {
                         print("❌ CHECKIN: Failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
