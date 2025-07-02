@@ -1004,19 +1004,26 @@ struct MemberCardView: View {
                     }
                 }
                 
-                if let tip = member.approachTip, !tip.isEmpty {
-                    Text(tip)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                        .truncationMode(.tail)
-                } else {
-                    // Debug: Show when approach tip is missing
-                    Text("No approach tip")
+                // DEBUG: Always show approach tip status
+                VStack(alignment: .leading, spacing: 2) {
+                    if let tip = member.approachTip, !tip.isEmpty {
+                        Text("💡 \(tip)")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .truncationMode(.tail)
+                    } else {
+                        Text("❌ No tip (raw: '\(String(describing: member.approachTip))')")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                            .italic()
+                    }
+                    
+                    // Debug member data
+                    Text("ID: \(member.userId ?? "nil") | Gender: \(member.gender ?? "nil")")
                         .font(.caption2)
-                        .foregroundColor(.orange)
-                        .italic()
+                        .foregroundColor(.gray)
                 }
             }
             .padding(12)
