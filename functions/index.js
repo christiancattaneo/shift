@@ -1747,4 +1747,236 @@ exports.inspectDetailedData = functions.https.onRequest(async (req, res) => {
       error: error.message
     });
   }
-}); 
+});
+
+// NEW: Mutual Compatibility Filter Function
+exports.getCompatibleMembers = functions.https.onCall(async (data, context) => {
+  console.log('🔗 Getting compatible members...');
+  
+  try {
+    // Check authentication
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to get compatible members.'
+      );
+    }
+    
+    const currentUserId = data.currentUserId;
+    const limitCount = data.limit || 50;
+    const page = data.page || 0;
+    
+    if (!currentUserId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'currentUserId is required.'
+      );
+    }
+    
+    const db = admin.firestore();
+    
+    // Get current user's preferences
+    const currentUserDoc = await db.collection('users').doc(currentUserId).get();
+    if (!currentUserDoc.exists) {
+      throw new functions.https.HttpsError(
+        'not-found',
+        'Current user not found.'
+      );
+    }
+    
+    const currentUser = currentUserDoc.data();
+    const currentUserGender = currentUser.gender?.toLowerCase()?.trim() || '';
+    const currentUserAttractedTo = currentUser.attractedTo?.toLowerCase()?.trim() || '';
+    
+    console.log(`🔗 Current user: ${currentUser.firstName} (gender: ${currentUserGender}, attracted to: ${currentUserAttractedTo})`);
+    
+    // Get all members (excluding current user)
+    const membersSnapshot = await db.collection('members')
+      .get();
+    
+    const compatibleMembers = [];
+    let processedCount = 0;
+    
+    for (const memberDoc of membersSnapshot.docs) {
+      const member = memberDoc.data();
+      const memberId = memberDoc.id;
+      
+      // Skip current user
+      if (memberId === currentUserId || member.userId === currentUserId) {
+        continue;
+      }
+      
+      processedCount++;
+      
+      const memberGender = member.gender?.toLowerCase()?.trim() || '';
+      const memberAttractedTo = member.attractedTo?.toLowerCase()?.trim() || '';
+      
+      // Check mutual compatibility
+      const userAttractedToMember = isAttractedTo(currentUserAttractedTo, memberGender);
+      const memberAttractedToUser = isAttractedTo(memberAttractedTo, currentUserGender);
+      
+      if (userAttractedToMember && memberAttractedToUser) {
+        // Calculate compatibility score
+        const compatibilityScore = calculateCompatibilityScore(member, currentUser);
+        
+        compatibleMembers.push({
+          ...member,
+          id: memberId,
+          compatibilityScore: compatibilityScore,
+          mutuallyCompatible: true
+        });
+        
+        console.log(`✅ Compatible: ${member.firstName} (gender: ${memberGender}, attracted to: ${memberAttractedTo}) - Score: ${compatibilityScore}`);
+      } else {
+        console.log(`❌ Not compatible: ${member.firstName} (gender: ${memberGender}, attracted to: ${memberAttractedTo})`);
+      }
+    }
+    
+    // Sort by compatibility score
+    compatibleMembers.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+    
+    // Apply pagination
+    const startIndex = page * limitCount;
+    const endIndex = startIndex + limitCount;
+    const paginatedMembers = compatibleMembers.slice(startIndex, endIndex);
+    
+    console.log(`🔗 Found ${compatibleMembers.length} compatible members out of ${processedCount} total members`);
+    console.log(`📄 Returning page ${page} with ${paginatedMembers.length} members`);
+    
+    return {
+      success: true,
+      members: paginatedMembers,
+      totalCompatible: compatibleMembers.length,
+      totalProcessed: processedCount,
+      page: page,
+      hasMore: endIndex < compatibleMembers.length
+    };
+    
+  } catch (error) {
+    console.error('❌ Error in getCompatibleMembers:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      error.message
+    );
+  }
+});
+
+// Helper function for attraction checking (server-side)
+function isAttractedTo(userAttractedTo, personGender) {
+  if (!userAttractedTo || userAttractedTo.trim() === '') {
+    return true; // No preference = open to everyone
+  }
+  
+  if (!personGender || personGender.trim() === '') {
+    return true; // No gender specified = assume compatibility
+  }
+  
+  const attractedTo = userAttractedTo.toLowerCase().trim();
+  const gender = personGender.toLowerCase().trim();
+  
+  // Handle "everyone" cases
+  if (attractedTo === 'everyone' || 
+      attractedTo === 'all' || 
+      attractedTo === 'anyone' || 
+      attractedTo === 'both' ||
+      attractedTo === 'all genders') {
+    return true;
+  }
+  
+  // Check female attraction
+  if (attractedTo.includes('women') || 
+      attractedTo.includes('woman') || 
+      attractedTo.includes('female') ||
+      attractedTo.includes('girls') ||
+      attractedTo.includes('girl')) {
+    if (gender.includes('woman') || 
+        gender.includes('female') || 
+        gender.includes('girl')) {
+      return true;
+    }
+  }
+  
+  // Check male attraction
+  if (attractedTo.includes('men') || 
+      attractedTo.includes('man') || 
+      attractedTo.includes('male') ||
+      attractedTo.includes('guys') ||
+      attractedTo.includes('guy')) {
+    if (gender.includes('man') || 
+        gender.includes('male') || 
+        gender.includes('guy')) {
+      return true;
+    }
+  }
+  
+  // Check non-binary and other identities
+  if (attractedTo.includes('non-binary') ||
+      attractedTo.includes('nonbinary') ||
+      attractedTo.includes('enby') ||
+      attractedTo.includes('genderfluid') ||
+      attractedTo.includes('genderqueer') ||
+      attractedTo.includes('transgender') ||
+      attractedTo.includes('trans')) {
+    if (gender.includes('non-binary') ||
+        gender.includes('nonbinary') ||
+        gender.includes('enby') ||
+        gender.includes('genderfluid') ||
+        gender.includes('genderqueer') ||
+        gender.includes('transgender') ||
+        gender.includes('trans')) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Helper function for compatibility scoring (server-side)
+function calculateCompatibilityScore(member, currentUser) {
+  let score = 0;
+  
+  // Profile completeness (0-30 points)
+  let completenessScore = 0;
+  const totalFields = 6;
+  
+  if (member.id && member.id.trim() !== '') completenessScore++;
+  if (member.age) completenessScore++;
+  if (member.city && member.city.trim() !== '') completenessScore++;
+  if (member.gender && member.gender.trim() !== '') completenessScore++;
+  if (member.approachTip && member.approachTip.trim() !== '') completenessScore++;
+  if (member.instagramHandle && member.instagramHandle.trim() !== '') completenessScore++;
+  
+  score += (completenessScore / totalFields) * 30;
+  
+  // Age compatibility (0-25 points)
+  if (member.age && currentUser.age) {
+    const ageDiff = Math.abs(member.age - currentUser.age);
+    const ageScore = Math.max(0, 25 - ageDiff);
+    score += ageScore;
+  }
+  
+  // Location compatibility (0-20 points)
+  if (member.city && currentUser.city) {
+    const memberCity = member.city.toLowerCase();
+    const userCity = currentUser.city.toLowerCase();
+    
+    if (memberCity === userCity) {
+      score += 20;
+    } else if (memberCity.includes(userCity) || userCity.includes(memberCity)) {
+      score += 15;
+    }
+  }
+  
+  // Mutual compatibility already verified (25 points)
+  score += 25;
+  
+  // Profile activity (0-10 points)
+  if (member.instagramHandle && member.instagramHandle.trim() !== '') {
+    score += 5;
+  }
+  if (member.approachTip && member.approachTip.trim() !== '') {
+    score += 5;
+  }
+  
+  return Math.round(score);
+}

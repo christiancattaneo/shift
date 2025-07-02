@@ -380,34 +380,105 @@ struct MembersView: View {
             return rankMembersByCompatibility(members, currentUser: nil)
         }
         
-        let userAttractedTo = currentUser.attractedTo?.lowercased() ?? ""
-        
         let filtered = members.filter { member in
-            if userAttractedTo.isEmpty || userAttractedTo == "everyone" || userAttractedTo == "anyone" {
-                return true
-            }
-            
-            let memberGender = member.gender?.lowercased() ?? ""
-            return checkGenderCompatibility(userAttractedTo: userAttractedTo, memberGender: memberGender)
+            return areMutuallyCompatible(user: currentUser, member: member)
         }
         
+        print("🔗 COMPATIBILITY: Filtered \(members.count) → \(filtered.count) mutually compatible members")
         return rankMembersByCompatibility(filtered, currentUser: currentUser)
     }
     
-    private func checkGenderCompatibility(userAttractedTo: String?, memberGender: String?) -> Bool {
-        guard let attractedTo = userAttractedTo?.lowercased() else { return true }
-        guard let gender = memberGender?.lowercased() else { return true }
+    // MARK: - Mutual Compatibility Logic
+    
+    private func areMutuallyCompatible(user: FirebaseUser, member: FirebaseMember) -> Bool {
+        // Check if user is attracted to member's gender
+        let userAttractedToMember = isAttractedTo(userAttractedTo: user.attractedTo, personGender: member.gender)
         
-        switch attractedTo {
-        case "women", "woman", "female":
-            return gender.contains("woman") || gender.contains("female")
-        case "men", "man", "male":
-            return gender.contains("man") || gender.contains("male")
-        case "everyone", "all", "anyone", "both":
-            return true
-        default:
+        // Check if member is attracted to user's gender  
+        let memberAttractedToUser = isAttractedTo(userAttractedTo: member.attractedTo, personGender: user.gender)
+        
+        let isCompatible = userAttractedToMember && memberAttractedToUser
+        
+        if !isCompatible {
+            print("🔗 COMPATIBILITY: \(user.firstName ?? "User") (attracted to: \(user.attractedTo ?? "nil"), gender: \(user.gender ?? "nil")) vs \(member.firstName) (attracted to: \(member.attractedTo ?? "nil"), gender: \(member.gender ?? "nil")) = NOT compatible")
+        }
+        
+        return isCompatible
+    }
+    
+    private func isAttractedTo(userAttractedTo: String?, personGender: String?) -> Bool {
+        guard let attractedTo = userAttractedTo?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) else { 
+            // If no preference specified, assume they're open to everyone
+            return true 
+        }
+        
+        guard let gender = personGender?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) else { 
+            // If gender not specified, assume compatibility for inclusivity
+            return true 
+        }
+        
+        // Handle "everyone" cases first
+        if attractedTo.isEmpty || 
+           attractedTo == "everyone" || 
+           attractedTo == "all" || 
+           attractedTo == "anyone" || 
+           attractedTo == "both" ||
+           attractedTo == "all genders" {
             return true
         }
+        
+        // Check for female attraction
+        if attractedTo.contains("women") || 
+           attractedTo.contains("woman") || 
+           attractedTo.contains("female") ||
+           attractedTo.contains("girls") ||
+           attractedTo.contains("girl") {
+            if gender.contains("woman") || 
+               gender.contains("female") || 
+               gender.contains("girl") {
+                return true
+            }
+        }
+        
+        // Check for male attraction
+        if attractedTo.contains("men") || 
+           attractedTo.contains("man") || 
+           attractedTo.contains("male") ||
+           attractedTo.contains("guys") ||
+           attractedTo.contains("guy") {
+            if gender.contains("man") || 
+               gender.contains("male") || 
+               gender.contains("guy") {
+                return true
+            }
+        }
+        
+        // Check for non-binary and other gender identities
+        if attractedTo.contains("non-binary") ||
+           attractedTo.contains("nonbinary") ||
+           attractedTo.contains("enby") ||
+           attractedTo.contains("genderfluid") ||
+           attractedTo.contains("genderqueer") ||
+           attractedTo.contains("transgender") ||
+           attractedTo.contains("trans") {
+            if gender.contains("non-binary") ||
+               gender.contains("nonbinary") ||
+               gender.contains("enby") ||
+               gender.contains("genderfluid") ||
+               gender.contains("genderqueer") ||
+               gender.contains("transgender") ||
+               gender.contains("trans") {
+                return true
+            }
+        }
+        
+        // If no match found, default to false for specific preferences
+        return false
+    }
+    
+    private func checkGenderCompatibility(userAttractedTo: String?, memberGender: String?) -> Bool {
+        // Legacy function - keeping for backward compatibility but using new logic
+        return isAttractedTo(userAttractedTo: userAttractedTo, personGender: memberGender)
     }
     
     private func applyLocationFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
@@ -468,11 +539,16 @@ struct MembersView: View {
             }
         }
         
-        // Attraction compatibility (0-15 points)
-        if let userAttractedTo = currentUser.attractedTo?.lowercased(),
-           let memberGender = member.gender?.lowercased() {
-            if checkGenderCompatibility(userAttractedTo: userAttractedTo, memberGender: memberGender) {
-                score += 15
+        // Mutual attraction compatibility (0-25 points) - ENHANCED
+        if areMutuallyCompatible(user: currentUser, member: member) {
+            score += 25  // Higher score for mutual compatibility
+        } else {
+            // Give partial credit if only one direction is compatible
+            let userAttractedToMember = isAttractedTo(userAttractedTo: currentUser.attractedTo, personGender: member.gender)
+            let memberAttractedToUser = isAttractedTo(userAttractedTo: member.attractedTo, personGender: currentUser.gender)
+            
+            if userAttractedToMember || memberAttractedToUser {
+                score += 10  // Partial compatibility
             }
         }
         
