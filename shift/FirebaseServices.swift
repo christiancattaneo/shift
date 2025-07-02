@@ -452,14 +452,22 @@ class FirebaseMembersService: ObservableObject {
                     .limit(to: increasedLimit) ?? self!.db.collection("users").limit(to: increasedLimit)
             } else {
                 // Subsequent batches: Use document ID ordering for different results
-                query = self?.db.collection("users")
-                    .whereField("firstName", isNotEqualTo: "")
-                    .order(by: "updatedAt", descending: true) // Recently active users
-                    .start(afterDocument: self!.lastDocument)
-                    .limit(to: increasedLimit) ?? self!.db.collection("users").limit(to: increasedLimit)
+                if let lastDoc = self?.lastDocument {
+                    query = self?.db.collection("users")
+                        .whereField("firstName", isNotEqualTo: "")
+                        .order(by: "updatedAt", descending: true) // Recently active users
+                        .start(afterDocument: lastDoc)
+                        .limit(to: increasedLimit) ?? self!.db.collection("users").limit(to: increasedLimit)
+                } else {
+                    // Fallback if no lastDocument
+                    query = self?.db.collection("users")
+                        .whereField("firstName", isNotEqualTo: "")
+                        .order(by: "updatedAt", descending: true)
+                        .limit(to: increasedLimit) ?? self!.db.collection("users").limit(to: increasedLimit)
+                }
             }
             
-            query?.getDocuments { [weak self] querySnapshot, error in
+            query.getDocuments { [weak self] querySnapshot, error in
                 DispatchQueue.main.async {
                     self?.isLoading = false
                     self?.hasFetched = true
