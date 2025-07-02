@@ -380,12 +380,51 @@ struct MembersView: View {
             return rankMembersByCompatibility(members, currentUser: nil)
         }
         
+        // ENHANCED: If we have limited members or current user has specific preferences, 
+        // fetch more targeted members from Firebase
+        if members.count < 100 || currentUser.attractedTo != nil {
+            fetchMoreCompatibleMembers()
+        }
+        
         let filtered = members.filter { member in
             return areMutuallyCompatible(user: currentUser, member: member)
         }
         
         print("🔗 COMPATIBILITY: Filtered \(members.count) → \(filtered.count) mutually compatible members")
         return rankMembersByCompatibility(filtered, currentUser: currentUser)
+    }
+    
+    private func fetchMoreCompatibleMembers() {
+        guard let currentUser = userSession.currentUser else { return }
+        
+        print("🔍 ENHANCED: Fetching more compatible members for user attracted to '\(currentUser.attractedTo ?? "unknown")'")
+        
+        membersService.fetchCompatibleMembers(
+            userGender: currentUser.gender,
+            userAttractedTo: currentUser.attractedTo
+        ) { [weak self] compatibleMembers in
+            DispatchQueue.main.async {
+                // Merge with existing members without duplicates
+                var allMembers = self?.membersService.members ?? []
+                let existingIds = Set(allMembers.compactMap { $0.userId })
+                
+                let newMembers = compatibleMembers.filter { member in
+                    if let userId = member.userId {
+                        return !existingIds.contains(userId)
+                    }
+                    return false
+                }
+                
+                if !newMembers.isEmpty {
+                    allMembers.append(contentsOf: newMembers)
+                    self?.membersService.members = allMembers
+                    print("🔍 ENHANCED: Added \(newMembers.count) new compatible members (Total: \(allMembers.count))")
+                    
+                    // Re-filter with the expanded dataset
+                    self?.filterMembersAsync()
+                }
+            }
+        }
     }
     
     // MARK: - Mutual Compatibility Logic
@@ -407,17 +446,13 @@ struct MembersView: View {
     }
     
     private func isAttractedTo(userAttractedTo: String?, personGender: String?) -> Bool {
-        guard let attractedTo = userAttractedTo?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) else { 
-            // If no preference specified, assume they're open to everyone
-            return true 
-        }
+        // Clean and normalize attracted to preference
+        let attractedTo = userAttractedTo?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         
-        guard let gender = personGender?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) else { 
-            // If gender not specified, assume compatibility for inclusivity
-            return true 
-        }
+        // Clean and normalize gender
+        let gender = personGender?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         
-        // Handle "everyone" cases first
+        // If no preference specified OR empty, assume they're open to everyone
         if attractedTo.isEmpty || 
            attractedTo == "everyone" || 
            attractedTo == "all" || 
@@ -425,6 +460,12 @@ struct MembersView: View {
            attractedTo == "both" ||
            attractedTo == "all genders" {
             return true
+        }
+        
+        // If gender not specified or empty, assume compatibility for inclusivity
+        // This handles the case where current user's gender is missing
+        if gender.isEmpty {
+            return true 
         }
         
         // Check for female attraction

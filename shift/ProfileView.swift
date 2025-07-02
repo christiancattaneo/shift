@@ -12,22 +12,66 @@ struct ProfileView: View {
     @State private var userData: [String: Any] = [:]
     @State private var profileImageUrl: String?
     
+    // MARK: - Screen Size Detection
+    private var screenHeight: CGFloat {
+        UIScreen.main.bounds.height
+    }
+    
+    private var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
+    }
+    
+    // Dynamic sizing based on screen dimensions
+    private var profileImageHeight: CGFloat {
+        // Responsive height: 35-45% of screen height, with min/max bounds
+        let percentage: CGFloat = 0.4
+        let calculatedHeight = screenHeight * percentage
+        return max(300, min(calculatedHeight, 500)) // Min 300, Max 500
+    }
+    
+    private var nameFontSize: CGFloat {
+        // Responsive font size based on screen width
+        let baseFontSize: CGFloat = screenWidth * 0.08
+        return max(24, min(baseFontSize, 36)) // Min 24, Max 36
+    }
+    
+    private var ageFontSize: CGFloat {
+        let baseFontSize: CGFloat = screenWidth * 0.045
+        return max(14, min(baseFontSize, 20)) // Min 14, Max 20
+    }
+    
+    private var dynamicHorizontalPadding: CGFloat {
+        // Responsive padding based on screen width
+        let percentage: CGFloat = 0.06
+        let calculatedPadding = screenWidth * percentage
+        return max(16, min(calculatedPadding, 32)) // Min 16, Max 32
+    }
+    
+    private var dynamicVerticalSpacing: CGFloat {
+        // Responsive spacing based on screen height
+        let percentage: CGFloat = 0.025
+        let calculatedSpacing = screenHeight * percentage
+        return max(16, min(calculatedSpacing, 32)) // Min 16, Max 32
+    }
+
     var body: some View {
         NavigationStack {
             if isLoading {
                 loadingSection
             } else {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Enhanced Profile Image Section
-                        profileImageSection
-                        
-                        // Enhanced Profile Information
-                        profileInformationSection
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            // Enhanced Profile Image Section
+                            profileImageSection
+                            
+                            // Enhanced Profile Information
+                            profileInformationSection
+                        }
                     }
-                }
-                .refreshable {
-                    await refreshProfile()
+                    .refreshable {
+                        await refreshProfile()
+                    }
                 }
             }
         }
@@ -64,7 +108,7 @@ struct ProfileView: View {
     // MARK: - UI Components
     
     private var loadingSection: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: dynamicVerticalSpacing) {
             ProgressView()
                 .scaleEffect(1.5)
                 .tint(.blue)
@@ -101,7 +145,7 @@ struct ProfileView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 400)
+            .frame(height: profileImageHeight)
             
             // Profile image or placeholder
             if let imageUrl = profileImageUrl, !imageUrl.isEmpty {
@@ -113,7 +157,7 @@ struct ProfileView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(height: 400)
+                            .frame(height: profileImageHeight)
                             .clipped()
                             .overlay(
                                 // Subtle overlay for better text readability
@@ -133,24 +177,26 @@ struct ProfileView: View {
                 profileImagePlaceholder(isLoading: false)
             }
             
-            // Name overlay at bottom
+            // Name overlay at bottom - Responsive positioning
             VStack(alignment: .leading, spacing: 8) {
                 Spacer()
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(getDisplayName())
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: nameFontSize, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7) // Allow text to scale down if needed
                         
                         if let age = userData["age"] as? Int {
                             HStack(spacing: 6) {
                                 Image(systemName: "birthday.cake.fill")
-                                    .font(.subheadline)
+                                    .font(.system(size: ageFontSize * 0.8))
                                     .foregroundColor(.white.opacity(0.9))
                                 Text("\(age) years old")
-                                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                                    .font(.system(size: ageFontSize, weight: .medium, design: .rounded))
                                     .foregroundColor(.white.opacity(0.9))
                             }
                             .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
@@ -158,8 +204,8 @@ struct ProfileView: View {
                     }
                     Spacer()
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
+                .padding(.horizontal, dynamicHorizontalPadding)
+                .padding(.bottom, max(20, dynamicVerticalSpacing * 0.75))
             }
         }
         .cornerRadius(0)
@@ -178,30 +224,30 @@ struct ProfileView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 400)
+            .frame(height: profileImageHeight)
             
-            // Content
-            VStack(spacing: 16) {
+            // Content - Responsive sizing
+            VStack(spacing: max(12, dynamicVerticalSpacing * 0.5)) {
                 if isLoading {
                     ProgressView()
                         .scaleEffect(1.5)
                         .tint(.white)
                     Text("Loading image...")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .font(.system(size: max(14, ageFontSize * 0.8), weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.8))
                 } else {
-                    // Large initial letter
+                    // Large initial letter - Responsive size
                     Text(getDisplayName().prefix(1).uppercased())
-                        .font(.system(size: 80, weight: .bold, design: .rounded))
+                        .font(.system(size: nameFontSize * 2.2, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                     
                     VStack(spacing: 4) {
                         Text("Profile Photo")
-                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .font(.system(size: ageFontSize, weight: .semibold, design: .rounded))
                             .foregroundColor(.white.opacity(0.9))
                         Text("Tap edit to add one")
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(.system(size: ageFontSize * 0.8, weight: .medium, design: .rounded))
                             .foregroundColor(.white.opacity(0.7))
                     }
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
@@ -213,9 +259,9 @@ struct ProfileView: View {
     private var profileInformationSection: some View {
         VStack(spacing: 0) {
             // White background section
-            VStack(spacing: 32) {
+            VStack(spacing: dynamicVerticalSpacing) {
                 // Information Cards
-                LazyVStack(spacing: 20) {
+                LazyVStack(spacing: max(16, dynamicVerticalSpacing * 0.6)) {
                     // Location Card
                     if let city = userData["city"] as? String, !city.isEmpty {
                         EnhancedInfoCard(
@@ -223,7 +269,8 @@ struct ProfileView: View {
                             iconColor: .blue,
                             iconBackground: .blue.opacity(0.1),
                             title: "Location",
-                            value: city
+                            value: city,
+                            screenWidth: screenWidth
                         )
                     }
                     
@@ -234,7 +281,8 @@ struct ProfileView: View {
                             iconColor: .purple,
                             iconBackground: .purple.opacity(0.1),
                             title: "Gender", 
-                            value: gender.capitalized
+                            value: gender.capitalized,
+                            screenWidth: screenWidth
                         )
                     }
                     
@@ -246,7 +294,8 @@ struct ProfileView: View {
                             iconBackground: .orange.opacity(0.1),
                             title: "How to Approach Me",
                             value: approachTip,
-                            isLargeText: true
+                            isLargeText: true,
+                            screenWidth: screenWidth
                         )
                     }
                     
@@ -257,7 +306,8 @@ struct ProfileView: View {
                             iconColor: .pink,
                             iconBackground: .pink.opacity(0.1),
                             title: "Attracted to",
-                            value: attractedTo.capitalized
+                            value: attractedTo.capitalized,
+                            screenWidth: screenWidth
                         )
                     }
                     
@@ -268,25 +318,26 @@ struct ProfileView: View {
                             iconColor: .purple,
                             iconBackground: .purple.opacity(0.1),
                             title: "Instagram",
-                            value: handle.hasPrefix("@") ? handle : "@\(handle)"
+                            value: handle.hasPrefix("@") ? handle : "@\(handle)",
+                            screenWidth: screenWidth
                         )
                     }
                 }
                 
-                // Enhanced Edit Profile Button
+                // Enhanced Edit Profile Button - Responsive sizing
                 Button(action: {
                     Haptics.lightImpact()
                     showEditProfile = true
                 }) {
                     HStack(spacing: 12) {
                         Image(systemName: "pencil.circle.fill")
-                            .font(.system(size: 20, weight: .semibold))
+                            .font(.system(size: max(18, ageFontSize), weight: .semibold))
                         Text("Edit Profile")
-                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .font(.system(size: max(16, ageFontSize * 0.9), weight: .semibold, design: .rounded))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
+                    .padding(.vertical, max(16, dynamicVerticalSpacing * 0.7))
                     .background(
                         LinearGradient(
                             colors: [Color.blue, Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
@@ -311,10 +362,11 @@ struct ProfileView: View {
                 .scaleEffect(showEditProfile ? 0.95 : 1.0)
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditProfile)
                 
-                Spacer(minLength: 60)
+                // Dynamic bottom spacing based on screen height
+                Spacer(minLength: max(40, screenHeight * 0.1))
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 32)
+            .padding(.horizontal, dynamicHorizontalPadding)
+            .padding(.top, dynamicVerticalSpacing)
             .background(
                 LinearGradient(
                     colors: [Color(.systemBackground), Color.blue.opacity(0.02)],
@@ -400,52 +452,65 @@ struct EnhancedInfoCard: View {
     let title: String
     let value: String
     let isLargeText: Bool
+    let screenWidth: CGFloat
     
-    init(icon: String, iconColor: Color, iconBackground: Color, title: String, value: String, isLargeText: Bool = false) {
+    init(icon: String, iconColor: Color, iconBackground: Color, title: String, value: String, isLargeText: Bool = false, screenWidth: CGFloat) {
         self.icon = icon
         self.iconColor = iconColor
         self.iconBackground = iconBackground
         self.title = title
         self.value = value
         self.isLargeText = isLargeText
+        self.screenWidth = screenWidth
     }
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Enhanced icon
+        HStack(spacing: max(12, screenWidth * 0.04)) {
+            // Enhanced icon - Responsive size
             ZStack {
                 Circle()
                     .fill(iconBackground)
-                    .frame(width: 50, height: 50)
+                    .frame(
+                        width: max(40, screenWidth * 0.12),
+                        height: max(40, screenWidth * 0.12)
+                    )
                 
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(
+                        size: max(18, screenWidth * 0.055),
+                        weight: .semibold
+                    ))
                     .foregroundColor(iconColor)
             }
             
-            // Content
+            // Content - Responsive typography
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.system(
+                        size: max(12, screenWidth * 0.032),
+                        weight: .medium,
+                        design: .rounded
+                    ))
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
                     .tracking(0.5)
                 
                 Text(value)
                     .font(.system(
-                        size: isLargeText ? 16 : 18,
+                        size: isLargeText ? max(14, screenWidth * 0.04) : max(16, screenWidth * 0.045),
                         weight: .semibold,
                         design: .rounded
                     ))
                     .foregroundColor(.primary)
-                    .lineLimit(isLargeText ? 3 : 1)
+                    .lineLimit(isLargeText ? 4 : 2)
                     .multilineTextAlignment(.leading)
+                    .minimumScaleFactor(0.8) // Allow text to scale down if needed
             }
             
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, max(16, screenWidth * 0.05))
+        .padding(.vertical, max(12, screenWidth * 0.04))
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.systemBackground))
