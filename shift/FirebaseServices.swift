@@ -879,9 +879,7 @@ class FirebaseCheckInsService: ObservableObject {
             // Create check-in document
             let checkIn = FirebaseCheckIn(
                 userId: userId,
-                eventId: eventId,
-                checkedInAt: Timestamp(),
-                isActive: true
+                eventId: eventId
             )
             
             print("🔥 FIREBASE CHECKIN: Created check-in object: \(checkIn)")
@@ -1029,25 +1027,25 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     private func fetchMembersById(userIds: [String], completion: @escaping ([FirebaseMember]) -> Void) {
-        let usersService = FirebaseUsersService()
         var members: [FirebaseMember] = []
         let group = DispatchGroup()
         
         for userId in userIds {
             group.enter()
-            usersService.fetchUser(by: userId) { user in
-                if let user = user {
+            db.collection("users").document(userId).getDocument { document, error in
+                if let document = document, document.exists {
+                    let data = document.data() ?? [:]
                     let member = FirebaseMember(
-                        id: user.id,
-                        firstName: user.firstName ?? "Unknown",
-                        lastName: user.lastName ?? "",
-                        age: user.age,
-                        bio: user.bio,
-                        interests: user.interests,
-                        jobTitle: user.jobTitle,
-                        city: user.city,
-                        profileImageUrl: user.profileImageUrl,
-                        hasProfileImage: user.hasProfileImage ?? false
+                        id: document.documentID,
+                        firstName: data["firstName"] as? String ?? "Unknown",
+                        lastName: data["lastName"] as? String ?? "",
+                        age: data["age"] as? Int,
+                        bio: data["bio"] as? String,
+                        interests: data["interests"] as? [String],
+                        city: data["city"] as? String,
+                        profileImageUrl: data["profileImageUrl"] as? String,
+                        profileImage: data["profileImage"] as? String,
+                        approachTip: data["approachTip"] as? String
                     )
                     members.append(member)
                 }
