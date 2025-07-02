@@ -288,7 +288,6 @@ struct MembersView: View {
         
         let allMembers = membersService.members
         var filtered = allMembers
-        let beforeFilter = filtered.count
         
         // FIXED: Exclude current user properly
         if let currentUser = userSession.currentUser {
@@ -505,7 +504,7 @@ struct MembersView: View {
             
             // STRICT: Require ALL data to be present for compatibility tab
             if !currentUserHasGender || !currentUserHasPreference || !otherUserHasGender || !otherUserHasPreference {
-                let missingData = [
+                let _ = [
                     !currentUserHasGender ? "current user gender" : nil,
                     !currentUserHasPreference ? "current user preference" : nil,
                     !otherUserHasGender ? "\(otherUser.firstName) gender" : nil,
