@@ -689,25 +689,37 @@ extension FirebaseMember {
     
     // Helper to get profile image URL from Firebase Storage - Universal System
     var profileImageURL: URL? {
+        print("🖼️ MEMBER: '\(firstName)' - Checking image URL sources:")
+        print("  - Document ID: '\(id ?? "nil")'")
+        print("  - User ID: '\(userId ?? "nil")'")
+        print("  - ProfileImageUrl: '\(profileImageUrl ?? "nil")'")
+        print("  - FirebaseImageUrl: '\(firebaseImageUrl ?? "nil")'")
+        print("  - ProfilePhoto: '\(profilePhoto ?? "nil")'")
+        print("  - ProfileImage: '\(profileImage ?? "nil")'")
+        
         // PRIORITY 1: Check profileImageUrl field FIRST (NEW Firebase Storage field)
         if let profileImageUrl = profileImageUrl, !profileImageUrl.isEmpty {
+            print("✅ MEMBER: '\(firstName)' - Using profileImageUrl: \(profileImageUrl)")
             return URL(string: profileImageUrl)
         }
         
         // PRIORITY 2: Check firebaseImageUrl field
         if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
+            print("✅ MEMBER: '\(firstName)' - Using firebaseImageUrl: \(firebaseImageUrl)")
             return URL(string: firebaseImageUrl)
         }
         
         // PRIORITY 3: Try document ID-based Firebase Storage URL (standard pattern)
         if let documentId = id, !documentId.isEmpty {
             let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
+            print("✅ MEMBER: '\(firstName)' - Using document ID pattern: \(imageUrl)")
             return URL(string: imageUrl)
         }
         
         // PRIORITY 4: Try userId-based Firebase Storage URL (fallback)
         if let userId = userId, !userId.isEmpty {
             let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(userId).jpg?alt=media"
+            print("✅ MEMBER: '\(firstName)' - Using userId pattern: \(imageUrl)")
             return URL(string: imageUrl)
         }
         
@@ -715,11 +727,13 @@ extension FirebaseMember {
         if let profilePhoto = profilePhoto, !profilePhoto.isEmpty {
             // If it's already a complete URL, use it
             if profilePhoto.hasPrefix("http") {
+                print("✅ MEMBER: '\(firstName)' - Using profilePhoto URL: \(profilePhoto)")
                 return URL(string: profilePhoto)
             }
             // If it's just a filename, construct the proper URL
             else {
                 let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(profilePhoto)?alt=media"
+                print("✅ MEMBER: '\(firstName)' - Using profilePhoto filename: \(properUrl)")
                 return URL(string: properUrl)
             }
         }
@@ -728,15 +742,18 @@ extension FirebaseMember {
         if let profileImage = profileImage, !profileImage.isEmpty {
             // If it's already a complete URL, use it
             if profileImage.hasPrefix("http") {
+                print("✅ MEMBER: '\(firstName)' - Using profileImage URL: \(profileImage)")
                 return URL(string: profileImage)
             }
             // If it's just a filename, construct the proper URL
             else {
                 let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(profileImage)?alt=media"
+                print("✅ MEMBER: '\(firstName)' - Using profileImage filename: \(properUrl)")
                 return URL(string: properUrl)
             }
         }
         
+        print("❌ MEMBER: '\(firstName)' - No image URL available from any source")
         return nil
     }
 }

@@ -224,7 +224,6 @@ struct MembersView: View {
                 // Exclude if document IDs match
                 if let memberUserId = member.userId, let currentUserId = currentUserDocumentId {
                     if memberUserId == currentUserId {
-                        print("🚫 SEARCH EXCLUDED: \(member.firstName) (same document ID)")
                         return false
                     }
                 }
@@ -232,7 +231,6 @@ struct MembersView: View {
                 // Exclude if first names match (additional safety check)
                 if let currentFirstName = currentUser.firstName,
                    member.firstName.lowercased() == currentFirstName.lowercased() {
-                    print("🚫 SEARCH EXCLUDED: \(member.firstName) (same first name)")
                     return false
                 }
                 
@@ -300,7 +298,6 @@ struct MembersView: View {
                 // Exclude if document IDs match
                 if let memberUserId = member.userId, let currentUserId = currentUserDocumentId {
                     if memberUserId == currentUserId {
-                        print("🚫 EXCLUDED: \(member.firstName) (same document ID: \(memberUserId))")
                         return false
                     }
                 }
@@ -308,7 +305,6 @@ struct MembersView: View {
                 // Exclude if first names match (additional safety check)
                 if let currentFirstName = currentUser.firstName,
                    member.firstName.lowercased() == currentFirstName.lowercased() {
-                    print("🚫 EXCLUDED: \(member.firstName) (same first name as current user)")
                     return false
                 }
                 
@@ -316,7 +312,6 @@ struct MembersView: View {
                 if let memberUserId = member.userId {
                     // Check if the member's userId matches the current user's document ID
                     if memberUserId == currentUserDocumentId {
-                        print("🚫 EXCLUDED: \(member.firstName) (matches current user document ID)")
                         return false
                     }
                 }
@@ -325,7 +320,6 @@ struct MembersView: View {
             }
         }
         
-        print("🔍 After user exclusion: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Apply filter-specific logic
         filtered = applyCompatibilityFilter(to: filtered)
@@ -517,7 +511,6 @@ struct MembersView: View {
                     !otherUserHasGender ? "\(otherUser.firstName) gender" : nil,
                     !otherUserHasPreference ? "\(otherUser.firstName) preference" : nil
                 ].compactMap { $0 }
-                print("🚫 EXCLUDED \(otherUser.firstName): Missing \(missingData.joined(separator: ", "))")
                 return false
             }
             

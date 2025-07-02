@@ -505,7 +505,15 @@ class FirebaseMembersService: ObservableObject {
                         do {
                             // First try to decode as FirebaseMember directly
                             if let member = try? document.data(as: FirebaseMember.self) {
+                                print("✅ DIRECT DECODE: '\(member.firstName)' - Document ID: '\(member.id ?? "nil")'")
                                 return member
+                            }
+                            
+                            // Log why direct decoding failed
+                            do {
+                                let _ = try document.data(as: FirebaseMember.self)
+                            } catch {
+                                print("❌ DIRECT DECODE FAILED for \(document.documentID): \(error)")
                             }
                             
                             // Fallback: decode as FirebaseUser and convert
@@ -548,6 +556,9 @@ class FirebaseMembersService: ObservableObject {
                                 profilePhoto: nil,
                                 profileImageName: nil
                             )
+                            
+                            print("🔧 MANUAL CREATION: '\(member.firstName)' - Document ID: '\(member.id ?? "nil")' | User ID: '\(member.userId ?? "nil")'")
+                            print("🔧 MANUAL CREATION: Expected to use userId '\(document.documentID)' for image URL")
                             
                             // Debug: Log approach tip data
                             if let tip = member.approachTip, !tip.isEmpty {
