@@ -1011,6 +1011,12 @@ struct MemberCardView: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                         .truncationMode(.tail)
+                } else {
+                    // Debug: Show when approach tip is missing
+                    Text("No approach tip")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                        .italic()
                 }
             }
             .padding(12)

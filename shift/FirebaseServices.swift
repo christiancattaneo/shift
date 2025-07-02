@@ -549,6 +549,13 @@ class FirebaseMembersService: ObservableObject {
                                 profileImageName: nil
                             )
                             
+                            // Debug: Log approach tip data
+                            if let tip = member.approachTip, !tip.isEmpty {
+                                print("💡 APPROACH TIP: \(member.firstName) has tip: '\(tip)'")
+                            } else {
+                                print("❌ APPROACH TIP: \(member.firstName) has no tip (raw howToApproachMe: '\(user.howToApproachMe ?? "nil")')")
+                            }
+                            
                             return member
                         } catch {
                             // Minimal error logging
