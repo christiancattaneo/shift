@@ -402,10 +402,10 @@ struct MembersView: View {
         membersService.fetchCompatibleMembers(
             userGender: currentUser.gender,
             userAttractedTo: currentUser.attractedTo
-        ) { [weak self] compatibleMembers in
+        ) { compatibleMembers in
             DispatchQueue.main.async {
                 // Merge with existing members without duplicates
-                var allMembers = self?.membersService.members ?? []
+                var allMembers = self.membersService.members
                 let existingIds = Set(allMembers.compactMap { $0.userId })
                 
                 let newMembers = compatibleMembers.filter { member in
@@ -417,11 +417,11 @@ struct MembersView: View {
                 
                 if !newMembers.isEmpty {
                     allMembers.append(contentsOf: newMembers)
-                    self?.membersService.members = allMembers
+                    self.membersService.members = allMembers
                     print("🔍 ENHANCED: Added \(newMembers.count) new compatible members (Total: \(allMembers.count))")
                     
                     // Re-filter with the expanded dataset
-                    self?.filterMembersAsync()
+                    self.filterMembersAsync()
                 }
             }
         }
