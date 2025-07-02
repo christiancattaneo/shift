@@ -55,6 +55,34 @@ struct EditProfileView: View {
                     // Form Section
                     formSection
                     
+                    // Debug info (remove this later)
+                    if true { // Set to false to hide debug info
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Debug Info:")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                            Text("isCreatingNew: \(isCreatingNew)")
+                                .font(.caption2)
+                            Text("isFormValid: \(isFormValid)")
+                                .font(.caption2)
+                            Text("hasChanges: \(hasChanges)")
+                                .font(.caption2)
+                            Text("canSave: \(canSave)")
+                                .font(.caption2)
+                            Text("firstName empty: \(firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)")
+                                .font(.caption2)
+                            Text("age empty: \(age.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)")
+                                .font(.caption2)
+                            Text("city empty: \(city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)")
+                                .font(.caption2)
+                            Text("gender empty: \(gender.isEmpty)")
+                                .font(.caption2)
+                        }
+                        .padding(8)
+                        .background(Color.yellow.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
                     // Action Buttons
                     actionButtonsSection
                     
@@ -384,14 +412,16 @@ struct EditProfileView: View {
                     }
                     
                     Text({
-                        if isCreatingNew {
-                            return "Create Profile"
+                        if isLoading {
+                            return "Saving..."
+                        } else if isCreatingNew {
+                            return isFormValid ? "Create Profile" : "Complete Required Fields"
+                        } else if !isFormValid {
+                            return "Complete Required Fields"
                         } else if hasChanges {
                             return "Save Changes"
-                        } else if isFormValid {
-                            return "No Changes"
                         } else {
-                            return "Complete Required Fields"
+                            return "No Changes"
                         }
                     }())
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
@@ -498,47 +528,71 @@ struct EditProfileView: View {
             return true
         }
         
-        // Current trimmed values
-        let currentFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let currentAge = age.trimmingCharacters(in: .whitespacesAndNewlines)
-        let currentCity = city.trimmingCharacters(in: .whitespacesAndNewlines)
-        let currentApproachTip = approachTip.trimmingCharacters(in: .whitespacesAndNewlines)
-        let currentInstagram = instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
+        // If image was selected, that's definitely a change
+        if selectedImageData != nil {
+            return true
+        }
         
-        // Original trimmed values - handle nils properly
+        // Simple string comparison for each field
+        let currentFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
         let originalFirstName = (userData["firstName"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let originalAge = {
-            if let age = userData["age"] as? Int {
-                return String(age)
+        if currentFirstName != originalFirstName {
+            return true
+        }
+        
+        // Age comparison - handle both Int and String types
+        let currentAge = age.trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalAge: String = {
+            if let ageInt = userData["age"] as? Int {
+                return String(ageInt)
             } else if let ageString = userData["age"] as? String {
                 return ageString.trimmingCharacters(in: .whitespacesAndNewlines)
             }
             return ""
         }()
+        if currentAge != originalAge {
+            return true
+        }
+        
+        let currentCity = city.trimmingCharacters(in: .whitespacesAndNewlines)
         let originalCity = (userData["city"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if currentCity != originalCity {
+            return true
+        }
+        
         let originalGender = userData["gender"] as? String ?? ""
+        if gender != originalGender {
+            return true
+        }
+        
         let originalAttractedTo = userData["attractedTo"] as? String ?? ""
+        if attractedTo != originalAttractedTo {
+            return true
+        }
+        
+        let currentApproachTip = approachTip.trimmingCharacters(in: .whitespacesAndNewlines)
         let originalApproachTip = (userData["howToApproachMe"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if currentApproachTip != originalApproachTip {
+            return true
+        }
+        
+        let currentInstagram = instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
         let originalInstagram = (userData["instagramHandle"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if currentInstagram != originalInstagram {
+            return true
+        }
         
-        // Check each field individually
-        let firstNameChanged = currentFirstName != originalFirstName
-        let ageChanged = currentAge != originalAge
-        let cityChanged = currentCity != originalCity
-        let genderChanged = gender != originalGender
-        let attractedToChanged = attractedTo != originalAttractedTo
-        let approachTipChanged = currentApproachTip != originalApproachTip
-        let instagramChanged = currentInstagram != originalInstagram
-        let imageChanged = selectedImageData != nil
-        
-        let hasAnyChanges = firstNameChanged || ageChanged || cityChanged || genderChanged || 
-                           attractedToChanged || approachTipChanged || instagramChanged || imageChanged
-        
-        return hasAnyChanges
+        return false
     }
     
     private var canSave: Bool {
-        return isFormValid && (hasChanges || isCreatingNew)
+        // For new profiles, just check if form is valid
+        if isCreatingNew {
+            return isFormValid
+        }
+        
+        // For existing profiles, check if form is valid AND there are changes
+        return isFormValid && hasChanges
     }
     
     private var completionPercentage: Double {
