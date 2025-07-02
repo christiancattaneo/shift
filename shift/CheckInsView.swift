@@ -963,9 +963,8 @@ struct EventCardView: View {
         // ENHANCED: Get both current and historical check-in counts
         checkInsService.getCombinedCheckInCount(for: eventId, itemType: "event") { [self] currentCount, historicalCount in
             DispatchQueue.main.async {
-                checkInCount = currentCount
-                // Could store historicalCount for additional UI features if needed
-                print("📊 EVENT: \(event.eventName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount)")
+                checkInCount = historicalCount  // Show TOTAL historical count instead of just current
+                print("📊 EVENT: \(event.eventName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount), SHOWING: \(historicalCount)")
             }
         }
     }
@@ -1248,9 +1247,8 @@ struct PlaceCardView: View {
         // ENHANCED: Get both current and historical check-in counts  
         checkInsService.getCombinedCheckInCount(for: placeId, itemType: "place") { [self] currentCount, historicalCount in
             DispatchQueue.main.async {
-                checkInCount = currentCount
-                // Could store historicalCount for additional UI features if needed
-                print("📊 PLACE: \(place.placeName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount)")
+                checkInCount = historicalCount  // Show TOTAL historical count instead of just current
+                print("📊 PLACE: \(place.placeName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount), SHOWING: \(historicalCount)")
             }
         }
     }
@@ -1527,9 +1525,8 @@ struct PlaceDetailView: View {
         // ENHANCED: Get both current and historical check-in counts
         checkInsService.getCombinedCheckInCount(for: placeId, itemType: "place") { currentCount, historicalCount in
             DispatchQueue.main.async {
-                self.checkInCount = currentCount
-                // Could store historicalCount for additional UI features if needed
-                print("📊 PLACE DETAIL: \(self.place.placeName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount)")
+                self.checkInCount = historicalCount  // Show TOTAL historical count instead of just current
+                print("📊 PLACE DETAIL: \(self.place.placeName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount), SHOWING: \(historicalCount)")
             }
         }
     }
@@ -2117,13 +2114,14 @@ struct EventDetailView: View {
         
         print("🔍 INIT: Loading check-in count for eventId=\(eventId)")
         
-        checkInsService.getCheckInCount(for: eventId) { count in
-            print("🔍 INIT: getCheckInCount callback received with result: \(count)")
+        // ENHANCED: Get both current and historical check-in counts
+        checkInsService.getCombinedCheckInCount(for: eventId, itemType: "event") { currentCount, historicalCount in
+            print("🔍 INIT: getCombinedCheckInCount callback received - Current: \(currentCount), Historical: \(historicalCount)")
             DispatchQueue.main.async {
-                print("🔍 INIT: Processing getCheckInCount result on main thread")
+                print("🔍 INIT: Processing getCombinedCheckInCount result on main thread")
                 let oldValue = self.checkInCount
-                self.checkInCount = count
-                print("📊 INIT: Check-in count loaded: \(oldValue) → \(self.checkInCount)")
+                self.checkInCount = historicalCount  // Show TOTAL historical count instead of just current
+                print("📊 INIT: Event detail check-in count loaded: \(oldValue) → \(self.checkInCount) (showing historical)")
             }
         }
     }
