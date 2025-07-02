@@ -202,7 +202,6 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     let age: Int?
     let city: String?
     let attractedTo: String?
-    let approachTip: String?      // Back to original working property name
     let instagramHandle: String?
     let profileImage: String?        // Legacy Adalo field (likely dead URLs)
     let profileImageUrl: String?     // NEW Firebase Storage field (working URLs)
@@ -224,6 +223,14 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     let profileImageName: String?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
+    
+    // MARK: - Approach tip mapping from Firestore
+    let howToApproachMe: String?  // This matches the Firestore field name
+    
+    // Computed property for backward compatibility with existing UI code
+    var approachTip: String? {
+        return howToApproachMe
+    }
     
     // Computed property to ensure unique ID for SwiftUI ForEach
     var uniqueID: String {
@@ -255,7 +262,7 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
         age: Int? = nil, 
         city: String? = nil, 
         attractedTo: String? = nil, 
-        approachTip: String? = nil, 
+        howToApproachMe: String? = nil, 
         instagramHandle: String? = nil, 
         profileImage: String? = nil, 
         profileImageUrl: String? = nil, 
@@ -283,7 +290,7 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
         self.age = age
         self.city = city
         self.attractedTo = attractedTo
-        self.approachTip = approachTip
+        self.howToApproachMe = howToApproachMe
         self.instagramHandle = instagramHandle
         self.profileImage = profileImage
         self.profileImageUrl = profileImageUrl
@@ -358,119 +365,7 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         return "event_\(createdAt?.seconds ?? 0)"
     }
     
-    // Custom initializer for handling Firebase data
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        // IMPORTANT: Let @DocumentID handle itself - don't try to decode it manually
-        // The @DocumentID property wrapper will be handled automatically by Firestore
-        
-        // Handle eventStartTime - could be String or Timestamp
-        if let timestampValue = try? container.decode(Timestamp.self, forKey: .eventStartTime) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "h:mm a"
-            self.eventStartTime = formatter.string(from: timestampValue.dateValue())
-        } else {
-            self.eventStartTime = try? container.decode(String.self, forKey: .eventStartTime)
-        }
-        
-        // Handle eventEndTime - could be String or Timestamp
-        if let timestampValue = try? container.decode(Timestamp.self, forKey: .eventEndTime) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "h:mm a"
-            self.eventEndTime = formatter.string(from: timestampValue.dateValue())
-        } else {
-            self.eventEndTime = try? container.decode(String.self, forKey: .eventEndTime)
-        }
-        
-        // Handle Firebase Storage URLs (NEW - these work!)
-        self.imageUrl = try? container.decode(String.self, forKey: .imageUrl)
-        self.firebaseImageUrl = try? container.decode(String.self, forKey: .firebaseImageUrl)
-        
-        // Handle legacy image field - could be String or Dictionary
-        if let imageString = try? container.decode(String.self, forKey: .image) {
-            self.image = imageString
-        } else {
-            // Try to decode as a dictionary and extract URL
-            if let imageDict = try? container.decodeIfPresent([String: AnyDecodable].self, forKey: .image),
-               let urlValue = imageDict["url"]?.value as? String {
-                // If it's just a filename, construct the Firebase Storage URL using events/ directory
-                if !urlValue.hasPrefix("http") {
-                    self.image = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/events%2F\(urlValue)?alt=media"
-                    print("🔗 Using clean event image: \(urlValue)")
-                } else {
-                    self.image = urlValue
-                    print("🔗 Using direct URL from image dict: \(urlValue)")
-                }
-            } else {
-                self.image = nil
-            }
-        }
-        
-        // NEW: Handle coordinates
-        self.coordinates = try? container.decode(EventCoordinates.self, forKey: .coordinates)
-        
-        // Standard fields
-        self.eventName = try? container.decode(String.self, forKey: .eventName)
-        self.venueName = try? container.decode(String.self, forKey: .venueName)
-        self.eventLocation = try? container.decode(String.self, forKey: .eventLocation)
-        self.isEventFree = try? container.decode(Bool.self, forKey: .isEventFree)
-        self.eventCategory = try? container.decode(String.self, forKey: .eventCategory)
-        self.eventDate = try? container.decode(String.self, forKey: .eventDate)
-        self.place = try? container.decode(String.self, forKey: .place)
-        // NEW: Location fields
-        self.city = try? container.decode(String.self, forKey: .city)
-        self.state = try? container.decode(String.self, forKey: .state)
-        self.country = try? container.decode(String.self, forKey: .country)
-        self.address = try? container.decode(String.self, forKey: .address)
-        self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
-        self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
-        // NEW: Popularity fields
-        self.popularityScore = try? container.decode(Double.self, forKey: .popularityScore)
-        self.recentCheckIns = try? container.decode(Int.self, forKey: .recentCheckIns)
-        self.weeklyCheckIns = try? container.decode(Int.self, forKey: .weeklyCheckIns)
-        self.totalCheckIns = try? container.decode(Int.self, forKey: .totalCheckIns)
-        self.popularityUpdatedAt = try? container.decode(Timestamp.self, forKey: .popularityUpdatedAt)
-    }
-    
-    // Custom encoding
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(eventName, forKey: .eventName)
-        try container.encodeIfPresent(venueName, forKey: .venueName)
-        try container.encodeIfPresent(eventLocation, forKey: .eventLocation)
-        try container.encodeIfPresent(eventStartTime, forKey: .eventStartTime)
-        try container.encodeIfPresent(eventEndTime, forKey: .eventEndTime)
-        try container.encodeIfPresent(image, forKey: .image)
-        try container.encodeIfPresent(imageUrl, forKey: .imageUrl)
-        try container.encodeIfPresent(firebaseImageUrl, forKey: .firebaseImageUrl)
-        try container.encodeIfPresent(isEventFree, forKey: .isEventFree)
-        try container.encodeIfPresent(eventCategory, forKey: .eventCategory)
-        try container.encodeIfPresent(eventDate, forKey: .eventDate)
-        try container.encodeIfPresent(place, forKey: .place)
-        // NEW: Location fields
-        try container.encodeIfPresent(coordinates, forKey: .coordinates)
-        try container.encodeIfPresent(city, forKey: .city)
-        try container.encodeIfPresent(state, forKey: .state)
-        try container.encodeIfPresent(country, forKey: .country)
-        try container.encodeIfPresent(address, forKey: .address)
-        try container.encodeIfPresent(createdAt, forKey: .createdAt)
-        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
-        // NEW: Popularity fields
-        try container.encodeIfPresent(popularityScore, forKey: .popularityScore)
-        try container.encodeIfPresent(recentCheckIns, forKey: .recentCheckIns)
-        try container.encodeIfPresent(weeklyCheckIns, forKey: .weeklyCheckIns)
-        try container.encodeIfPresent(totalCheckIns, forKey: .totalCheckIns)
-        try container.encodeIfPresent(popularityUpdatedAt, forKey: .popularityUpdatedAt)
-    }
-    
-    // Coding keys
-    private enum CodingKeys: String, CodingKey {
-        case eventName, venueName, eventLocation, eventStartTime, eventEndTime
-        case image, imageUrl, firebaseImageUrl, isEventFree, eventCategory, eventDate, place
-        case coordinates, city, state, country, address, createdAt, updatedAt
-        case popularityScore, recentCheckIns, weeklyCheckIns, totalCheckIns, popularityUpdatedAt
-    }
+
     
     // Manual initializer for local creation (not from Firestore)
     init(eventName: String, venueName: String? = nil, eventLocation: String? = nil, eventStartTime: String? = nil, eventEndTime: String? = nil) {

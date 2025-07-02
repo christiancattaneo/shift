@@ -527,7 +527,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                approachTip: user.howToApproachMe,  // Map from Firestore field to property
+                                howToApproachMe: user.howToApproachMe,  // Map from Firestore field to property
                                 instagramHandle: user.instagramHandle,
                                 profileImage: nil, // No legacy URLs
                                 profileImageUrl: nil, // No legacy URLs
@@ -709,7 +709,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                approachTip: user.howToApproachMe,
+                                howToApproachMe: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 gender: user.gender
                             )
@@ -845,7 +845,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                approachTip: user.howToApproachMe,
+                                howToApproachMe: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 gender: user.gender
                             )
@@ -976,7 +976,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                approachTip: user.howToApproachMe,
+                                howToApproachMe: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 gender: user.gender
                             )
@@ -1056,7 +1056,7 @@ class FirebaseMembersService: ObservableObject {
                                 age: user.age,
                                 city: user.city,
                                 attractedTo: user.attractedTo,
-                                approachTip: user.howToApproachMe,
+                                howToApproachMe: user.howToApproachMe,
                                 instagramHandle: user.instagramHandle,
                                 profileImage: nil,
                                 profileImageUrl: nil,
@@ -1114,7 +1114,7 @@ class FirebaseMembersService: ObservableObject {
                                     age: user.age,
                                     city: user.city,
                                     attractedTo: user.attractedTo,
-                                    approachTip: user.howToApproachMe,
+                                    howToApproachMe: user.howToApproachMe,
                                     instagramHandle: user.instagramHandle,
                                     profileImage: nil,
                                     profileImageUrl: nil,
@@ -1222,7 +1222,7 @@ class FirebaseMembersService: ObservableObject {
                 age: 28,
                 city: "San Francisco",
                 attractedTo: "Men",
-                approachTip: "Ask me about my travels!",
+                howToApproachMe: "Ask me about my travels!",
                 instagramHandle: "@sarah_travels",
                 profileImage: "https://picsum.photos/400/400?random=101"
             ),
@@ -1232,7 +1232,7 @@ class FirebaseMembersService: ObservableObject {
                 age: 32,
                 city: "San Francisco",
                 attractedTo: "Women",
-                approachTip: "Let's grab coffee and talk tech",
+                howToApproachMe: "Let's grab coffee and talk tech",
                 instagramHandle: "@jake_codes",
                 profileImage: "https://picsum.photos/400/400?random=102"
             ),
@@ -1242,7 +1242,7 @@ class FirebaseMembersService: ObservableObject {
                 age: 26,
                 city: "San Francisco",
                 attractedTo: "Anyone",
-                approachTip: "I love discussing books and art",
+                howToApproachMe: "I love discussing books and art",
                 instagramHandle: "@emma_reads",
                 profileImage: "https://picsum.photos/400/400?random=103"
             )
@@ -2023,7 +2023,7 @@ class FirebaseCheckInsService: ObservableObject {
                         age: data["age"] as? Int,
                         city: data["city"] as? String,
                         attractedTo: data["attractedTo"] as? String,
-                        approachTip: data["howToApproachMe"] as? String, // Map from Firestore field
+                        howToApproachMe: data["howToApproachMe"] as? String, // Direct field mapping
                         instagramHandle: data["instagramHandle"] as? String,
                         profileImage: nil, // Legacy field - not used
                         profileImageUrl: nil, // Legacy field - not used 
