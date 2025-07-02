@@ -850,7 +850,7 @@ struct MemberDetailView: View {
                                 Text("Instagram")
                                     .font(.headline)
                                     .foregroundColor(.primary)
-                                Text("@\(instagramHandle)")
+                                Text(instagramHandle.hasPrefix("@") ? instagramHandle : "@\(instagramHandle)")
                                     .font(.body)
                                     .foregroundColor(.secondary)
                             }

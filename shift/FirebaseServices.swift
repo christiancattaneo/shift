@@ -1168,34 +1168,52 @@ class FirebaseCheckInsService: ObservableObject {
                 return
             }
             
-            // Try to add user to places collection first
-            self?.addUserToCollection(userId: userId, itemId: eventId, collection: "places") { success in
-                if success {
-                    print("✅ FIREBASE CHECKIN: SUCCESS - Added user to place")
-                    completion(true, nil)
-                } else {
-                    // If not a place, try events collection
-                    self?.addUserToCollection(userId: userId, itemId: eventId, collection: "events") { success in
-                        if success {
-                            print("✅ FIREBASE CHECKIN: SUCCESS - Added user to event")
-                            completion(true, nil)
-                        } else {
-                            print("❌ FIREBASE CHECKIN: Failed to add user to either places or events")
-                            completion(false, "Item not found")
+                    // Try to add user to places collection first
+        self?.addUserToCollection(userId: userId, itemId: eventId, collection: "places") { success in
+            if success {
+                print("✅ FIREBASE CHECKIN: SUCCESS - Added user to place")
+                completion(true, nil)
+            } else {
+                // If not a place, try events collection
+                self?.addUserToCollection(userId: userId, itemId: eventId, collection: "events") { success in
+                    if success {
+                        print("✅ FIREBASE CHECKIN: SUCCESS - Added user to event")
+                        completion(true, nil)
+                    } else {
+                        print("❌ FIREBASE CHECKIN: Failed to add user to either places or events")
+                        print("❌ FIREBASE CHECKIN: Searched for ID: \(eventId) in both collections")
+                        
+                        // Try to provide helpful debugging info
+                        self?.debugSearchForSimilarItems(searchId: eventId) { foundItems in
+                            let debugMessage = foundItems.isEmpty ? 
+                                "No similar items found in database" : 
+                                "Found similar items: \(foundItems.prefix(3).joined(separator: ", "))"
+                            print("🔍 FIREBASE CHECKIN: \(debugMessage)")
+                            completion(false, "Item not found. \(debugMessage)")
                         }
                     }
                 }
             }
         }
+        }
     }
     
     private func addUserToCollection(userId: String, itemId: String, collection: String, completion: @escaping (Bool) -> Void) {
+        print("🔍 FIREBASE CHECKIN: Checking \(collection) collection for document: \(itemId)")
         db.collection(collection).document(itemId).getDocument { document, error in
-            guard let doc = document, doc.exists else {
+            if let error = error {
+                print("❌ FIREBASE CHECKIN: Error getting document from \(collection): \(error.localizedDescription)")
                 completion(false)
                 return
             }
             
+            guard let doc = document, doc.exists else {
+                print("📭 FIREBASE CHECKIN: Document \(itemId) not found in \(collection) collection")
+                completion(false)
+                return
+            }
+            
+            print("✅ FIREBASE CHECKIN: Found document \(itemId) in \(collection) collection")
             var data = doc.data() ?? [:]
             var users = data["Users"] as? [Any] ?? []
             let userIdStrings = users.compactMap { "\($0)" }
@@ -1205,12 +1223,20 @@ class FirebaseCheckInsService: ObservableObject {
                 users.append(userId)
                 data["Users"] = users
                 
+                print("🔄 FIREBASE CHECKIN: Adding user \(userId) to \(collection) document \(itemId)")
                 self.db.collection(collection).document(itemId).updateData(data) { error in
                     DispatchQueue.main.async {
-                        completion(error == nil)
+                        if let error = error {
+                            print("❌ FIREBASE CHECKIN: Failed to update \(collection) document: \(error.localizedDescription)")
+                            completion(false)
+                        } else {
+                            print("✅ FIREBASE CHECKIN: Successfully added user to \(collection)")
+                            completion(true)
+                        }
                     }
                 }
             } else {
+                print("ℹ️ FIREBASE CHECKIN: User \(userId) already in \(collection) document \(itemId)")
                 DispatchQueue.main.async {
                     completion(true) // Already present
                 }
@@ -1558,6 +1584,62 @@ class FirebaseCheckInsService: ObservableObject {
                 print("   - \(member.firstName) (ID: \(member.id ?? "unknown"))")
             }
             completion(members)
+        }
+    }
+    
+    // Helper function to search for similar items when exact match fails
+    private func debugSearchForSimilarItems(searchId: String, completion: @escaping ([String]) -> Void) {
+        print("🔍 FIREBASE CHECKIN: Searching for similar items to: \(searchId)")
+        var foundItems: [String] = []
+        let group = DispatchGroup()
+        
+        // Search events for name matches or ID patterns
+        group.enter()
+        db.collection("events").limit(to: 10).getDocuments { snapshot, error in
+            defer { group.leave() }
+            if let docs = snapshot?.documents {
+                for doc in docs {
+                    let data = doc.data()
+                    let eventName = data["eventName"] as? String ?? data["name"] as? String ?? ""
+                    let venueName = data["venueName"] as? String ?? ""
+                    
+                    // Check if searchId contains parts of the event/venue name
+                    let searchLower = searchId.lowercased()
+                    let eventLower = eventName.lowercased()
+                    let venueLower = venueName.lowercased()
+                    
+                    if (!eventName.isEmpty && (searchLower.contains(eventLower) || eventLower.contains(searchLower))) ||
+                       (!venueName.isEmpty && (searchLower.contains(venueLower) || venueLower.contains(searchLower))) {
+                        foundItems.append("event:\(doc.documentID)(\(eventName.isEmpty ? venueName : eventName))")
+                        print("🔍 Found similar event: \(doc.documentID) (\(eventName.isEmpty ? venueName : eventName))")
+                    }
+                }
+            }
+        }
+        
+        // Search places for name matches
+        group.enter()
+        db.collection("places").limit(to: 10).getDocuments { snapshot, error in
+            defer { group.leave() }
+            if let docs = snapshot?.documents {
+                for doc in docs {
+                    let data = doc.data()
+                    let placeName = data["placeName"] as? String ?? data["name"] as? String ?? ""
+                    
+                    // Check if searchId contains parts of the place name
+                    let searchLower = searchId.lowercased()
+                    let placeLower = placeName.lowercased()
+                    
+                    if !placeName.isEmpty && (searchLower.contains(placeLower) || placeLower.contains(searchLower)) {
+                        foundItems.append("place:\(doc.documentID)(\(placeName))")
+                        print("🔍 Found similar place: \(doc.documentID) (\(placeName))")
+                    }
+                }
+            }
+        }
+        
+        group.notify(queue: .main) {
+            completion(foundItems)
         }
     }
     

@@ -2113,8 +2113,24 @@ struct EventDetailView: View {
         print("🔧 USING User UUID: \(userIdForCheckIn)")
         print("🔧 This will match the migrated Users arrays")
         
-        // Use event.id if available, otherwise use uniqueID as fallback
-        let eventId = event.id ?? event.uniqueID
+        // IMPROVED: Better event ID resolution
+        var eventId: String = ""
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+            print("🔧 Using event.id: \(eventId)")
+        } else {
+            // For events without proper document IDs, check if they're actually places
+            if event.uniqueID.contains("_") && event.imageURL?.absoluteString.contains("places%2F") == true {
+                print("⚠️ This appears to be a place misidentified as an event")
+                print("⚠️ Image URL: \(event.imageURL?.absoluteString ?? "nil")")
+                print("⚠️ Cannot check into events that are actually places")
+                return
+            }
+            
+            eventId = event.uniqueID
+            print("🔧 Using fallback uniqueID: \(eventId)")
+        }
+        
         guard !eventId.isEmpty else {
             print("❌ Cannot check in: Event has no valid ID")
             print("❌ event.id: \(event.id ?? "nil")")
