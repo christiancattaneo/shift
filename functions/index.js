@@ -592,9 +592,9 @@ exports.fixUserImage = functions.https.onRequest(async (req, res) => {
 
 // MARK: - Event Ranking and Popularity System
 
-// Cloud function to calculate and update event popularity scores
-exports.updateEventPopularity = functions.pubsub.schedule('every 30 minutes').onRun(async (context) => {
-  console.log('🔥 Starting event popularity update...');
+// ENHANCED: Universal popularity update for both events and places
+exports.updatePopularityScores = functions.pubsub.schedule('every 30 minutes').onRun(async (context) => {
+  console.log('🔥 Starting popularity update for events and places...');
   
   try {
     const db = admin.firestore();
@@ -614,51 +614,53 @@ exports.updateEventPopularity = functions.pubsub.schedule('every 30 minutes').on
       .where('checkedInAt', '>=', oneWeekAgo)
       .get();
     
-    console.log(`📊 Found ${recentCheckInsSnapshot.size} check-ins in last 24h`);
-    console.log(`📊 Found ${weeklyCheckInsSnapshot.size} check-ins in last week`);
-    
-    // Calculate popularity scores by event
-    const eventPopularity = {};
-    
-    // Weight recent check-ins more heavily
-    recentCheckInsSnapshot.docs.forEach(doc => {
-      const data = doc.data();
-      const eventId = data.eventId;
-      if (!eventPopularity[eventId]) {
-        eventPopularity[eventId] = { recent: 0, weekly: 0, total: 0 };
-      }
-      eventPopularity[eventId].recent += 1;
-    });
-    
-    weeklyCheckInsSnapshot.docs.forEach(doc => {
-      const data = doc.data();
-      const eventId = data.eventId;
-      if (!eventPopularity[eventId]) {
-        eventPopularity[eventId] = { recent: 0, weekly: 0, total: 0 };
-      }
-      eventPopularity[eventId].weekly += 1;
-    });
-    
-    // Get total check-ins for each event
-    const allCheckInsSnapshot = await db.collection('checkIns')
-      .where('isActive', '==', true)
+    // Get total check-ins for all time
+    const totalCheckInsSnapshot = await db.collection('checkIns')
       .get();
     
-    allCheckInsSnapshot.docs.forEach(doc => {
+    console.log(`📊 Found ${recentCheckInsSnapshot.size} check-ins in last 24h`);
+    console.log(`📊 Found ${weeklyCheckInsSnapshot.size} check-ins in last week`);
+    console.log(`📊 Found ${totalCheckInsSnapshot.size} total check-ins`);
+    
+    // Calculate popularity scores by item (event or place)
+    const itemPopularity = {};
+    
+    // Count recent check-ins (last 24 hours)
+    recentCheckInsSnapshot.docs.forEach(doc => {
       const data = doc.data();
-      const eventId = data.eventId;
-      if (!eventPopularity[eventId]) {
-        eventPopularity[eventId] = { recent: 0, weekly: 0, total: 0 };
+      const itemId = data.eventId; // Note: eventId field is used for both events and places
+      if (!itemPopularity[itemId]) {
+        itemPopularity[itemId] = { recent: 0, weekly: 0, total: 0 };
       }
-      eventPopularity[eventId].total += 1;
+      itemPopularity[itemId].recent += 1;
+    });
+    
+    // Count weekly check-ins (last 7 days)
+    weeklyCheckInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const itemId = data.eventId;
+      if (!itemPopularity[itemId]) {
+        itemPopularity[itemId] = { recent: 0, weekly: 0, total: 0 };
+      }
+      itemPopularity[itemId].weekly += 1;
+    });
+    
+    // Count total check-ins for all time (using the existing snapshot)
+    totalCheckInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const itemId = data.eventId;
+      if (!itemPopularity[itemId]) {
+        itemPopularity[itemId] = { recent: 0, weekly: 0, total: 0 };
+      }
+      itemPopularity[itemId].total += 1;
     });
     
     // Calculate composite popularity score
     // Formula: (recent * 5) + (weekly * 2) + (total * 0.5)
     const popularityScores = {};
-    for (const [eventId, stats] of Object.entries(eventPopularity)) {
+    for (const [itemId, stats] of Object.entries(itemPopularity)) {
       const score = (stats.recent * 5) + (stats.weekly * 2) + (stats.total * 0.5);
-      popularityScores[eventId] = {
+      popularityScores[itemId] = {
         score: score,
         recentCheckIns: stats.recent,
         weeklyCheckIns: stats.weekly,
@@ -667,25 +669,48 @@ exports.updateEventPopularity = functions.pubsub.schedule('every 30 minutes').on
       };
     }
     
-    console.log(`📈 Calculated popularity for ${Object.keys(popularityScores).length} events`);
+    console.log(`📈 Calculated popularity for ${Object.keys(popularityScores).length} items`);
     
-    // Update events with popularity scores
+    // Update both events and places with popularity scores
     const batch = db.batch();
-    let updateCount = 0;
+    let eventUpdateCount = 0;
+    let placeUpdateCount = 0;
     
-    for (const [eventId, popularity] of Object.entries(popularityScores)) {
-      const eventRef = db.collection('events').doc(eventId);
-      batch.update(eventRef, {
-        popularityScore: popularity.score,
-        recentCheckIns: popularity.recentCheckIns,
-        weeklyCheckIns: popularity.weeklyCheckIns,
-        totalCheckIns: popularity.totalCheckIns,
-        popularityUpdatedAt: popularity.lastUpdated
-      });
-      updateCount++;
+    for (const [itemId, popularity] of Object.entries(popularityScores)) {
+      // Try events collection first
+      const eventRef = db.collection('events').doc(itemId);
+      const eventDoc = await eventRef.get();
+      
+      if (eventDoc.exists) {
+        // It's an event
+        batch.update(eventRef, {
+          popularityScore: popularity.score,
+          recentCheckIns: popularity.recentCheckIns,
+          weeklyCheckIns: popularity.weeklyCheckIns,
+          totalCheckIns: popularity.totalCheckIns,
+          popularityUpdatedAt: popularity.lastUpdated
+        });
+        eventUpdateCount++;
+      } else {
+        // Try places collection
+        const placeRef = db.collection('places').doc(itemId);
+        const placeDoc = await placeRef.get();
+        
+        if (placeDoc.exists) {
+          // It's a place
+          batch.update(placeRef, {
+            popularityScore: popularity.score,
+            recentCheckIns: popularity.recentCheckIns,
+            weeklyCheckIns: popularity.weeklyCheckIns,
+            totalCheckIns: popularity.totalCheckIns,
+            popularityUpdatedAt: popularity.lastUpdated
+          });
+          placeUpdateCount++;
+        }
+      }
     }
     
-    // Also reset popularity for events with no recent activity
+    // Reset popularity for events with no recent activity
     const allEventsSnapshot = await db.collection('events').get();
     allEventsSnapshot.docs.forEach(doc => {
       const eventId = doc.id;
@@ -697,14 +722,35 @@ exports.updateEventPopularity = functions.pubsub.schedule('every 30 minutes').on
           totalCheckIns: 0,
           popularityUpdatedAt: now
         });
-        updateCount++;
+        eventUpdateCount++;
+      }
+    });
+    
+    // Reset popularity for places with no recent activity
+    const allPlacesSnapshot = await db.collection('places').get();
+    allPlacesSnapshot.docs.forEach(doc => {
+      const placeId = doc.id;
+      if (!popularityScores[placeId]) {
+        batch.update(doc.ref, {
+          popularityScore: 0,
+          recentCheckIns: 0,
+          weeklyCheckIns: 0,
+          totalCheckIns: 0,
+          popularityUpdatedAt: now
+        });
+        placeUpdateCount++;
       }
     });
     
     await batch.commit();
-    console.log(`✅ Updated popularity scores for ${updateCount} events`);
+    console.log(`✅ Updated popularity scores for ${eventUpdateCount} events and ${placeUpdateCount} places`);
     
-    return { success: true, eventsUpdated: updateCount };
+    return { 
+      success: true, 
+      eventsUpdated: eventUpdateCount,
+      placesUpdated: placeUpdateCount,
+      totalUpdated: eventUpdateCount + placeUpdateCount
+    };
     
   } catch (error) {
     console.error('❌ Error updating event popularity:', error);
@@ -768,56 +814,200 @@ exports.getTrendingEvents = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// HTTP function to update a single event's popularity when new check-in happens
-exports.updateEventPopularityOnCheckIn = functions.firestore
+// ENHANCED: Universal popularity update function for both events and places
+exports.updatePopularityOnCheckIn = functions.firestore
   .document('checkIns/{checkInId}')
   .onCreate(async (snap, context) => {
     const checkInData = snap.data();
-    const eventId = checkInData.eventId;
+    const itemId = checkInData.eventId; // Note: eventId field is used for both events and places
+    const userId = checkInData.userId;
     
-    if (!eventId) {
-      console.log('⚠️ Check-in created without eventId');
+    if (!itemId || !userId) {
+      console.log('⚠️ Check-in created without itemId or userId');
       return null;
     }
     
-    console.log(`🔥 New check-in created for event ${eventId}, updating popularity...`);
+    console.log(`🔥 New check-in created for item ${itemId} by user ${userId}, updating popularity and user history...`);
     
     try {
       const db = admin.firestore();
-      const eventRef = db.collection('events').doc(eventId);
+      let itemType = null;
       
-      // Get current event data
+      // Try events collection first
+      const eventRef = db.collection('events').doc(itemId);
       const eventDoc = await eventRef.get();
-      if (!eventDoc.exists) {
-        console.log(`⚠️ Event ${eventId} not found`);
-        return null;
+      
+      if (eventDoc.exists) {
+        // It's an event
+        itemType = 'event';
+        await updateItemPopularity(eventRef, eventDoc.data(), 'event', itemId);
+      } else {
+        // Try places collection
+        const placeRef = db.collection('places').doc(itemId);
+        const placeDoc = await placeRef.get();
+        
+        if (placeDoc.exists) {
+          // It's a place
+          itemType = 'place';
+          await updateItemPopularity(placeRef, placeDoc.data(), 'place', itemId);
+        } else {
+          console.log(`⚠️ Neither event nor place found with ID ${itemId}`);
+          return null;
+        }
       }
       
-      const eventData = eventDoc.data();
-      const currentScore = eventData.popularityScore || 0;
-      const currentRecent = eventData.recentCheckIns || 0;
-      const currentTotal = eventData.totalCheckIns || 0;
-      
-      // Increment counters and recalculate score
-      const newRecentCount = currentRecent + 1;
-      const newTotalCount = currentTotal + 1;
-      const newScore = currentScore + 5; // Add 5 points for recent check-in
-      
-      await eventRef.update({
-        popularityScore: newScore,
-        recentCheckIns: newRecentCount,
-        totalCheckIns: newTotalCount,
-        popularityUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-      
-      console.log(`✅ Updated event ${eventId} popularity: score ${currentScore} → ${newScore}`);
+      // ENHANCED: Update user's check-in history
+      if (itemType) {
+        await updateUserCheckInHistory(userId, itemId, itemType, true);
+      }
       
       return null;
     } catch (error) {
-      console.error(`❌ Error updating event popularity for ${eventId}:`, error);
+      console.error(`❌ Error updating popularity for ${itemId}:`, error);
       return null;
     }
   });
+
+// ENHANCED: Universal popularity update function for check-outs
+exports.updatePopularityOnCheckOut = functions.firestore
+  .document('checkIns/{checkInId}')
+  .onUpdate(async (change, context) => {
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
+    
+    // Only process when a check-in becomes inactive (checked out)
+    if (beforeData.isActive === true && afterData.isActive === false) {
+      const itemId = afterData.eventId;
+      
+      if (!itemId) {
+        console.log('⚠️ Check-out processed without itemId');
+        return null;
+      }
+      
+      console.log(`🔥 Check-out processed for item ${itemId}, updating popularity...`);
+      
+      try {
+        const db = admin.firestore();
+        
+        // Try events collection first
+        const eventRef = db.collection('events').doc(itemId);
+        const eventDoc = await eventRef.get();
+        
+        if (eventDoc.exists) {
+          // It's an event
+          await updateItemPopularity(eventRef, eventDoc.data(), 'event', itemId, false);
+          // Note: We keep items in user history for historical purposes on check-out
+          await updateUserCheckInHistory(afterData.userId, itemId, 'event', false);
+        } else {
+          // Try places collection
+          const placeRef = db.collection('places').doc(itemId);
+          const placeDoc = await placeRef.get();
+          
+          if (placeDoc.exists) {
+            // It's a place
+            await updateItemPopularity(placeRef, placeDoc.data(), 'place', itemId, false);
+            // Note: We keep items in user history for historical purposes on check-out
+            await updateUserCheckInHistory(afterData.userId, itemId, 'place', false);
+          } else {
+            console.log(`⚠️ Neither event nor place found with ID ${itemId}`);
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        console.error(`❌ Error updating popularity on check-out for ${itemId}:`, error);
+        return null;
+      }
+    }
+    
+    return null;
+  });
+
+// Helper function to update popularity for events or places
+async function updateItemPopularity(itemRef, itemData, itemType, itemId, isCheckIn = true) {
+  const currentScore = itemData.popularityScore || 0;
+  const currentRecent = itemData.recentCheckIns || 0;
+  const currentTotal = itemData.totalCheckIns || 0;
+  
+  // Calculate new values
+  let newRecentCount, newTotalCount, newScore;
+  
+  if (isCheckIn) {
+    // Check-in: increment counters
+    newRecentCount = currentRecent + 1;
+    newTotalCount = currentTotal + 1;
+    newScore = currentScore + 5; // Add 5 points for recent check-in
+  } else {
+    // Check-out: decrement recent count only (keep total for historical data)
+    newRecentCount = Math.max(0, currentRecent - 1);
+    newTotalCount = currentTotal; // Keep total check-ins for historical purposes
+    newScore = Math.max(0, currentScore - 2); // Subtract 2 points for check-out
+  }
+  
+  await itemRef.update({
+    popularityScore: newScore,
+    recentCheckIns: newRecentCount,
+    totalCheckIns: newTotalCount,
+    popularityUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+  
+  console.log(`✅ Updated ${itemType} ${itemId} popularity: score ${currentScore} → ${newScore}, recent ${currentRecent} → ${newRecentCount}`);
+}
+
+// ENHANCED: Helper function to update user's check-in history
+async function updateUserCheckInHistory(userId, itemId, itemType, isCheckIn = true) {
+  const db = admin.firestore();
+  const userRef = db.collection('users').doc(userId);
+  
+  console.log(`🔄 Updating user ${userId} check-in history for ${itemType} ${itemId} (isCheckIn: ${isCheckIn})`);
+  
+  try {
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      console.log(`⚠️ User ${userId} not found, cannot update check-in history`);
+      return;
+    }
+    
+    const userData = userDoc.data();
+    const checkInHistory = userData.checkInHistory || { events: [], places: [] };
+    
+    // Ensure arrays exist
+    if (!checkInHistory.events) checkInHistory.events = [];
+    if (!checkInHistory.places) checkInHistory.places = [];
+    
+    const targetArray = itemType === 'event' ? checkInHistory.events : checkInHistory.places;
+    
+    if (isCheckIn) {
+      // Add to history if not already present
+      if (!targetArray.includes(itemId)) {
+        targetArray.push(itemId);
+        console.log(`➕ Added ${itemType} ${itemId} to user history`);
+      } else {
+        console.log(`ℹ️ ${itemType} ${itemId} already in user history`);
+      }
+    } else {
+      // Note: We generally don't remove from history on check-out to preserve historical data
+      // But we could implement different logic here if needed
+      console.log(`ℹ️ Check-out processed, keeping ${itemType} ${itemId} in user history for historical purposes`);
+    }
+    
+    // Update the user document
+    await userRef.update({
+      checkInHistory: {
+        events: checkInHistory.events,
+        places: checkInHistory.places,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+      },
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    console.log(`✅ Updated user ${userId} check-in history: ${checkInHistory.events.length} events, ${checkInHistory.places.length} places`);
+    
+  } catch (error) {
+    console.error(`❌ Error updating user check-in history:`, error);
+  }
+}
 
 // MARK: - Location-based Event Discovery
 
@@ -912,4 +1102,649 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c; // Distance in meters
-} 
+}
+
+// ENHANCED: Get user's complete check-in analytics
+exports.getUserCheckInAnalytics = functions.https.onRequest(async (req, res) => {
+  console.log('📊 Getting user check-in analytics...');
+  
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId is required'
+      });
+    }
+    
+    const db = admin.firestore();
+    
+    // Get user's check-in history from user document
+    const userDoc = await db.collection('users').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    
+    const userData = userDoc.data();
+    const checkInHistory = userData.checkInHistory || { events: [], places: [] };
+    
+    // Get current active check-ins from checkIns collection
+    const activeCheckInsSnapshot = await db.collection('checkIns')
+      .where('userId', '==', userId)
+      .where('isActive', '==', true)
+      .get();
+    
+    const currentCheckIns = activeCheckInsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        itemId: data.eventId,
+        checkedInAt: data.checkedInAt,
+        type: 'unknown' // Will be determined by checking events/places collections
+      };
+    });
+    
+    // Fetch details for historical events and places
+    const historicalEvents = [];
+    const historicalPlaces = [];
+    
+    if (checkInHistory.events && checkInHistory.events.length > 0) {
+      const eventPromises = checkInHistory.events.map(async (eventId) => {
+        const eventDoc = await db.collection('events').doc(eventId).get();
+        if (eventDoc.exists) {
+          return { id: eventId, ...eventDoc.data() };
+        }
+        return null;
+      });
+      
+      const events = await Promise.all(eventPromises);
+      historicalEvents.push(...events.filter(e => e !== null));
+    }
+    
+    if (checkInHistory.places && checkInHistory.places.length > 0) {
+      const placePromises = checkInHistory.places.map(async (placeId) => {
+        const placeDoc = await db.collection('places').doc(placeId).get();
+        if (placeDoc.exists) {
+          return { id: placeId, ...placeDoc.data() };
+        }
+        return null;
+      });
+      
+      const places = await Promise.all(placePromises);
+      historicalPlaces.push(...places.filter(p => p !== null));
+    }
+    
+    // Calculate analytics
+    const analytics = {
+      totalHistoricalCheckIns: historicalEvents.length + historicalPlaces.length,
+      totalEvents: historicalEvents.length,
+      totalPlaces: historicalPlaces.length,
+      currentActiveCheckIns: currentCheckIns.length,
+      
+      // Favorite categories
+      favoriteEventCategories: calculateTopCategories(historicalEvents, 'eventCategory'),
+      favoriteCities: calculateTopCities([...historicalEvents, ...historicalPlaces]),
+      
+      // Recent activity
+      recentEvents: historicalEvents.slice(-5),
+      recentPlaces: historicalPlaces.slice(-5),
+      
+      // Current status
+      currentlyCheckedInto: currentCheckIns
+    };
+    
+    console.log(`📊 User ${userId} analytics: ${analytics.totalHistoricalCheckIns} total check-ins`);
+    
+    res.status(200).json({
+      success: true,
+      userId: userId,
+      analytics: analytics,
+      checkInHistory: checkInHistory,
+      userData: {
+        firstName: userData.firstName,
+        city: userData.city,
+        createdAt: userData.createdAt
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting user analytics:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper functions for analytics
+function calculateTopCategories(items, categoryField) {
+  const categoryCount = {};
+  items.forEach(item => {
+    const category = item[categoryField];
+    if (category) {
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    }
+  });
+  
+  return Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([category, count]) => ({ category, count }));
+}
+
+function calculateTopCities(items) {
+  const cityCount = {};
+  items.forEach(item => {
+    const city = item.city;
+    if (city) {
+      cityCount[city] = (cityCount[city] || 0) + 1;
+    }
+  });
+  
+  return Object.entries(cityCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([city, count]) => ({ city, count }));
+}
+
+// MIGRATION: Convert Adalo check-in arrays to Firebase checkIns collection
+exports.migrateCheckInData = functions.https.onRequest(async (req, res) => {
+  console.log('🔄 Starting migration of check-in data from Adalo arrays to checkIns collection...');
+  
+  try {
+    const db = admin.firestore();
+    const { dryRun = false } = req.query;
+    
+    if (dryRun) {
+      console.log('📊 DRY RUN MODE - No data will be written');
+    }
+    
+    const results = {
+      eventsProcessed: 0,
+      placesProcessed: 0,
+      checkInsCreated: 0,
+      errors: [],
+      dryRun: dryRun
+    };
+    
+    // Step 1: Process Events with attendeeIds
+    console.log('📅 Step 1: Processing events with attendeeIds...');
+    const eventsSnapshot = await db.collection('events').get();
+    
+    for (const eventDoc of eventsSnapshot.docs) {
+      try {
+        const eventData = eventDoc.data();
+        const eventId = eventDoc.id;
+        const attendeeIds = eventData.attendeeIds || [];
+        
+        if (attendeeIds.length > 0) {
+          console.log(`📅 Event "${eventData.eventName || eventData.name}" has ${attendeeIds.length} attendees`);
+          
+          for (const adaloUserId of attendeeIds) {
+            // Find Firebase user by original Adalo ID
+            const userQuery = await db.collection('users')
+              .where('adaloId', '==', parseInt(adaloUserId))
+              .limit(1)
+              .get();
+            
+            if (!userQuery.empty) {
+              const userDoc = userQuery.docs[0];
+              const firebaseUserId = userDoc.id;
+              const userData = userDoc.data();
+              
+              // Check if check-in already exists
+              const existingCheckIn = await db.collection('checkIns')
+                .where('userId', '==', firebaseUserId)
+                .where('eventId', '==', eventId)
+                .limit(1)
+                .get();
+              
+              if (existingCheckIn.empty) {
+                const checkInData = {
+                  userId: firebaseUserId,
+                  eventId: eventId,
+                  checkedInAt: eventData.createdAt || admin.firestore.FieldValue.serverTimestamp(),
+                  checkedOutAt: null,
+                  isActive: false, // Historical check-ins are inactive by default
+                  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                  migratedFrom: 'adalo',
+                  originalAdaloUserId: adaloUserId
+                };
+                
+                if (!dryRun) {
+                  await db.collection('checkIns').add(checkInData);
+                }
+                
+                results.checkInsCreated++;
+                console.log(`✅ Created check-in: ${userData.firstName} → ${eventData.eventName}`);
+              } else {
+                console.log(`⚠️ Check-in already exists: ${userData.firstName} → ${eventData.eventName}`);
+              }
+            } else {
+              console.log(`⚠️ No Firebase user found for Adalo ID ${adaloUserId}`);
+            }
+          }
+        }
+        
+        results.eventsProcessed++;
+      } catch (error) {
+        console.error(`❌ Error processing event ${eventDoc.id}:`, error);
+        results.errors.push({
+          type: 'event',
+          id: eventDoc.id,
+          error: error.message
+        });
+      }
+    }
+    
+    // Step 2: Process Places with visitorIds
+    console.log('📍 Step 2: Processing places with visitorIds...');
+    const placesSnapshot = await db.collection('places').get();
+    
+    for (const placeDoc of placesSnapshot.docs) {
+      try {
+        const placeData = placeDoc.data();
+        const placeId = placeDoc.id;
+        const visitorIds = placeData.visitorIds || [];
+        
+        if (visitorIds.length > 0) {
+          console.log(`📍 Place "${placeData.placeName || placeData.name}" has ${visitorIds.length} visitors`);
+          
+          for (const adaloUserId of visitorIds) {
+            // Find Firebase user by original Adalo ID
+            const userQuery = await db.collection('users')
+              .where('adaloId', '==', parseInt(adaloUserId))
+              .limit(1)
+              .get();
+            
+            if (!userQuery.empty) {
+              const userDoc = userQuery.docs[0];
+              const firebaseUserId = userDoc.id;
+              const userData = userDoc.data();
+              
+              // Check if check-in already exists
+              const existingCheckIn = await db.collection('checkIns')
+                .where('userId', '==', firebaseUserId)
+                .where('eventId', '==', placeId) // Note: using eventId field for both events and places
+                .limit(1)
+                .get();
+              
+              if (existingCheckIn.empty) {
+                const checkInData = {
+                  userId: firebaseUserId,
+                  eventId: placeId, // Note: using eventId field for both events and places
+                  checkedInAt: placeData.createdAt || admin.firestore.FieldValue.serverTimestamp(),
+                  checkedOutAt: null,
+                  isActive: false, // Historical check-ins are inactive by default
+                  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                  migratedFrom: 'adalo',
+                  originalAdaloUserId: adaloUserId,
+                  itemType: 'place' // Add identifier for places
+                };
+                
+                if (!dryRun) {
+                  await db.collection('checkIns').add(checkInData);
+                }
+                
+                results.checkInsCreated++;
+                console.log(`✅ Created check-in: ${userData.firstName} → ${placeData.placeName}`);
+              } else {
+                console.log(`⚠️ Check-in already exists: ${userData.firstName} → ${placeData.placeName}`);
+              }
+            } else {
+              console.log(`⚠️ No Firebase user found for Adalo ID ${adaloUserId}`);
+            }
+          }
+        }
+        
+        results.placesProcessed++;
+      } catch (error) {
+        console.error(`❌ Error processing place ${placeDoc.id}:`, error);
+        results.errors.push({
+          type: 'place',
+          id: placeDoc.id,
+          error: error.message
+        });
+      }
+    }
+    
+    // Step 3: Update popularity scores based on migrated data
+    if (!dryRun && results.checkInsCreated > 0) {
+      console.log('📊 Step 3: Updating popularity scores...');
+      
+      // Trigger the popularity update function
+      try {
+        // We'll call the existing updatePopularityScores function
+        const { updatePopularityScores } = require('./index');
+        // Note: This would need to be refactored to be callable internally
+        console.log('📊 Popularity scores will be updated on next scheduled run');
+      } catch (error) {
+        console.log('⚠️ Could not trigger popularity update automatically');
+      }
+    }
+    
+    console.log('🎉 Migration completed!', results);
+    
+    res.status(200).json({
+      success: true,
+      message: `Migration completed - Created ${results.checkInsCreated} check-in records`,
+      results: results,
+      nextSteps: [
+        '1. Review the migrated check-ins in Firebase Console',
+        '2. Test the app to see check-in counts display properly',
+        '3. Run the popularity score update if needed',
+        '4. Consider running this migration again without dryRun if results look good'
+      ]
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper function to get current Firebase data status
+exports.getCheckInDataStatus = functions.https.onRequest(async (req, res) => {
+  console.log('📊 Checking current check-in data status...');
+  
+  try {
+    const db = admin.firestore();
+    
+    // Count documents in each collection
+    const [eventsSnapshot, placesSnapshot, checkInsSnapshot, usersSnapshot] = await Promise.all([
+      db.collection('events').get(),
+      db.collection('places').get(),
+      db.collection('checkIns').get(),
+      db.collection('users').get()
+    ]);
+    
+    // Analyze events with attendeeIds
+    let eventsWithAttendees = 0;
+    let totalAttendeeIds = 0;
+    eventsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.attendeeIds && Array.isArray(data.attendeeIds) && data.attendeeIds.length > 0) {
+        eventsWithAttendees++;
+        totalAttendeeIds += data.attendeeIds.length;
+      }
+    });
+    
+    // Analyze places with visitorIds
+    let placesWithVisitors = 0;
+    let totalVisitorIds = 0;
+    placesSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.visitorIds && Array.isArray(data.visitorIds) && data.visitorIds.length > 0) {
+        placesWithVisitors++;
+        totalVisitorIds += data.visitorIds.length;
+      }
+    });
+    
+    // Analyze existing check-ins
+    let activeCheckIns = 0;
+    let historicalCheckIns = 0;
+    checkInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.isActive) {
+        activeCheckIns++;
+      } else {
+        historicalCheckIns++;
+      }
+    });
+    
+    const status = {
+      collections: {
+        events: eventsSnapshot.size,
+        places: placesSnapshot.size,
+        users: usersSnapshot.size,
+        checkIns: checkInsSnapshot.size
+      },
+      adaloData: {
+        eventsWithAttendees: eventsWithAttendees,
+        totalAttendeeIds: totalAttendeeIds,
+        placesWithVisitors: placesWithVisitors,
+        totalVisitorIds: totalVisitorIds
+      },
+      checkInData: {
+        totalCheckIns: checkInsSnapshot.size,
+        activeCheckIns: activeCheckIns,
+        historicalCheckIns: historicalCheckIns
+      },
+      migrationNeeded: checkInsSnapshot.size === 0 && (totalAttendeeIds > 0 || totalVisitorIds > 0)
+    };
+    
+    console.log('📊 Data status:', status);
+    
+    res.status(200).json({
+      success: true,
+      status: status,
+      recommendation: status.migrationNeeded ? 
+        'Migration needed - Run /migrateCheckInData?dryRun=true first to preview' :
+        'Check-in data looks good!'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error checking data status:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// INSPECTION: Detailed Firebase data inspection
+exports.inspectDetailedData = functions.https.onRequest(async (req, res) => {
+  console.log('🔍 Starting detailed Firebase data inspection...');
+  
+  try {
+    const db = admin.firestore();
+    const { showSamples = true, eventId = null } = req.query;
+    
+    const results = {
+      summary: {},
+      checkInSamples: [],
+      eventSamples: [],
+      placeSamples: [],
+      userSamples: []
+    };
+    
+    // Get collection counts
+    const [checkInsSnapshot, eventsSnapshot, placesSnapshot, usersSnapshot] = await Promise.all([
+      db.collection('checkIns').get(),
+      db.collection('events').get(),
+      db.collection('places').get(),
+      db.collection('users').get()
+    ]);
+    
+    results.summary = {
+      checkIns: checkInsSnapshot.size,
+      events: eventsSnapshot.size,
+      places: placesSnapshot.size,
+      users: usersSnapshot.size
+    };
+    
+    // Analyze check-ins in detail
+    let activeCheckIns = 0;
+    let migratedCheckIns = 0;
+    const eventCheckInCounts = {};
+    const userCheckInCounts = {};
+    
+    checkInsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      
+      if (data.isActive) activeCheckIns++;
+      if (data.migratedFrom === 'adalo') migratedCheckIns++;
+      
+      // Count by event
+      if (data.eventId) {
+        eventCheckInCounts[data.eventId] = (eventCheckInCounts[data.eventId] || 0) + 1;
+      }
+      
+      // Count by user
+      if (data.userId) {
+        userCheckInCounts[data.userId] = (userCheckInCounts[data.userId] || 0) + 1;
+      }
+    });
+    
+    results.checkInAnalysis = {
+      total: checkInsSnapshot.size,
+      active: activeCheckIns,
+      historical: checkInsSnapshot.size - activeCheckIns,
+      migratedFromAdalo: migratedCheckIns,
+      uniqueEvents: Object.keys(eventCheckInCounts).length,
+      uniqueUsers: Object.keys(userCheckInCounts).length,
+      topEvents: Object.entries(eventCheckInCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([eventId, count]) => ({ eventId, checkInCount: count })),
+      topUsers: Object.entries(userCheckInCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([userId, count]) => ({ userId, checkInCount: count }))
+    };
+    
+    if (showSamples) {
+      // Get sample check-ins
+      const sampleCheckIns = checkInsSnapshot.docs.slice(0, 5);
+      for (const doc of sampleCheckIns) {
+        const data = doc.data();
+        
+        // Get user info
+        let userInfo = null;
+        if (data.userId) {
+          const userDoc = await db.collection('users').doc(data.userId).get();
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            userInfo = {
+              firstName: userData.firstName,
+              adaloId: userData.adaloId
+            };
+          }
+        }
+        
+        // Get event/place info
+        let itemInfo = null;
+        if (data.eventId) {
+          // Try events first
+          const eventDoc = await db.collection('events').doc(data.eventId).get();
+          if (eventDoc.exists) {
+            const eventData = eventDoc.data();
+            itemInfo = {
+              type: 'event',
+              name: eventData.eventName || eventData.name,
+              attendeeIds: eventData.attendeeIds ? eventData.attendeeIds.length : 0,
+              popularityScore: eventData.popularityScore
+            };
+          } else {
+            // Try places
+            const placeDoc = await db.collection('places').doc(data.eventId).get();
+            if (placeDoc.exists) {
+              const placeData = placeDoc.data();
+              itemInfo = {
+                type: 'place',
+                name: placeData.placeName || placeData.name,
+                visitorIds: placeData.visitorIds ? placeData.visitorIds.length : 0,
+                popularityScore: placeData.popularityScore
+              };
+            }
+          }
+        }
+        
+        results.checkInSamples.push({
+          id: doc.id,
+          userId: data.userId,
+          eventId: data.eventId,
+          isActive: data.isActive,
+          checkedInAt: data.checkedInAt,
+          migratedFrom: data.migratedFrom,
+          userInfo: userInfo,
+          itemInfo: itemInfo
+        });
+      }
+      
+      // Get sample events with their check-in counts
+      const sampleEvents = eventsSnapshot.docs.slice(0, 5);
+      for (const doc of sampleEvents) {
+        const data = doc.data();
+        const eventId = doc.id;
+        const checkInCount = eventCheckInCounts[eventId] || 0;
+        
+        results.eventSamples.push({
+          id: eventId,
+          name: data.eventName || data.name,
+          attendeeIds: data.attendeeIds ? data.attendeeIds.length : 0,
+          actualCheckIns: checkInCount,
+          popularityScore: data.popularityScore,
+          recentCheckIns: data.recentCheckIns,
+          city: data.city,
+          createdAt: data.createdAt
+        });
+      }
+      
+      // Get sample places
+      const samplePlaces = placesSnapshot.docs.slice(0, 5);
+      for (const doc of samplePlaces) {
+        const data = doc.data();
+        const placeId = doc.id;
+        const checkInCount = eventCheckInCounts[placeId] || 0;
+        
+        results.placeSamples.push({
+          id: placeId,
+          name: data.placeName || data.name,
+          visitorIds: data.visitorIds ? data.visitorIds.length : 0,
+          actualCheckIns: checkInCount,
+          popularityScore: data.popularityScore,
+          recentCheckIns: data.recentCheckIns,
+          city: data.city
+        });
+      }
+    }
+    
+    // If specific eventId requested, get detailed info
+    if (eventId) {
+      const eventCheckIns = await db.collection('checkIns')
+        .where('eventId', '==', eventId)
+        .get();
+      
+      const eventDoc = await db.collection('events').doc(eventId).get();
+      const placeDoc = await db.collection('places').doc(eventId).get();
+      
+      results.specificItem = {
+        id: eventId,
+        checkInCount: eventCheckIns.size,
+        checkIns: eventCheckIns.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          checkedInAt: doc.data().checkedInAt?.toDate()
+        })),
+        itemData: eventDoc.exists ? 
+          { type: 'event', ...eventDoc.data() } : 
+          (placeDoc.exists ? { type: 'place', ...placeDoc.data() } : null)
+      };
+    }
+    
+    console.log('✅ Detailed inspection complete');
+    
+    res.status(200).json({
+      success: true,
+      results: results,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in detailed inspection:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+}); 

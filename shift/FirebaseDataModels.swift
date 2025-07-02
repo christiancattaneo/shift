@@ -78,6 +78,11 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
     let subscribed: Bool?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
+    let adaloId: Int?
+    let originalAdaloId: Int?
+    
+    // NEW: Check-in history from user document
+    let checkInHistory: UserCheckInHistory?
     
     // Custom initializer for handling Firebase data
     init(from decoder: Decoder) throws {
@@ -122,6 +127,9 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
         self.subscribed = try? container.decode(Bool.self, forKey: .subscribed)
         self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
         self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
+        self.adaloId = try? container.decode(Int.self, forKey: .adaloId)
+        self.originalAdaloId = try? container.decode(Int.self, forKey: .originalAdaloId)
+        self.checkInHistory = try? container.decode(UserCheckInHistory.self, forKey: .checkInHistory)
     }
     
     // Custom encoding
@@ -143,12 +151,16 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
         try container.encodeIfPresent(subscribed, forKey: .subscribed)
         try container.encodeIfPresent(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(adaloId, forKey: .adaloId)
+        try container.encodeIfPresent(originalAdaloId, forKey: .originalAdaloId)
+        try container.encodeIfPresent(checkInHistory, forKey: .checkInHistory)
     }
     
     // Coding keys
     private enum CodingKeys: String, CodingKey {
         case id, email, username, fullName, firstName, profilePhoto, gender, attractedTo, age, city
         case howToApproachMe, isEventCreator, isEventAttendee, instagramHandle, subscribed, createdAt, updatedAt
+        case adaloId, originalAdaloId, checkInHistory
     }
     
     // Manual initializer for local creation (not from Firestore)
@@ -170,6 +182,9 @@ struct FirebaseUser: Identifiable, Codable, Hashable {
         self.subscribed = nil
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
+        self.adaloId = nil
+        self.originalAdaloId = nil
+        self.checkInHistory = nil
     }
     
     // Helper computed property for email display
@@ -793,4 +808,32 @@ extension FirebasePlace {
 
 // MARK: - Additional Firebase Services
 // Note: FirebaseConversationsService is implemented in FirebaseServices.swift
-// Note: UserPreferences is implemented in MembersView.swift 
+// Note: UserPreferences is implemented in MembersView.swift
+
+// MARK: - Check-in History Models
+struct UserCheckInHistory: Codable, Hashable {
+    let events: [String]?       // Array of event IDs
+    let places: [String]?       // Array of place IDs
+    let lastUpdated: Timestamp?
+    
+    // Computed properties for convenience
+    var totalEvents: Int {
+        return events?.count ?? 0
+    }
+    
+    var totalPlaces: Int {
+        return places?.count ?? 0
+    }
+    
+    var totalCheckIns: Int {
+        return totalEvents + totalPlaces
+    }
+    
+    func hasCheckedInto(eventId: String) -> Bool {
+        return events?.contains(eventId) ?? false
+    }
+    
+    func hasCheckedInto(placeId: String) -> Bool {
+        return places?.contains(placeId) ?? false
+    }
+} 

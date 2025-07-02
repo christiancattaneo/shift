@@ -1078,6 +1078,96 @@ class FirebaseCheckInsService: ObservableObject {
             }
     }
     
+    // ENHANCED: Get historical check-in data from user documents
+    func getHistoricalCheckInCount(for itemId: String, itemType: String = "event", completion: @escaping (Int) -> Void) {
+        print("📊 FIREBASE CHECKIN: Getting historical check-in count from user documents for \(itemType): \(itemId)")
+        
+        let fieldPath = itemType == "event" ? "checkInHistory.events" : "checkInHistory.places"
+        
+        db.collection("users")
+            .whereField(fieldPath, arrayContains: itemId)
+            .getDocuments { querySnapshot, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        print("❌ FIREBASE CHECKIN: Error getting historical count: \(error.localizedDescription)")
+                        completion(0)
+                        return
+                    }
+                    
+                    let count = querySnapshot?.documents.count ?? 0
+                    print("📊 FIREBASE CHECKIN: \(itemType.capitalized) \(itemId) has \(count) historical check-ins")
+                    completion(count)
+                }
+            }
+    }
+    
+    // ENHANCED: Get combined check-in count (real-time + historical)
+    func getCombinedCheckInCount(for itemId: String, itemType: String = "event", completion: @escaping (Int, Int) -> Void) {
+        print("📊 FIREBASE CHECKIN: Getting combined check-in count for \(itemType): \(itemId)")
+        
+        var currentCount = 0
+        var historicalCount = 0
+        let dispatchGroup = DispatchGroup()
+        
+        // Get current active check-ins
+        dispatchGroup.enter()
+        getCheckInCount(for: itemId) { count in
+            currentCount = count
+            dispatchGroup.leave()
+        }
+        
+        // Get historical check-ins from user documents
+        dispatchGroup.enter()
+        getHistoricalCheckInCount(for: itemId, itemType: itemType) { count in
+            historicalCount = count
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            print("📊 FIREBASE CHECKIN: Combined counts - Current: \(currentCount), Historical: \(historicalCount)")
+            completion(currentCount, historicalCount)
+        }
+    }
+    
+    // ENHANCED: Check if user has ever been to this place/event (using history + current)
+    func hasUserEverCheckedIn(userId: String, itemId: String, itemType: String = "event", completion: @escaping (Bool, Bool) -> Void) {
+        print("🔍 FIREBASE CHECKIN: Checking if user has ever checked in to \(itemType): \(itemId)")
+        
+        var isCurrentlyCheckedIn = false
+        var hasHistoricalCheckIn = false
+        let dispatchGroup = DispatchGroup()
+        
+        // Check if currently checked in (real-time collection)
+        dispatchGroup.enter()
+        isUserCheckedIn(userId: userId, eventId: itemId) { checkedIn in
+            isCurrentlyCheckedIn = checkedIn
+            dispatchGroup.leave()
+        }
+        
+        // Check user's historical check-in data
+        dispatchGroup.enter()
+        db.collection("users").document(userId).getDocument { document, error in
+            if let doc = document, doc.exists, let userData = doc.data() {
+                if let checkInHistory = userData["checkInHistory"] as? [String: Any] {
+                    let events = checkInHistory["events"] as? [String] ?? []
+                    let places = checkInHistory["places"] as? [String] ?? []
+                    
+                    if itemType == "event" {
+                        hasHistoricalCheckIn = events.contains(itemId)
+                    } else {
+                        hasHistoricalCheckIn = places.contains(itemId)
+                    }
+                }
+            }
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            print("🔍 FIREBASE CHECKIN: User status - Currently: \(isCurrentlyCheckedIn), Historically: \(hasHistoricalCheckIn)")
+            completion(isCurrentlyCheckedIn, hasHistoricalCheckIn)
+        }
+    }
+    
     func getMembersAtEvent(_ eventId: String, completion: @escaping ([FirebaseMember]) -> Void) {
         print("👥 FIREBASE CHECKIN: Getting members checked in to event: \(eventId)")
         

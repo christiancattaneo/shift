@@ -161,6 +161,63 @@
         { "fieldPath": "hasProfileImage", "mode": "ASCENDING" },
         { "fieldPath": "createdAt", "mode": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "places",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" },
+        { "fieldPath": "createdAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "places", 
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "city", "mode": "ASCENDING" },
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "places",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "recentCheckIns", "mode": "DESCENDING" },
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "places",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weeklyCheckIns", "mode": "DESCENDING" },
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "places",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "totalCheckIns", "mode": "DESCENDING" },
+        { "fieldPath": "popularityScore", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkIns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "placeId", "mode": "ASCENDING" },
+        { "fieldPath": "isActive", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkIns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "placeId", "mode": "ASCENDING" },
+        { "fieldPath": "isActive", "mode": "ASCENDING" },
+        { "fieldPath": "checkedInAt", "mode": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

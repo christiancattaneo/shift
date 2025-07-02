@@ -385,8 +385,8 @@ struct CheckInsView: View {
                 emptyStateSection
             } else {
                 contentListSection
+                    }
             }
-        }
         .refreshable {
             if selectedContentType == .events {
                 eventsService.refreshEvents()
@@ -395,13 +395,13 @@ struct CheckInsView: View {
             }
         }
         .onAppear {
-            eventsService.fetchEvents()
+                eventsService.fetchEvents()
             placesService.fetchPlaces()
-            // Request location permission if needed for nearby filtering
-            if locationManager.needsLocationPermission {
-                locationManager.requestLocationPermission()
+                // Request location permission if needed for nearby filtering
+                if locationManager.needsLocationPermission {
+                    locationManager.requestLocationPermission()
+                }
             }
-        }
             .sheet(isPresented: $showLocationPermissionAlert) {
                 LocationPermissionAlert(
                     isPresented: $showLocationPermissionAlert,
@@ -414,7 +414,7 @@ struct CheckInsView: View {
                         }
                     }
                 )
-            }
+        }
         .sheet(item: $selectedEvent) { event in
             EventDetailView(event: event)
         }
@@ -655,15 +655,15 @@ struct CheckInsView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 if selectedContentType == .events {
-                    ForEach(filteredEvents, id: \.uniqueID) { event in
-                        EventCardView(
-                            event: event,
-                            checkInsService: checkInsService,
-                            onCardTap: {
-                                selectedEvent = event
-                            }
-                        )
-                        .padding(.horizontal, 20)
+                ForEach(filteredEvents, id: \.uniqueID) { event in
+                    EventCardView(
+                        event: event,
+                        checkInsService: checkInsService,
+                        onCardTap: {
+                            selectedEvent = event
+                        }
+                    )
+                    .padding(.horizontal, 20)
                     }
                 } else {
                     ForEach(filteredPlaces, id: \.id) { place in
@@ -873,7 +873,7 @@ struct EventCardView: View {
         Group {
             if isCheckedIn {
                 LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
-            } else {
+        } else {
                 LinearGradient(colors: [.blue.opacity(0.1), .blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
             }
         }
@@ -962,9 +962,12 @@ struct EventCardView: View {
     private func loadCheckInCount() {
         guard let eventId = event.id else { return }
         
-        checkInsService.getCheckInCount(for: eventId) { [self] count in
+        // ENHANCED: Get both current and historical check-in counts
+        checkInsService.getCombinedCheckInCount(for: eventId, itemType: "event") { [self] currentCount, historicalCount in
             DispatchQueue.main.async {
-                checkInCount = count
+                checkInCount = currentCount
+                // Could store historicalCount for additional UI features if needed
+                print("📊 EVENT: \(event.eventName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount)")
             }
         }
     }
@@ -1246,9 +1249,12 @@ struct PlaceCardView: View {
     private func loadCheckInCount() {
         guard let placeId = place.id else { return }
         
-        checkInsService.getCheckInCount(for: placeId) { [self] count in
+        // ENHANCED: Get both current and historical check-in counts  
+        checkInsService.getCombinedCheckInCount(for: placeId, itemType: "place") { [self] currentCount, historicalCount in
             DispatchQueue.main.async {
-                checkInCount = count
+                checkInCount = currentCount
+                // Could store historicalCount for additional UI features if needed
+                print("📊 PLACE: \(place.placeName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount)")
             }
         }
     }
@@ -1528,9 +1534,12 @@ struct PlaceDetailView: View {
     private func loadCheckInCount() {
         guard let placeId = place.id else { return }
         
-        checkInsService.getCheckInCount(for: placeId) { count in
+        // ENHANCED: Get both current and historical check-in counts
+        checkInsService.getCombinedCheckInCount(for: placeId, itemType: "place") { currentCount, historicalCount in
             DispatchQueue.main.async {
-                self.checkInCount = count
+                self.checkInCount = currentCount
+                // Could store historicalCount for additional UI features if needed
+                print("📊 PLACE DETAIL: \(self.place.placeName ?? "Unknown") - Current: \(currentCount), Historical: \(historicalCount)")
             }
         }
     }
