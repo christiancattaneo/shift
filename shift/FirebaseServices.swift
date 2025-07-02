@@ -289,19 +289,44 @@ class FirebaseUserSession: ObservableObject {
     /// Send email link for passwordless authentication
     func sendSignInLink(email: String, completion: @escaping (Bool, String?) -> Void) {
         let actionCodeSettings = ActionCodeSettings()
-        actionCodeSettings.url = URL(string: "https://shift-12948.firebaseapp.com/emailSignIn?email=\(email)")!
+        
+        // IMPROVED: Use a more generic continue URL without email in query (some filters block this)
+        actionCodeSettings.url = URL(string: "https://shift-12948.firebaseapp.com/emailSignIn")!
         actionCodeSettings.handleCodeInApp = true
         actionCodeSettings.setIOSBundleID("com.christiancattaneo.shift")
+        
+        // ENHANCED: Add additional settings for better email compatibility
+        actionCodeSettings.setAndroidPackageName("com.christiancattaneo.shift", 
+                                                  installIfNotAvailable: false, 
+                                                  minimumVersion: nil)
+        
+        // Store email locally before sending (so we don't need it in URL)
+        UserDefaults.standard.set(email, forKey: "pendingEmailLink")
         
         auth.sendSignInLink(toEmail: email, actionCodeSettings: actionCodeSettings) { error in
             DispatchQueue.main.async {
                 if let error = error {
                     print("❌ Error sending email link: \(error.localizedDescription)")
-                    completion(false, error.localizedDescription)
+                    
+                    // Enhanced error handling for college emails
+                    var friendlyMessage = error.localizedDescription
+                    
+                    if error.localizedDescription.contains("invalid-email") {
+                        friendlyMessage = "Please check your email address format"
+                    } else if error.localizedDescription.contains("quota-exceeded") {
+                        friendlyMessage = "Too many requests. Please try again in a few minutes"
+                    } else if error.localizedDescription.contains("operation-not-allowed") {
+                        friendlyMessage = "Email link authentication is temporarily unavailable"
+                    } else {
+                        // For college emails, provide specific guidance
+                        if email.contains(".edu") || email.contains("student") || email.contains("college") || email.contains("university") {
+                            friendlyMessage = "College emails may take longer or be filtered. Check your spam folder and try a personal email if issues persist"
+                        }
+                    }
+                    
+                    completion(false, friendlyMessage)
                 } else {
                     print("✅ Email link sent successfully to \(email)")
-                    // Store email for later use
-                    UserDefaults.standard.set(email, forKey: "pendingEmailLink")
                     completion(true, nil)
                 }
             }
@@ -537,6 +562,168 @@ class FirebaseMembersService: ObservableObject {
         
         print("🔄 Loading more members...")
         fetchMembers()
+    }
+    
+    // MARK: - Search Members Function
+    func searchMembers(query: String, completion: @escaping ([FirebaseMember]) -> Void) {
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            completion([])
+            return
+        }
+        
+        let searchTerm = query.lowercased()
+        print("🔍 FIREBASE: Searching for '\(searchTerm)' across all members...")
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            // Search by firstName (case-insensitive)
+            let firstNameQuery = self?.db.collection("users")
+                .whereField("firstName", isGreaterThanOrEqualTo: searchTerm.capitalized)
+                .whereField("firstName", isLessThan: searchTerm.capitalized + "\u{f8ff}")
+                .limit(to: 100)
+            
+            firstNameQuery?.getDocuments { [weak self] snapshot, error in
+                if let error = error {
+                    print("❌ Search error: \(error.localizedDescription)")
+                    DispatchQueue.main.async { completion([]) }
+                    return
+                }
+                
+                var searchResults: [FirebaseMember] = []
+                
+                // Process firstName results
+                if let documents = snapshot?.documents {
+                    let firstNameResults = documents.compactMap { document -> FirebaseMember? in
+                        do {
+                            // Try direct decoding first
+                            if let member = try? document.data(as: FirebaseMember.self) {
+                                return member
+                            }
+                            
+                            // Fallback to FirebaseUser conversion
+                            let user = try document.data(as: FirebaseUser.self)
+                            guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
+                            
+                            return FirebaseMember(
+                                userId: document.documentID,
+                                firstName: firstName,
+                                lastName: user.fullName,
+                                age: user.age,
+                                city: user.city,
+                                attractedTo: user.attractedTo,
+                                approachTip: user.howToApproachMe,
+                                instagramHandle: user.instagramHandle,
+                                profileImage: nil,
+                                profileImageUrl: nil,
+                                firebaseImageUrl: nil,
+                                bio: nil,
+                                location: user.city,
+                                interests: nil,
+                                gender: user.gender,
+                                relationshipGoals: nil,
+                                dateJoined: user.createdAt,
+                                status: nil,
+                                isActive: true,
+                                lastActiveDate: user.updatedAt,
+                                isVerified: false,
+                                verificationDate: nil,
+                                subscriptionStatus: user.subscribed == true ? "active" : "inactive",
+                                fcmToken: nil,
+                                profilePhoto: nil,
+                                profileImageName: nil
+                            )
+                        } catch {
+                            print("⚠️ Error decoding search result \(document.documentID): \(error)")
+                            return nil
+                        }
+                    }
+                    searchResults.append(contentsOf: firstNameResults)
+                }
+                
+                // Now search by city
+                let cityQuery = self?.db.collection("users")
+                    .whereField("city", isGreaterThanOrEqualTo: searchTerm.capitalized)
+                    .whereField("city", isLessThan: searchTerm.capitalized + "\u{f8ff}")
+                    .limit(to: 50)
+                
+                cityQuery?.getDocuments { snapshot, error in
+                    if let documents = snapshot?.documents {
+                        let cityResults = documents.compactMap { document -> FirebaseMember? in
+                            // Check if we already have this user from firstName search
+                            if searchResults.contains(where: { $0.userId == document.documentID }) {
+                                return nil
+                            }
+                            
+                            do {
+                                if let member = try? document.data(as: FirebaseMember.self) {
+                                    return member
+                                }
+                                
+                                let user = try document.data(as: FirebaseUser.self)
+                                guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
+                                
+                                return FirebaseMember(
+                                    userId: document.documentID,
+                                    firstName: firstName,
+                                    lastName: user.fullName,
+                                    age: user.age,
+                                    city: user.city,
+                                    attractedTo: user.attractedTo,
+                                    approachTip: user.howToApproachMe,
+                                    instagramHandle: user.instagramHandle,
+                                    profileImage: nil,
+                                    profileImageUrl: nil,
+                                    firebaseImageUrl: nil,
+                                    bio: nil,
+                                    location: user.city,
+                                    interests: nil,
+                                    gender: user.gender,
+                                    relationshipGoals: nil,
+                                    dateJoined: user.createdAt,
+                                    status: nil,
+                                    isActive: true,
+                                    lastActiveDate: user.updatedAt,
+                                    isVerified: false,
+                                    verificationDate: nil,
+                                    subscriptionStatus: user.subscribed == true ? "active" : "inactive",
+                                    fcmToken: nil,
+                                    profilePhoto: nil,
+                                    profileImageName: nil
+                                )
+                            } catch {
+                                return nil
+                            }
+                        }
+                        searchResults.append(contentsOf: cityResults)
+                    }
+                    
+                    // Also perform local search on already loaded members for instant results
+                    let localResults = self?.members.filter { member in
+                        let name = member.firstName.lowercased()
+                        let city = member.city?.lowercased() ?? ""
+                        let tip = member.approachTip?.lowercased() ?? ""
+                        let instagram = member.instagramHandle?.lowercased() ?? ""
+                        
+                        return name.contains(searchTerm) || 
+                               city.contains(searchTerm) || 
+                               tip.contains(searchTerm) ||
+                               instagram.contains(searchTerm)
+                    } ?? []
+                    
+                    // Combine results and remove duplicates
+                    var allResults = searchResults
+                    for localResult in localResults {
+                        if !allResults.contains(where: { $0.userId == localResult.userId }) {
+                            allResults.append(localResult)
+                        }
+                    }
+                    
+                    print("🔍 FIREBASE: Search complete - Found \(allResults.count) results for '\(searchTerm)'")
+                    DispatchQueue.main.async {
+                        completion(allResults)
+                    }
+                }
+            }
+        }
     }
     
     func createMember(_ member: FirebaseMember, completion: @escaping (Bool, String?) -> Void) {
@@ -1291,34 +1478,85 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     private func fetchMembersById(userIds: [String], completion: @escaping ([FirebaseMember]) -> Void) {
+        print("👥 FIREBASE CHECKIN: Fetching \(userIds.count) user profiles: \(userIds)")
         var members: [FirebaseMember] = []
         let group = DispatchGroup()
         
         for userId in userIds {
             group.enter()
+            print("👤 FIREBASE CHECKIN: Fetching user: \(userId)")
+            
             db.collection("users").document(userId).getDocument { document, error in
-                if let document = document, document.exists {
-                    let data = document.data() ?? [:]
+                defer { group.leave() }
+                
+                if let error = error {
+                    print("❌ FIREBASE CHECKIN: Error fetching user \(userId): \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let document = document, document.exists else {
+                    print("❌ FIREBASE CHECKIN: User document \(userId) not found")
+                    return
+                }
+                
+                let data = document.data() ?? [:]
+                print("👤 FIREBASE CHECKIN: User \(userId) data keys: \(data.keys.joined(separator: ", "))")
+                
+                // Get the first name - this is required
+                guard let firstName = data["firstName"] as? String, !firstName.isEmpty else {
+                    print("❌ FIREBASE CHECKIN: User \(userId) missing firstName")
+                    return
+                }
+                
+                // Try to decode as FirebaseMember directly first (proper way)
+                do {
+                    let member = try document.data(as: FirebaseMember.self)
+                    members.append(member)
+                    print("✅ FIREBASE CHECKIN: Successfully decoded FirebaseMember: \(firstName) (ID: \(document.documentID))")
+                } catch {
+                    // Fallback: Manual creation if direct decoding fails
+                    print("⚠️ FIREBASE CHECKIN: Direct decoding failed for \(userId), creating manually: \(error.localizedDescription)")
+                    
                     let member = FirebaseMember(
-                        id: document.documentID,
-                        firstName: data["firstName"] as? String ?? "Unknown",
-                        lastName: data["lastName"] as? String ?? "",
+                        userId: document.documentID,
+                        firstName: firstName,
+                        lastName: data["lastName"] as? String,
                         age: data["age"] as? Int,
                         city: data["city"] as? String,
-                        approachTip: data["approachTip"] as? String,
-                        profileImage: data["profileImage"] as? String,
-                        profileImageUrl: data["profileImageUrl"] as? String,
+                        attractedTo: data["attractedTo"] as? String,
+                        approachTip: data["howToApproachMe"] as? String, // Note: different field name
+                        instagramHandle: data["instagramHandle"] as? String,
+                        profileImage: nil, // Legacy field - not used
+                        profileImageUrl: nil, // Legacy field - not used 
+                        firebaseImageUrl: nil, // Legacy field - not used
                         bio: data["bio"] as? String,
-                        interests: data["interests"] as? [String]
+                        location: data["city"] as? String,
+                        interests: data["interests"] as? [String],
+                        gender: data["gender"] as? String,
+                        relationshipGoals: data["relationshipGoals"] as? String,
+                        dateJoined: data["createdAt"] as? Timestamp,
+                        status: data["status"] as? String,
+                        isActive: true,
+                        lastActiveDate: data["updatedAt"] as? Timestamp,
+                        isVerified: data["isVerified"] as? Bool ?? false,
+                        verificationDate: data["verificationDate"] as? Timestamp,
+                        subscriptionStatus: data["subscribed"] as? Bool == true ? "active" : "inactive",
+                        fcmToken: data["fcmToken"] as? String,
+                        profilePhoto: data["profilePhoto"] as? String,
+                        profileImageName: data["profileImageName"] as? String
                     )
+                    
                     members.append(member)
+                    print("✅ FIREBASE CHECKIN: Successfully created FirebaseMember manually: \(firstName) (ID: \(document.documentID))")
                 }
-                group.leave()
             }
         }
         
         group.notify(queue: .main) {
-            print("👥 FIREBASE CHECKIN: Successfully loaded \(members.count) members")
+            print("👥 FIREBASE CHECKIN: Successfully loaded \(members.count) out of \(userIds.count) members")
+            for member in members {
+                print("   - \(member.firstName) (ID: \(member.id ?? "unknown"))")
+            }
             completion(members)
         }
     }

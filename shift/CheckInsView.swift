@@ -656,7 +656,7 @@ struct EventCardView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 200)
+                        .frame(height: 300)
                         .clipped()
                 } placeholder: {
                     eventImagePlaceholder
@@ -780,6 +780,19 @@ struct EventCardView: View {
             checkIfUserCheckedIn()
             loadCheckInCount()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .checkInStatusChanged)) { notification in
+            // Check if this notification is for our event
+            if let userInfo = notification.userInfo,
+               let eventId = userInfo["eventId"] as? String,
+               let isCheckedIn = userInfo["isCheckedIn"] as? Bool,
+               eventId == (event.id ?? event.uniqueID) {
+                print("🔄 EventCard: Received check-in status change for event \(event.name): \(isCheckedIn)")
+                DispatchQueue.main.async {
+                    self.isCheckedIn = isCheckedIn
+                    self.loadCheckInCount()
+                }
+            }
+        }
         .alert("Location Required", isPresented: $showLocationAlert) {
             Button("Enable Location") {
                 if locationManager.locationDenied {
@@ -834,7 +847,7 @@ struct EventCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 200)
+            .frame(height: 300)
         .overlay(
             VStack {
                 Image(systemName: "calendar.badge.clock")
@@ -867,7 +880,11 @@ struct EventCardView: View {
                     if success {
                         isCheckedIn = false
                         loadCheckInCount()
-                        NotificationCenter.default.post(name: .checkInStatusChanged, object: nil)
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged, 
+                            object: nil,
+                            userInfo: ["eventId": eventId, "isCheckedIn": false]
+                        )
                     } else {
                         print("❌ Check out failed: \(error ?? "Unknown error")")
                     }
@@ -885,7 +902,11 @@ struct EventCardView: View {
                     if success {
                         isCheckedIn = true
                         loadCheckInCount()
-                        NotificationCenter.default.post(name: .checkInStatusChanged, object: nil)
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged, 
+                            object: nil,
+                            userInfo: ["eventId": eventId, "isCheckedIn": true]
+                        )
                     } else {
                         locationError = error
                         showLocationAlert = true
@@ -942,7 +963,7 @@ struct PlaceCardView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 200)
+                        .frame(height: 300)
                         .clipped()
                 } placeholder: {
                     placeImagePlaceholder
@@ -1071,6 +1092,19 @@ struct PlaceCardView: View {
             checkIfUserCheckedIn()
             loadCheckInCount()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .checkInStatusChanged)) { notification in
+            // Check if this notification is for our place
+            if let userInfo = notification.userInfo,
+               let placeId = userInfo["placeId"] as? String,
+               let isCheckedIn = userInfo["isCheckedIn"] as? Bool,
+               placeId == place.id {
+                print("🔄 PlaceCard: Received check-in status change for place \(place.name): \(isCheckedIn)")
+                DispatchQueue.main.async {
+                    self.isCheckedIn = isCheckedIn
+                    self.loadCheckInCount()
+                }
+            }
+        }
         .alert("Location Required", isPresented: $showLocationAlert) {
             Button("Enable Location") {
                 if locationManager.locationDenied {
@@ -1123,7 +1157,7 @@ struct PlaceCardView: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .frame(height: 200)
+        .frame(height: 300)
         .overlay(
             VStack {
                 Image(systemName: "location.circle")
@@ -1156,6 +1190,11 @@ struct PlaceCardView: View {
                     if success {
                         isCheckedIn = false
                         loadCheckInCount()
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged, 
+                            object: nil,
+                            userInfo: ["placeId": placeId, "isCheckedIn": false]
+                        )
                     } else {
                         print("❌ Place check out failed: \(error ?? "Unknown error")")
                     }
@@ -1169,6 +1208,11 @@ struct PlaceCardView: View {
                     if success {
                         isCheckedIn = true
                         loadCheckInCount()
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged, 
+                            object: nil,
+                            userInfo: ["placeId": placeId, "isCheckedIn": true]
+                        )
                     } else {
                         locationError = error
                         showLocationAlert = true
@@ -1312,6 +1356,34 @@ struct PlaceDetailView: View {
         .onAppear {
             setupPlaceDetail()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .checkInStatusChanged)) { notification in
+            // Update local state and reload attendees when check-in status changes
+            if let userInfo = notification.userInfo,
+               let placeId = userInfo["placeId"] as? String,
+               let newIsCheckedIn = userInfo["isCheckedIn"] as? Bool,
+               placeId == place.id {
+                print("🔄 PlaceDetail: Received check-in status change - placeId: \(placeId), newStatus: \(newIsCheckedIn)")
+                
+                // Store old value before updating
+                let wasCheckedIn = self.isCheckedIn
+                
+                // Update local check-in status immediately
+                self.isCheckedIn = newIsCheckedIn
+                
+                // Update check-in count based on state change
+                if newIsCheckedIn && !wasCheckedIn {
+                    self.checkInCount += 1
+                } else if !newIsCheckedIn && wasCheckedIn {
+                    self.checkInCount = max(0, self.checkInCount - 1)
+                }
+                
+                // Reload attendees and count from server for accuracy
+                loadAttendees()
+                loadCheckInCount()
+                
+                print("🔄 PlaceDetail: Updated local state - isCheckedIn: \(self.isCheckedIn), count: \(self.checkInCount)")
+            }
+        }
     }
     
     private var checkInButtonSection: some View {
@@ -1415,7 +1487,7 @@ struct PlaceDetailView: View {
                 .padding(.vertical, 30)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         ForEach(attendees, id: \.uniqueID) { member in
                             AttendeeCardView(member: member, currentUserCheckedIn: isCheckedIn)
                         }
@@ -1452,6 +1524,11 @@ struct PlaceDetailView: View {
                         isCheckedIn = false
                         checkInCount = max(0, checkInCount - 1)
                         Haptics.successNotification()
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged, 
+                            object: nil,
+                            userInfo: ["placeId": placeId, "isCheckedIn": false]
+                        )
                     } else {
                         print("❌ Place check out failed: \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -1467,6 +1544,11 @@ struct PlaceDetailView: View {
                         isCheckedIn = true
                         checkInCount += 1
                         Haptics.successNotification()
+                        NotificationCenter.default.post(
+                            name: .checkInStatusChanged, 
+                            object: nil,
+                            userInfo: ["placeId": placeId, "isCheckedIn": true]
+                        )
                     } else {
                         print("❌ Place check in failed: \(error ?? "Unknown error")")
                         Haptics.errorNotification()
@@ -1711,6 +1793,34 @@ struct EventDetailView: View {
         .onAppear {
             setupEventDetail()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .checkInStatusChanged)) { notification in
+            // Update local state and reload attendees when check-in status changes
+            if let userInfo = notification.userInfo,
+               let eventId = userInfo["eventId"] as? String,
+               let newIsCheckedIn = userInfo["isCheckedIn"] as? Bool,
+               eventId == (event.id ?? event.uniqueID) {
+                print("🔄 EventDetail: Received check-in status change - eventId: \(eventId), newStatus: \(newIsCheckedIn)")
+                
+                // Store old value before updating
+                let wasCheckedIn = self.isCheckedIn
+                
+                // Update local check-in status immediately
+                self.isCheckedIn = newIsCheckedIn
+                
+                // Update check-in count based on state change
+                if newIsCheckedIn && !wasCheckedIn {
+                    self.checkInCount += 1
+                } else if !newIsCheckedIn && wasCheckedIn {
+                    self.checkInCount = max(0, self.checkInCount - 1)
+                }
+                
+                // Reload attendees and count from server for accuracy
+                loadAttendees()
+                loadCheckInCount()
+                
+                print("🔄 EventDetail: Updated local state - isCheckedIn: \(self.isCheckedIn), count: \(self.checkInCount)")
+            }
+        }
     }
     
     private var checkInButtonSection: some View {
@@ -1814,7 +1924,7 @@ struct EventDetailView: View {
                 .padding(.vertical, 30)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         ForEach(attendees, id: \.uniqueID) { member in
                             AttendeeCardView(member: member, currentUserCheckedIn: isCheckedIn)
                         }
@@ -2140,88 +2250,160 @@ struct EventDetailView: View {
     }
 }
 
-// MARK: - Attendee Card View
+// MARK: - Enhanced Attendee Card View (Bigger & Tappable)
 struct AttendeeCardView: View {
     let member: FirebaseMember
     let currentUserCheckedIn: Bool
+    @State private var selectedMember: FirebaseMember?
+    @State private var showingDetail = false
     
     var body: some View {
-        VStack(spacing: 8) {
-            // Profile Image with conditional blur
+        VStack(spacing: 0) {
+            // Profile Image Header with conditional blur
+            ZStack {
             CachedAsyncImage(url: member.profileImageURL) { image in
                 image
                     .resizable()
-                    .scaledToFill()
-                    .frame(width: 60, height: 60)
-                    .clipShape(Circle())
-                    .blur(radius: currentUserCheckedIn ? 0 : 8)
-                    .overlay(
-                        Circle()
-                            .stroke(currentUserCheckedIn ? Color.green : Color.gray, lineWidth: 2)
-                    )
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity, maxHeight: 180)
+                        .frame(height: 180)
+                        .clipped()
+                        .blur(radius: currentUserCheckedIn ? 0 : 8)
+                        .background(Color.gray.opacity(0.1))
             } placeholder: {
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                    ZStack {
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 60, height: 60)
-                    .blur(radius: currentUserCheckedIn ? 0 : 8)
-                    .overlay(
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: 180)
+                        .frame(height: 180)
+                        .clipped()
+                        .blur(radius: currentUserCheckedIn ? 0 : 8)
+                        
+                        VStack(spacing: 8) {
+                            Image(systemName: "person.crop.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .blur(radius: currentUserCheckedIn ? 0 : 6)
                         Text(member.firstName.prefix(1).uppercased())
-                            .font(.title2)
+                                .font(.title)
                             .fontWeight(.bold)
+                                .foregroundColor(.gray.opacity(0.8))
+                                .blur(radius: currentUserCheckedIn ? 0 : 6)
+                        }
+                    }
+                }
+                
+                // Lock icon overlay if not checked in
+                if !currentUserCheckedIn {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "lock.fill")
+                                .font(.title2)
                             .foregroundColor(.white)
-                            .blur(radius: currentUserCheckedIn ? 0 : 6)
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(currentUserCheckedIn ? Color.green : Color.gray, lineWidth: 2)
-                    )
+                                .background(
+                                    Circle()
+                                        .fill(Color.black.opacity(0.7))
+                                        .frame(width: 32, height: 32)
+                                )
+                                .padding(12)
+                        }
+                        Spacer()
+                    }
+                }
+                
+                // Check-in status border
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(currentUserCheckedIn ? Color.green : Color.gray, lineWidth: 3)
+                    .frame(maxWidth: .infinity, maxHeight: 180)
+                    .frame(height: 180)
             }
-            
-            // Lock icon overlay if not checked in
-            if !currentUserCheckedIn {
-                Image(systemName: "lock.fill")
-                    .font(.caption)
-                    .foregroundColor(.white)
-                    .background(
-                        Circle()
-                            .fill(Color.black.opacity(0.7))
-                            .frame(width: 20, height: 20)
-                    )
-                    .offset(x: 20, y: -45)
-            }
+            .cornerRadius(16, corners: [.topLeft, .topRight])
             
             // Member Info with conditional blur
-            VStack(spacing: 2) {
-                Text(currentUserCheckedIn ? member.firstName : "???")
-                    .font(.subheadline)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(currentUserCheckedIn ? member.firstName : "???")
+                        .font(.headline)
                     .fontWeight(.semibold)
+                        .foregroundColor(.primary)
                     .lineLimit(1)
+                        .truncationMode(.tail)
+                    
+                    Spacer(minLength: 4)
                 
                 if let age = member.age {
-                    Text(currentUserCheckedIn ? "\(age)" : "??")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text(currentUserCheckedIn ? "\(age)" : "??")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                            .fixedSize()
+                    }
                 }
                 
                 if let city = member.city {
-                    Text(currentUserCheckedIn ? city : "???")
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        Text(currentUserCheckedIn ? city : "???")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
+                
+                if let tip = member.approachTip, !tip.isEmpty {
+                    Text(currentUserCheckedIn ? tip : "???")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .truncationMode(.tail)
+                }
+                
+                // Status indicator
+                HStack(spacing: 4) {
+                    Image(systemName: currentUserCheckedIn ? "eye" : "eye.slash")
+                        .font(.caption2)
+                        .foregroundColor(currentUserCheckedIn ? .green : .orange)
+                    Text(currentUserCheckedIn ? "Visible" : "Check in to view")
                         .font(.caption2)
                         .foregroundColor(.secondary)
-                        .lineLimit(1)
+                    Spacer()
                 }
             }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: 80)
-        .padding(.vertical, 8)
-        .background(Color(.tertiarySystemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .frame(width: 160) // Similar to MemberCardView but slightly smaller for horizontal scroll
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .onTapGesture {
+            if currentUserCheckedIn {
+                selectedMember = member
+                showingDetail = true
+                Haptics.lightImpact()
+            } else {
+                Haptics.errorNotification()
+            }
+        }
+        .sheet(item: $selectedMember) { member in
+            NavigationView {
+                MemberDetailView(member: member)
+            }
+        }
+        .scaleEffect(currentUserCheckedIn ? 1.0 : 0.95)
+        .opacity(currentUserCheckedIn ? 1.0 : 0.8)
     }
 }
+
+
 
 #Preview {
     CheckInsView()

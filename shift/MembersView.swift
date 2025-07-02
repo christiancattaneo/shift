@@ -11,6 +11,7 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     
     @State private var cachedImage: UIImage?
     @State private var isLoading = false
+    @State private var loadingFailed = false
     
     init(
         url: URL?,
@@ -38,12 +39,17 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     private func loadImage() {
         guard let url = url, !isLoading else { return }
         isLoading = true
+        loadingFailed = false
         
         URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let uiImage = UIImage(data: data) {
                     cachedImage = uiImage
+                    loadingFailed = false
+                } else {
+                    loadingFailed = true
+                    print("🖼️ Failed to load image from: \(url)")
                 }
             }
         }.resume()
@@ -58,10 +64,14 @@ struct MembersView: View {
     @State private var selectedFilter = "Compatible"
     @State private var displayedMembers: [FirebaseMember] = []
     @State private var filteredMembers: [FirebaseMember] = []
+    @State private var allSearchResults: [FirebaseMember] = []
     @State private var isLoadingMore = false
     @State private var isRefreshing = false
+    @State private var isSearching = false
     @State private var selectedMember: FirebaseMember?
     @State private var showingDetail = false
+    @State private var hasMoreMembers = true
+    @State private var currentPage = 0
     
     // Debouncing for search
     @State private var searchTask: Task<Void, Never>?
@@ -74,79 +84,89 @@ struct MembersView: View {
     private let filters = ["Compatible", "Nearby", "Online"]
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Search Bar
+        VStack(spacing: 0) {
+            // Search Bar
+            HStack(spacing: 12) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Search members...", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .onChange(of: searchText) { oldValue, newValue in
+                            debouncedSearch()
+                        }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            
+            // Filter Pills
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
-                        
-                        TextField("Search members...", text: $searchText)
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .onChange(of: searchText) { oldValue, newValue in
-                                debouncedSearch()
-                            }
+                    ForEach(filters, id: \.self) { filter in
+                        FilterPill(
+                            title: filter,
+                            isSelected: selectedFilter == filter
+                        ) {
+                            selectedFilter = filter
+                            filterMembersAsync()
+                        }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
-                
-                // Filter Pills
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(filters, id: \.self) { filter in
-                            FilterPill(
-                                title: filter,
-                                isSelected: selectedFilter == filter
-                            ) {
-                                selectedFilter = filter
-                                filterMembersAsync()
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-                .padding(.vertical, 12)
-                
-                // Members Grid
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(Array(displayedMembers.enumerated()), id: \.element.id) { index, member in
-                            MemberCardView(member: member)
-                                .onTapGesture {
-                                    selectedMember = member
-                                    showingDetail = true
-                                }
-                                .onAppear {
-                                    if index == displayedMembers.count - 1 {
-                                        loadMoreMembers()
-                                    }
-                                }
-                        }
-                        
-                        // Loading More Indicator
-                        if isLoadingMore && displayedMembers.count < filteredMembers.count {
-                            LoadingMoreView()
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 100)
-                }
-                .refreshable {
-                    await refreshMembers()
-                }
             }
-            .navigationTitle("Members")
-            .navigationBarTitleDisplayMode(.large)
-            .sheet(item: $selectedMember) { member in
-                NavigationView {
-                    MemberDetailView(member: member)
+            .padding(.vertical, 12)
+            
+            // Members Grid
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(Array(displayedMembers.enumerated()), id: \.element.id) { index, member in
+                        MemberCardView(member: member)
+                            .onTapGesture {
+                                selectedMember = member
+                                showingDetail = true
+                            }
+                            .onAppear {
+                                if index == displayedMembers.count - 1 {
+                                    loadMoreMembers()
+                                }
+                            }
+                    }
+                    
+                    // Loading More Indicator
+                    if isLoadingMore && hasMoreMembers {
+                        LoadingMoreView()
+                    }
+                    
+                    // Search indicator
+                    if isSearching {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text("Searching all members...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(height: 60)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 100)
+            }
+            .refreshable {
+                await refreshMembers()
+            }
+        }
+        .navigationTitle("Members")
+        .navigationBarTitleDisplayMode(.large)
+        .sheet(item: $selectedMember) { member in
+            NavigationView {
+                MemberDetailView(member: member)
             }
         }
         .onAppear {
@@ -166,10 +186,75 @@ struct MembersView: View {
             try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
             if !Task.isCancelled {
                 await MainActor.run {
-                    filterMembersAsync()
+                    if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        // If search is empty, go back to normal filtering
+                        allSearchResults = []
+                        filterMembersAsync()
+                    } else {
+                        // Perform Firebase search across all members
+                        performFirebaseSearch()
+                    }
                 }
             }
         }
+    }
+    
+    // MARK: - Firebase Search Function
+    
+    private func performFirebaseSearch() {
+        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            allSearchResults = []
+            filterMembersAsync()
+            return
+        }
+        
+        isSearching = true
+        let searchTerm = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        print("🔍 FIREBASE SEARCH: Searching for '\(searchTerm)' across all members...")
+        
+        // Use FirebaseMembersService to search all members
+        membersService.searchMembers(query: searchTerm) { searchResults in
+            DispatchQueue.main.async {
+                self.isSearching = false
+                self.allSearchResults = searchResults
+                
+                print("🔍 FIREBASE SEARCH: Found \(searchResults.count) results for '\(searchTerm)'")
+                
+                // Apply current filter to search results
+                filterSearchResults()
+            }
+        }
+    }
+    
+    private func filterSearchResults() {
+        var filtered = allSearchResults
+        
+        // Exclude current user
+        if let currentUserId = userSession.currentUser?.id {
+            filtered = filtered.filter { $0.userId != currentUserId }
+        }
+        
+        // Apply current filter logic
+        switch selectedFilter {
+        case "Compatible":
+            filtered = applyCompatibilityFilter(to: filtered)
+        case "Nearby":
+            filtered = applyLocationFilter(to: filtered)
+        case "Online":
+            filtered = applyOnlineFilter(to: filtered)
+        default:
+            break
+        }
+        
+        // Sort by compatibility
+        filtered = rankMembersByCompatibility(filtered, currentUser: userSession.currentUser)
+        
+        // Update display
+        filteredMembers = filtered
+        displayedMembers = Array(filtered.prefix(10)) // Show first 10 search results
+        
+        print("🔍 SEARCH RESULTS: \(displayedMembers.count) members displayed from \(filteredMembers.count) filtered search results")
     }
     
     // MARK: - Filtering Logic (Now Async)
@@ -182,6 +267,11 @@ struct MembersView: View {
     
     @MainActor
     private func filterMembers() async {
+        // Skip if we're in search mode
+        if !allSearchResults.isEmpty {
+            return
+        }
+        
         print("🔍 Filtering \(membersService.members.count) members for user: \(userSession.currentUser?.firstName ?? "unknown")")
         
         let allMembers = membersService.members
@@ -194,19 +284,6 @@ struct MembersView: View {
         }
         
         print("🔍 After user exclusion: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
-        
-        // Apply search filter
-        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            let searchTerm = searchText.lowercased()
-            let beforeSearch = filtered.count
-            filtered = filtered.filter { member in
-                let name = member.firstName.lowercased()
-                let city = member.city?.lowercased() ?? ""
-                let tip = member.approachTip?.lowercased() ?? ""
-                return name.contains(searchTerm) || city.contains(searchTerm) || tip.contains(searchTerm)
-            }
-            print("🔍 After search filter '\(searchText)': \(filtered.count) members (excluded \(beforeSearch - filtered.count))")
-        }
         
         // Apply filter-specific logic
         switch selectedFilter {
@@ -225,53 +302,72 @@ struct MembersView: View {
         // Sort members intelligently  
         filtered = rankMembersByCompatibility(filtered, currentUser: userSession.currentUser)
         
-        // ✅ CRITICAL FIX: Update both arrays and reset display
+        // Reset pagination
+        currentPage = 0
+        hasMoreMembers = filtered.count > 10
+        
+        // Update both arrays and reset display
         filteredMembers = filtered
-        displayedMembers = Array(filtered.prefix(5)) // Start with 5 members
+        displayedMembers = Array(filtered.prefix(10)) // Start with 10 members
         
         print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered")
     }
     
     private func loadMoreMembers() {
-        guard !isLoadingMore else { return }
+        guard !isLoadingMore && hasMoreMembers else { 
+            print("📱 Cannot load more: isLoadingMore=\(isLoadingMore), hasMoreMembers=\(hasMoreMembers)")
+            return 
+        }
         
         let currentCount = displayedMembers.count
         let totalCount = filteredMembers.count
         
-        // ✅ CRITICAL FIX: Proper bounds checking
         guard currentCount < totalCount else { 
             print("📱 No more members to load: \(currentCount)/\(totalCount)")
+            hasMoreMembers = false
             return 
         }
         
         isLoadingMore = true
-        let batchSize = 5
+        let batchSize = 10
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // Reduced delay
-            // ✅ CRITICAL FIX: Safe array access with bounds checking
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             let endIndex = min(currentCount + batchSize, totalCount)
-            guard currentCount < filteredMembers.count && endIndex <= filteredMembers.count else {
-                print("❌ Array bounds error prevented: currentCount=\(currentCount), endIndex=\(endIndex), filteredMembers.count=\(filteredMembers.count)")
-                isLoadingMore = false
+            guard currentCount < self.filteredMembers.count && endIndex <= self.filteredMembers.count else {
+                print("❌ Array bounds error prevented: currentCount=\(currentCount), endIndex=\(endIndex), filteredMembers.count=\(self.filteredMembers.count)")
+                self.isLoadingMore = false
                 return
             }
             
-            let nextBatch = Array(filteredMembers[currentCount..<endIndex])
-            displayedMembers.append(contentsOf: nextBatch)
-            isLoadingMore = false
-            print("📱 Loaded \(nextBatch.count) more members. Total displayed: \(displayedMembers.count)/\(totalCount)")
+            let nextBatch = Array(self.filteredMembers[currentCount..<endIndex])
+            self.displayedMembers.append(contentsOf: nextBatch)
+            self.currentPage += 1
+            self.hasMoreMembers = self.displayedMembers.count < self.filteredMembers.count
+            self.isLoadingMore = false
+            
+            print("📱 Loaded \(nextBatch.count) more members. Total displayed: \(self.displayedMembers.count)/\(totalCount), hasMore: \(self.hasMoreMembers)")
         }
     }
     
     private func refreshMembers() async {
         isRefreshing = true
         print("🔄 Refreshing members with fresh data...")
+        
+        // Reset search and pagination state
+        allSearchResults = []
+        currentPage = 0
+        hasMoreMembers = true
+        
         membersService.refreshMembers()
         
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
         await MainActor.run {
-            filterMembersAsync() // This will reset displayedMembers
+            if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                performFirebaseSearch()
+            } else {
+                filterMembersAsync()
+            }
             isRefreshing = false
             print("✅ Refresh complete: \(displayedMembers.count) members loaded")
         }
@@ -464,15 +560,23 @@ struct MemberCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Profile Image with constrained sizing
-            CachedAsyncImage(url: member.profileImageURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 180)
-                    .clipped()
-            } placeholder: {
-                loadingImageView
+            // Profile Image - Rounded Square
+            AsyncImage(url: member.profileImageURL) { phase in
+                switch phase {
+                case .empty:
+                    loadingImageView
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(1, contentMode: .fill)
+                        .frame(width: 160, height: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .background(Color.gray.opacity(0.1))
+                case .failure(_):
+                    fallbackImageView
+                @unknown default:
+                    fallbackImageView
+                }
             }
             
             // Member Info
@@ -534,7 +638,8 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 180)
+            .frame(width: 160, height: 160)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             
             VStack(spacing: 8) {
                 ProgressView()
@@ -553,7 +658,8 @@ struct MemberCardView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 180)
+            .frame(width: 160, height: 160)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             
             VStack(spacing: 8) {
                 Image(systemName: "person.crop.circle.fill")
@@ -586,14 +692,38 @@ struct MemberDetailView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Profile Image
-                ZStack(alignment: .topLeading) {
-                    CachedAsyncImage(url: member.profileImageURL) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
+                AsyncImage(url: member.profileImageURL) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(maxWidth: .infinity, maxHeight: 500)
                             .frame(height: 500)
                             .clipped()
-                    } placeholder: {
+                            .overlay {
+                                VStack(spacing: 12) {
+                                    ProgressView()
+                                        .scaleEffect(1.2)
+                                    Text("Loading...")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: .infinity, maxHeight: 500)
+                            .frame(height: 500)
+                            .clipped()
+                            .background(Color.gray.opacity(0.1))
+                    case .failure(_):
                         Rectangle()
                             .fill(
                                 LinearGradient(
@@ -602,7 +732,9 @@ struct MemberDetailView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
+                            .frame(maxWidth: .infinity, maxHeight: 500)
                             .frame(height: 500)
+                            .clipped()
                             .overlay {
                                 VStack(spacing: 12) {
                                     Image(systemName: "person.crop.circle.fill")
@@ -614,6 +746,12 @@ struct MemberDetailView: View {
                                         .foregroundColor(.gray.opacity(0.8))
                                 }
                             }
+                    @unknown default:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(maxWidth: .infinity, maxHeight: 500)
+                            .frame(height: 500)
+                            .clipped()
                     }
                 }
                 

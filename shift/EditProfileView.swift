@@ -373,30 +373,86 @@ struct EditProfileView: View {
         VStack(spacing: 16) {
             // Save Button
             Button(action: saveProfile) {
-                HStack(spacing: 8) {
+                HStack(spacing: 12) {
                     if isLoading {
                         ProgressView()
                             .scaleEffect(0.8)
                             .foregroundColor(.white)
+                    } else {
+                        Image(systemName: hasChanges || isCreatingNew ? "checkmark.circle.fill" : "checkmark.circle")
+                            .font(.system(size: 18, weight: .semibold))
                     }
                     
-                    Text(isCreatingNew ? "Create Profile" : "Save Changes")
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                    Text({
+                        if isCreatingNew {
+                            return "Create Profile"
+                        } else if hasChanges {
+                            return "Save Changes"
+                        } else if isFormValid {
+                            return "No Changes"
+                        } else {
+                            return "Complete Required Fields"
+                        }
+                    }())
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, 18)
                 .background(
                     LinearGradient(
-                        colors: isFormValid && !isLoading ? [.blue, .blue.opacity(0.8)] : [.gray, .gray.opacity(0.8)],
+                        colors: {
+                            if !canSave || isLoading {
+                                return [.gray.opacity(0.6), .gray.opacity(0.4)]
+                            } else if hasChanges && !isCreatingNew {
+                                return [.orange, .orange.opacity(0.8), .red.opacity(0.6)]
+                            } else if isCreatingNew {
+                                return [.green, .green.opacity(0.8)]
+                            } else {
+                                return [.blue.opacity(0.7), .blue.opacity(0.5)]
+                            }
+                        }(),
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .foregroundColor(.white)
-                .cornerRadius(12)
+                .cornerRadius(16)
+                .shadow(
+                    color: {
+                        if !canSave || isLoading {
+                            return .clear
+                        } else if hasChanges && !isCreatingNew {
+                            return .orange.opacity(0.5)
+                        } else if isCreatingNew {
+                            return .green.opacity(0.4)
+                        } else {
+                            return .blue.opacity(0.3)
+                        }
+                    }(),
+                    radius: 12, x: 0, y: 6
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: canSave ? [Color.white.opacity(0.2), Color.clear] : [Color.clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
             }
-            .disabled(!isFormValid || isLoading)
+            .disabled(!canSave || isLoading)
+            .scaleEffect(canSave && !isLoading ? 1.0 : 0.95)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: canSave)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasChanges)
+            .onChange(of: hasChanges) { oldValue, newValue in
+                if newValue && !oldValue {
+                    // Haptic feedback when changes are first detected
+                    Haptics.lightImpact()
+                }
+            }
             
             // Progress Indicator
             if isCreatingNew {
@@ -436,6 +492,55 @@ struct EditProfileView: View {
         !gender.isEmpty
     }
     
+    private var hasChanges: Bool {
+        // If creating new profile, always allow save when form is valid
+        if isCreatingNew {
+            return true
+        }
+        
+        // Current trimmed values
+        let currentFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let currentAge = age.trimmingCharacters(in: .whitespacesAndNewlines)
+        let currentCity = city.trimmingCharacters(in: .whitespacesAndNewlines)
+        let currentApproachTip = approachTip.trimmingCharacters(in: .whitespacesAndNewlines)
+        let currentInstagram = instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Original trimmed values - handle nils properly
+        let originalFirstName = (userData["firstName"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalAge = {
+            if let age = userData["age"] as? Int {
+                return String(age)
+            } else if let ageString = userData["age"] as? String {
+                return ageString.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            return ""
+        }()
+        let originalCity = (userData["city"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalGender = userData["gender"] as? String ?? ""
+        let originalAttractedTo = userData["attractedTo"] as? String ?? ""
+        let originalApproachTip = (userData["howToApproachMe"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalInstagram = (userData["instagramHandle"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check each field individually
+        let firstNameChanged = currentFirstName != originalFirstName
+        let ageChanged = currentAge != originalAge
+        let cityChanged = currentCity != originalCity
+        let genderChanged = gender != originalGender
+        let attractedToChanged = attractedTo != originalAttractedTo
+        let approachTipChanged = currentApproachTip != originalApproachTip
+        let instagramChanged = currentInstagram != originalInstagram
+        let imageChanged = selectedImageData != nil
+        
+        let hasAnyChanges = firstNameChanged || ageChanged || cityChanged || genderChanged || 
+                           attractedToChanged || approachTipChanged || instagramChanged || imageChanged
+        
+        return hasAnyChanges
+    }
+    
+    private var canSave: Bool {
+        return isFormValid && (hasChanges || isCreatingNew)
+    }
+    
     private var completionPercentage: Double {
         var completed = 0.0
         let total = 7.0
@@ -456,11 +561,6 @@ struct EditProfileView: View {
     
     private func saveProfile() {
         print("🔧 SAVE PROFILE: Starting save process")
-        print("🔧 SAVE PROFILE: isFormValid = \(isFormValid)")
-        print("🔧 SAVE PROFILE: firstName = '\(firstName)'")
-        print("🔧 SAVE PROFILE: age = '\(age)'")
-        print("🔧 SAVE PROFILE: city = '\(city)'")
-        print("🔧 SAVE PROFILE: gender = '\(gender)'")
         
         guard isFormValid else {
             print("❌ SAVE PROFILE: Form validation failed")
@@ -469,105 +569,76 @@ struct EditProfileView: View {
             return
         }
         
-        guard let firebaseAuthUser = userSession.firebaseAuthUser else {
-            print("❌ SAVE PROFILE: No authenticated user")
-            alertMessage = "User not authenticated"
+        guard let currentUser = userSession.currentUser else {
+            print("❌ SAVE PROFILE: No current user")
+            alertMessage = "Please log in again"
             showingAlert = true
             return
         }
-        
-        let userEmail = firebaseAuthUser.email ?? ""
-        print("🔧 SAVE PROFILE: User email = '\(userEmail)'")
         
         isLoading = true
         Haptics.lightImpact()
         
         Task {
             do {
-                print("🔧 SAVE PROFILE: Building update data...")
-                var updatedData: [String: Any] = [
-                    "firstName": firstName.trimmingCharacters(in: .whitespacesAndNewlines),
-                    "age": Int(age) ?? 0,
-                    "city": city.trimmingCharacters(in: .whitespacesAndNewlines),
-                    "gender": gender,
-                    "updatedAt": FieldValue.serverTimestamp()
-                ]
+                // Handle image upload first if needed
+                var imageUrl: String? = existingImageUrl
                 
-                print("🔧 SAVE PROFILE: Core data = \(updatedData)")
-                
-                // Add optional fields only if they have values
-                if !attractedTo.isEmpty {
-                    updatedData["attractedTo"] = attractedTo
-                    print("🔧 SAVE PROFILE: Added attractedTo = '\(attractedTo)'")
-                }
-                
-                let trimmedApproachTip = approachTip.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmedApproachTip.isEmpty {
-                    updatedData["howToApproachMe"] = trimmedApproachTip
-                    print("🔧 SAVE PROFILE: Added howToApproachMe = '\(trimmedApproachTip)'")
-                }
-                
-                let trimmedInstagram = instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmedInstagram.isEmpty {
-                    updatedData["instagramHandle"] = trimmedInstagram
-                    print("🔧 SAVE PROFILE: Added instagramHandle = '\(trimmedInstagram)'")
-                }
-                
-                print("🔧 SAVE PROFILE: Final update data = \(updatedData)")
-                
-                // Find the user document by email first
-                print("🔧 SAVE PROFILE: Querying user document by email...")
-                let db = Firestore.firestore()
-                let querySnapshot = try await db.collection("users")
-                    .whereField("email", isEqualTo: userEmail)
-                    .limit(to: 1)
-                    .getDocuments()
-                
-                print("🔧 SAVE PROFILE: Query returned \(querySnapshot.documents.count) documents")
-                
-                guard let userDocument = querySnapshot.documents.first else {
-                    print("❌ SAVE PROFILE: No user document found for email '\(userEmail)'")
-                    throw NSError(domain: "UserNotFound", code: 404, userInfo: [NSLocalizedDescriptionKey: "User document not found"])
-                }
-                
-                let actualUserId = userDocument.documentID
-                print("🔧 SAVE PROFILE: Found user document with ID = '\(actualUserId)'")
-                
-                // Handle image upload if new image is selected
                 if let imageData = selectedImageData {
-                    print("🔧 SAVE PROFILE: Uploading new profile image...")
-                    let imageUrl = try await uploadProfileImage(imageData, userId: actualUserId)
-                    print("🔧 SAVE PROFILE: Image uploaded successfully to '\(imageUrl)'")
-                    // Don't store URLs in database - use pure UUID-based system
-                    updatedData["hasProfileImage"] = true
-                } else {
-                    print("🔧 SAVE PROFILE: No new image to upload")
+                    print("🔧 SAVE PROFILE: Uploading new image...")
+                    imageUrl = try await uploadProfileImage(imageData, userId: currentUser.id!)
+                    print("✅ SAVE PROFILE: Image uploaded successfully")
                 }
                 
-                // Save to Firestore using the actual document ID
-                print("🔧 SAVE PROFILE: Updating Firestore document...")
-                try await userDocument.reference.updateData(updatedData)
-                print("✅ SAVE PROFILE: Firestore update successful!")
+                // Create updated user object using existing FirebaseUser structure
+                var updatedUser = FirebaseUser(
+                    email: currentUser.email,
+                    firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
+                    fullName: nil,
+                    profilePhoto: imageUrl,
+                    username: currentUser.username,
+                    gender: gender.isEmpty ? nil : gender,
+                    attractedTo: attractedTo.isEmpty ? nil : attractedTo,
+                    age: Int(age),
+                    city: city.trimmingCharacters(in: .whitespacesAndNewlines),
+                    howToApproachMe: approachTip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : approachTip.trimmingCharacters(in: .whitespacesAndNewlines),
+                    isEventCreator: currentUser.isEventCreator,
+                    instagramHandle: instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : instagramHandle.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+                
+                // Set the document ID to match the current user
+                updatedUser.id = currentUser.id
+                
+                print("🔧 SAVE PROFILE: Updating user profile...")
+                
+                // Use the existing Firebase service to update profile
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    userSession.updateUserProfile(updatedUser) { success, error in
+                        if success {
+                            print("✅ SAVE PROFILE: Profile updated successfully")
+                            continuation.resume()
+                        } else {
+                            print("❌ SAVE PROFILE: Update failed - \(error ?? "Unknown error")")
+                            continuation.resume(throwing: NSError(domain: "ProfileUpdate", code: -1, userInfo: [NSLocalizedDescriptionKey: error ?? "Failed to update profile"]))
+                        }
+                    }
+                }
                 
                 await MainActor.run {
-                    print("🔧 SAVE PROFILE: Processing success on main thread")
                     isLoading = false
                     Haptics.successNotification()
                     alertMessage = "Profile updated successfully!"
                     showingAlert = true
-                    print("✅ SAVE PROFILE: Success alert displayed")
+                    print("✅ SAVE PROFILE: Success!")
                 }
                 
             } catch {
-                print("❌ SAVE PROFILE: Error occurred - \(error.localizedDescription)")
-                print("❌ SAVE PROFILE: Full error - \(error)")
+                print("❌ SAVE PROFILE: Error - \(error.localizedDescription)")
                 await MainActor.run {
-                    print("🔧 SAVE PROFILE: Processing error on main thread")
                     isLoading = false
                     Haptics.errorNotification()
                     alertMessage = "Failed to update profile: \(error.localizedDescription)"
                     showingAlert = true
-                    print("❌ SAVE PROFILE: Error alert displayed")
                 }
             }
         }

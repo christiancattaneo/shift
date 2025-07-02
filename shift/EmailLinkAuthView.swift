@@ -224,6 +224,32 @@ struct EmailLinkAuthView: View {
                 infoRow(icon: "3.circle.fill", text: "Tap the link to sign in instantly")
             }
             
+            // College email troubleshooting
+            if email.contains(".edu") || email.contains("student") || email.contains("college") || email.contains("university") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text("College Email Tips")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.orange)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("• Check your spam/junk folder")
+                        Text("• Email may take 5-10 minutes to arrive")
+                        Text("• Try a personal email (Gmail, Yahoo, etc.) if issues persist")
+                        Text("• Contact IT if emails are being blocked")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+                .padding(12)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            }
+            
             Text("No password required • Secure & convenient")
                 .font(.caption2)
                 .foregroundColor(.secondary)

@@ -19,10 +19,10 @@ struct ProfileView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Large Profile Image (like MemberDetailView)
+                        // Enhanced Profile Image Section
                         profileImageSection
                         
-                        // Profile Information
+                        // Enhanced Profile Information
                         profileInformationSection
                     }
                 }
@@ -38,8 +38,9 @@ struct ProfileView: View {
                 Button(action: {
                     showSignOutAlert = true
                 }) {
-                    Image(systemName: "info.circle")
+                    Image(systemName: "info.circle.fill")
                         .foregroundColor(.blue)
+                        .font(.title2)
                 }
             }
         }
@@ -63,18 +64,46 @@ struct ProfileView: View {
     // MARK: - UI Components
     
     private var loadingSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
             ProgressView()
-                .scaleEffect(1.2)
-            Text("Loading profile...")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .scaleEffect(1.5)
+                .tint(.blue)
+            
+            VStack(spacing: 8) {
+                Text("Loading your profile...")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("Just a moment")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemBackground), Color.blue.opacity(0.05)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
     
     private var profileImageSection: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack(alignment: .bottom) {
+            // Background gradient
+            LinearGradient(
+                colors: [
+                    Color.blue.opacity(0.1),
+                    Color.purple.opacity(0.15),
+                    Color.pink.opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 400)
+            
+            // Profile image or placeholder
             if let imageUrl = profileImageUrl, !imageUrl.isEmpty {
                 AsyncImage(url: URL(string: imageUrl)) { phase in
                     switch phase {
@@ -84,9 +113,17 @@ struct ProfileView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(height: 500)
+                            .frame(height: 400)
                             .clipped()
-                    case .failure(let error):
+                            .overlay(
+                                // Subtle overlay for better text readability
+                                LinearGradient(
+                                    colors: [Color.clear, Color.black.opacity(0.3)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    case .failure(_):
                         profileImagePlaceholder(isLoading: false)
                     @unknown default:
                         profileImagePlaceholder(isLoading: false)
@@ -95,150 +132,197 @@ struct ProfileView: View {
             } else {
                 profileImagePlaceholder(isLoading: false)
             }
+            
+            // Name overlay at bottom
+            VStack(alignment: .leading, spacing: 8) {
+                Spacer()
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(getDisplayName())
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                        
+                        if let age = userData["age"] as? Int {
+                            HStack(spacing: 6) {
+                                Image(systemName: "birthday.cake.fill")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
+                                Text("\(age) years old")
+                                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
+            }
         }
+        .cornerRadius(0)
     }
     
     private func profileImagePlaceholder(isLoading: Bool) -> some View {
-        Rectangle()
-            .fill(
-                LinearGradient(
-                    colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Animated gradient background
+            LinearGradient(
+                colors: [
+                    Color.blue.opacity(0.2),
+                    Color.purple.opacity(0.3),
+                    Color.pink.opacity(0.2),
+                    Color.orange.opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
-            .frame(height: 500)
-            .overlay {
-                VStack(spacing: 12) {
-                    if isLoading {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Loading...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        Image(systemName: "person.crop.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.gray.opacity(0.6))
-                        Text(getDisplayName().prefix(1).uppercased())
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.gray.opacity(0.8))
+            .frame(height: 400)
+            
+            // Content
+            VStack(spacing: 16) {
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                    Text("Loading image...")
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.8))
+                } else {
+                    // Large initial letter
+                    Text(getDisplayName().prefix(1).uppercased())
+                        .font(.system(size: 80, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                    
+                    VStack(spacing: 4) {
+                        Text("Profile Photo")
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.9))
+                        Text("Tap edit to add one")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.7))
                     }
+                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                 }
             }
+        }
     }
     
     private var profileInformationSection: some View {
-        VStack(spacing: 24) {
-            // Name and Age Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(getDisplayName())
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
+        VStack(spacing: 0) {
+            // White background section
+            VStack(spacing: 32) {
+                // Information Cards
+                LazyVStack(spacing: 20) {
+                    // Location Card
+                    if let city = userData["city"] as? String, !city.isEmpty {
+                        EnhancedInfoCard(
+                            icon: "location.fill",
+                            iconColor: .blue,
+                            iconBackground: .blue.opacity(0.1),
+                            title: "Location",
+                            value: city
+                        )
+                    }
                     
-                    if let age = userData["age"] as? Int {
-                        HStack(spacing: 4) {
-                            Image(systemName: "birthday.cake")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            Text("\(age)")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                        }
+                    // Gender Card
+                    if let gender = userData["gender"] as? String, !gender.isEmpty {
+                        EnhancedInfoCard(
+                            icon: "person.crop.circle.fill",
+                            iconColor: .purple,
+                            iconBackground: .purple.opacity(0.1),
+                            title: "Gender", 
+                            value: gender.capitalized
+                        )
+                    }
+                    
+                    // Approach Tip Card
+                    if let approachTip = userData["howToApproachMe"] as? String, !approachTip.isEmpty {
+                        EnhancedInfoCard(
+                            icon: "lightbulb.fill",
+                            iconColor: .orange,
+                            iconBackground: .orange.opacity(0.1),
+                            title: "How to Approach Me",
+                            value: approachTip,
+                            isLargeText: true
+                        )
+                    }
+                    
+                    // Attracted To Card
+                    if let attractedTo = userData["attractedTo"] as? String, !attractedTo.isEmpty {
+                        EnhancedInfoCard(
+                            icon: "heart.fill",
+                            iconColor: .pink,
+                            iconBackground: .pink.opacity(0.1),
+                            title: "Attracted to",
+                            value: attractedTo.capitalized
+                        )
+                    }
+                    
+                    // Instagram Card
+                    if let handle = userData["instagramHandle"] as? String, !handle.isEmpty {
+                        EnhancedInfoCard(
+                            icon: "camera.fill",
+                            iconColor: .purple,
+                            iconBackground: .purple.opacity(0.1),
+                            title: "Instagram",
+                            value: handle.hasPrefix("@") ? handle : "@\(handle)"
+                        )
                     }
                 }
-                Spacer()
+                
+                // Enhanced Edit Profile Button
+                Button(action: {
+                    Haptics.lightImpact()
+                    showEditProfile = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                        Text("Edit Profile")
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.blue, Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(16)
+                    .shadow(color: .blue.opacity(0.4), radius: 12, x: 0, y: 6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.2), Color.clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                }
+                .scaleEffect(showEditProfile ? 0.95 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditProfile)
+                
+                Spacer(minLength: 60)
             }
-            
-            Divider()
-            
-            // Information Sections
-            VStack(spacing: 24) {
-                // Location
-                if let city = userData["city"] as? String, !city.isEmpty {
-                    ProfileInfoRow(
-                        icon: "location",
-                        iconColor: .blue,
-                        title: "Location",
-                        value: city
-                    )
-                }
-                
-                // Gender
-                if let gender = userData["gender"] as? String, !gender.isEmpty {
-                    ProfileInfoRow(
-                        icon: "person.crop.circle",
-                        iconColor: .purple,
-                        title: "Gender", 
-                        value: gender.capitalized
-                    )
-                }
-                
-                // Approach Tip
-                if let approachTip = userData["howToApproachMe"] as? String, !approachTip.isEmpty {
-                    ProfileInfoRow(
-                        icon: "lightbulb",
-                        iconColor: .orange,
-                        title: "Tip to Approach Me",
-                        value: approachTip
-                    )
-                }
-                
-                // Attracted To
-                if let attractedTo = userData["attractedTo"] as? String, !attractedTo.isEmpty {
-                    ProfileInfoRow(
-                        icon: "heart",
-                        iconColor: .pink,
-                        title: "Attracted to",
-                        value: attractedTo.capitalized
-                    )
-                }
-                
-                // Instagram Handle
-                if let handle = userData["instagramHandle"] as? String, !handle.isEmpty {
-                    ProfileInfoRow(
-                        icon: "camera",
-                        iconColor: .purple,
-                        title: "Instagram",
-                        value: handle.hasPrefix("@") ? handle : "@\(handle)"
-                    )
-                }
-            }
-            
-            // Edit Profile Button
-            Button(action: {
-                Haptics.lightImpact()
-                showEditProfile = true
-            }) {
-                HStack {
-                    Image(systemName: "pencil")
-                        .font(.headline)
-                    Text("Edit Profile")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    LinearGradient(
-                        colors: [Color.blue, Color.blue.opacity(0.8)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
+            .padding(.horizontal, 24)
+            .padding(.top, 32)
+            .background(
+                LinearGradient(
+                    colors: [Color(.systemBackground), Color.blue.opacity(0.02)],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-                .cornerRadius(12)
-                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-            }
-            .padding(.top, 20)
-            
-            Spacer(minLength: 50)
+            )
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
     }
     
     // MARK: - Helper Functions
@@ -307,29 +391,77 @@ struct ProfileView: View {
     }
 }
 
-// MARK: - Supporting Views
+// MARK: - Enhanced Supporting Views
 
-struct ProfileInfoRow: View {
+struct EnhancedInfoCard: View {
     let icon: String
     let iconColor: Color
+    let iconBackground: Color
     let title: String
     let value: String
+    let isLargeText: Bool
+    
+    init(icon: String, iconColor: Color, iconBackground: Color, title: String, value: String, isLargeText: Bool = false) {
+        self.icon = icon
+        self.iconColor = iconColor
+        self.iconBackground = iconBackground
+        self.title = title
+        self.value = value
+        self.isLargeText = isLargeText
+    }
     
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(iconColor)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                Text(value)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+        HStack(spacing: 16) {
+            // Enhanced icon
+            ZStack {
+                Circle()
+                    .fill(iconBackground)
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(iconColor)
             }
+            
+            // Content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                
+                Text(value)
+                    .font(.system(
+                        size: isLargeText ? 16 : 18,
+                        weight: .semibold,
+                        design: .rounded
+                    ))
+                    .foregroundColor(.primary)
+                    .lineLimit(isLargeText ? 3 : 1)
+                    .multilineTextAlignment(.leading)
+            }
+            
             Spacer()
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        colors: [iconColor.opacity(0.1), Color.clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
     }
 }
 
