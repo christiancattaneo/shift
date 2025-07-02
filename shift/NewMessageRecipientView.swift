@@ -105,7 +105,6 @@ struct MemberRow: View {
         HStack(spacing: 15) {
             // Profile Image
             AsyncImage(url: member.profileImageURL) { image in
-                let _ = print("✅ MESSAGES ASYNC: '\(member.firstName)' - Image loaded successfully in NewMessageRecipientView")
                 image
                     .resizable()
                     .scaledToFill()

@@ -941,10 +941,8 @@ struct MemberCardView: View {
             AsyncImage(url: member.profileImageURL) { phase in
                 switch phase {
                 case .empty:
-                    let _ = print("🖼️ ASYNC: '\(member.firstName)' - Loading image from URL: \(member.profileImageURL?.absoluteString ?? "nil")")
                     loadingImageView
                 case .success(let image):
-                    let _ = print("✅ ASYNC: '\(member.firstName)' - Image loaded successfully")
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -952,12 +950,9 @@ struct MemberCardView: View {
                         .clipped()
                         .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                case .failure(let error):
-                    let _ = print("❌ ASYNC: '\(member.firstName)' - Image load failed: \(error.localizedDescription)")
-                    let _ = print("❌ ASYNC: '\(member.firstName)' - Failed URL: \(member.profileImageURL?.absoluteString ?? "nil")")
+                case .failure(_):
                     fallbackImageView
                 @unknown default:
-                    let _ = print("⚠️ ASYNC: '\(member.firstName)' - Unknown phase")
                     fallbackImageView
                 }
             }

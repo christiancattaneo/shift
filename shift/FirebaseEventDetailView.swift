@@ -307,7 +307,6 @@ struct EventAttendeeCardView: View {
         VStack(spacing: 8) {
             // Profile Image with conditional blur
             CachedAsyncImage(url: member.profileImageURL) { image in
-                let _ = print("✅ CACHED ASYNC: '\(member.firstName)' - Image loaded successfully in EventDetailView")
                 image
                     .resizable()
                     .scaledToFill()
