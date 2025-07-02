@@ -176,7 +176,6 @@ struct CheckInsView: View {
         }
         
         // Filter out places without names or images
-        let beforeNameFilter = places.count
         places = places.filter { place in
             let hasName = !(place.placeName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
             if !hasName {
@@ -373,25 +372,21 @@ struct CheckInsView: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Content Type Toggle
-                contentTypeToggle
-                
-                searchAndFilterSection
-                
-                if (selectedContentType == .events && eventsService.isLoading) || 
-                   (selectedContentType == .places && placesService.isLoading) {
-                    loadingSection
-                } else if (selectedContentType == .events && filteredEvents.isEmpty) || 
-                          (selectedContentType == .places && filteredPlaces.isEmpty) {
-                    emptyStateSection
-                } else {
-                    contentListSection
-                }
+        VStack(spacing: 0) {
+            // Custom Header with Title and Toggle
+            customHeaderSection
+            
+            // Content Section
+            if (selectedContentType == .events && eventsService.isLoading) || 
+               (selectedContentType == .places && placesService.isLoading) {
+                loadingSection
+            } else if (selectedContentType == .events && filteredEvents.isEmpty) || 
+                      (selectedContentType == .places && filteredPlaces.isEmpty) {
+                emptyStateSection
+            } else {
+                contentListSection
             }
-            .navigationTitle("Check Ins")
-            .navigationBarTitleDisplayMode(.large)
+        }
         .refreshable {
             if selectedContentType == .events {
                 eventsService.refreshEvents()
@@ -420,13 +415,35 @@ struct CheckInsView: View {
                     }
                 )
             }
-        }
         .sheet(item: $selectedEvent) { event in
             EventDetailView(event: event)
         }
         .sheet(item: $selectedPlace) { place in
             PlaceDetailView(place: place)
         }
+    }
+    
+    // MARK: - Custom Header Section
+    private var customHeaderSection: some View {
+        VStack(spacing: 0) {
+            // Title Section
+            HStack {
+                Text("Check Ins")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            
+            // Content Type Toggle
+            contentTypeToggle
+            
+            // Search and Filter Section
+            searchAndFilterSection
+        }
+        .background(Color(.systemBackground))
     }
     
     // MARK: - Content Type Toggle
@@ -468,8 +485,7 @@ struct CheckInsView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 4)
-        .padding(.bottom, 8)
+        .padding(.vertical, 12)
         .background(Color(.systemBackground))
     }
     
@@ -857,7 +873,7 @@ struct EventCardView: View {
         Group {
             if isCheckedIn {
                 LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
-        } else {
+            } else {
                 LinearGradient(colors: [.blue.opacity(0.1), .blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
             }
         }
@@ -1174,8 +1190,7 @@ struct PlaceCardView: View {
     }
     
     private func toggleCheckIn() {
-        guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser,
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser,
               let placeId = place.id else {
             print("❌ Missing user or place ID")
             return
