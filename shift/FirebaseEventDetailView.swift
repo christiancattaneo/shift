@@ -4,6 +4,9 @@ struct FirebaseEventDetailView: View {
     let event: FirebaseEvent
     @StateObject private var checkInsService = FirebaseCheckInsService()
     @State private var isCheckedIn = false
+    @State private var checkInCount = 0
+    @State private var attendees: [FirebaseMember] = []
+    @State private var isLoadingAttendees = false
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -111,25 +114,9 @@ struct FirebaseEventDetailView: View {
                         }
                     }
                     
-                    Spacer(minLength: 20)
-                    
                     // Check-in Button
                     Button(action: {
-                        if isCheckedIn {
-                            // Check out logic would go here
-                            isCheckedIn = false
-                        } else {
-                            // Check in
-                            if let currentUser = FirebaseUserSession.shared.currentUser,
-                               let userId = currentUser.id,
-                               let eventId = event.id {
-                                checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
-                                    if success {
-                                        isCheckedIn = true
-                                    }
-                                }
-                            }
-                        }
+                        toggleCheckIn()
                     }) {
                         HStack {
                             Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "location.circle")
@@ -143,6 +130,9 @@ struct FirebaseEventDetailView: View {
                         .background(isCheckedIn ? Color.yellow : Color.blue)
                         .cornerRadius(12)
                     }
+                    
+                    // Attendees Section
+                    attendeesSection
                 }
                 .padding()
             }
@@ -157,6 +147,231 @@ struct FirebaseEventDetailView: View {
                 }
             }
         }
+        .onAppear {
+            setupEventDetail()
+        }
+    }
+    
+    // MARK: - Attendees Section
+    private var attendeesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Who's Going")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text("(\(checkInCount))")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                
+                Spacer()
+                
+                if isLoadingAttendees {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            
+            // Check-in status message
+            if !attendees.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: isCheckedIn ? "eye" : "eye.slash")
+                        .font(.caption)
+                        .foregroundColor(isCheckedIn ? .green : .orange)
+                    
+                    Text(isCheckedIn ? 
+                         "You can see who's going because you're checked in" : 
+                         "Check in to see who else is going")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                }
+                .padding(.bottom, 8)
+            }
+            
+            if attendees.isEmpty && !isLoadingAttendees {
+                VStack(spacing: 12) {
+                    Image(systemName: "person.3.sequence")
+                        .font(.system(size: 40))
+                        .foregroundColor(.secondary)
+                    Text("No one has checked in yet")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Text("Be the first to check in!")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 30)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(attendees, id: \.uniqueID) { member in
+                            EventAttendeeCardView(member: member, currentUserCheckedIn: isCheckedIn)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+            }
+        }
+        .padding(.top, 20)
+    }
+    
+    // MARK: - Helper Functions
+    private func setupEventDetail() {
+        checkIfUserCheckedIn()
+        loadCheckInCount()
+        loadAttendees()
+    }
+    
+    private func toggleCheckIn() {
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id,
+              let eventId = event.id else {
+            print("❌ Missing user or event ID")
+            return
+        }
+        
+        if isCheckedIn {
+            // Check out logic
+            checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
+                DispatchQueue.main.async {
+                    if success {
+                        isCheckedIn = false
+                        loadCheckInCount()
+                    }
+                }
+            }
+        } else {
+            // Check in
+            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
+                DispatchQueue.main.async {
+                    if success {
+                        isCheckedIn = true
+                        loadCheckInCount()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func checkIfUserCheckedIn() {
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id,
+              let eventId = event.id else { return }
+        
+        checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { checkedIn in
+            DispatchQueue.main.async {
+                isCheckedIn = checkedIn
+            }
+        }
+    }
+    
+    private func loadCheckInCount() {
+        guard let eventId = event.id else { return }
+        
+        checkInsService.getCombinedCheckInCount(for: eventId, itemType: "event") { currentCount, historicalCount in
+            DispatchQueue.main.async {
+                checkInCount = historicalCount
+            }
+        }
+    }
+    
+    private func loadAttendees() {
+        guard let eventId = event.id else { return }
+        
+        isLoadingAttendees = true
+        checkInsService.getMembersAtEvent(eventId) { members in
+            DispatchQueue.main.async {
+                attendees = members
+                isLoadingAttendees = false
+            }
+        }
+    }
+}
+
+// MARK: - Event Attendee Card View
+struct EventAttendeeCardView: View {
+    let member: FirebaseMember
+    let currentUserCheckedIn: Bool
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            // Profile Image with conditional blur
+            CachedAsyncImage(url: member.profileImageURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 60, height: 60)
+                    .clipShape(Circle())
+                    .blur(radius: currentUserCheckedIn ? 0 : 8)
+                    .overlay(
+                        Circle()
+                            .stroke(currentUserCheckedIn ? Color.blue : Color.gray, lineWidth: 2)
+                    )
+            } placeholder: {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 60, height: 60)
+                    .blur(radius: currentUserCheckedIn ? 0 : 8)
+                    .overlay(
+                        Text(member.firstName.prefix(1).uppercased())
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .blur(radius: currentUserCheckedIn ? 0 : 6)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(currentUserCheckedIn ? Color.blue : Color.gray, lineWidth: 2)
+                    )
+            }
+            
+            // Lock icon overlay if not checked in
+            if !currentUserCheckedIn {
+                Image(systemName: "lock.fill")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .background(
+                        Circle()
+                            .fill(Color.black.opacity(0.7))
+                            .frame(width: 20, height: 20)
+                    )
+                    .offset(x: 20, y: -45)
+            }
+            
+            // Member Info with conditional blur
+            VStack(spacing: 2) {
+                Text(currentUserCheckedIn ? member.firstName : "???")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                
+                if let age = member.age {
+                    Text(currentUserCheckedIn ? "\(age)" : "??")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                if let city = member.city {
+                    Text(currentUserCheckedIn ? city : "???")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .frame(width: 80)
+        .padding(.vertical, 8)
+        .background(Color(.tertiarySystemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
 

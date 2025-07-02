@@ -7,55 +7,6 @@ extension Notification.Name {
     static let checkInStatusChanged = Notification.Name("checkInStatusChanged")
 }
 
-// MARK: - Cached AsyncImage Component
-struct CachedAsyncImage<Content: View, Placeholder: View>: View {
-    private let url: URL?
-    private let content: (Image) -> Content
-    private let placeholder: () -> Placeholder
-    
-    @State private var cachedImage: UIImage?
-    @State private var isLoading = false
-    
-    init(
-        url: URL?,
-        @ViewBuilder content: @escaping (Image) -> Content,
-        @ViewBuilder placeholder: @escaping () -> Placeholder
-    ) {
-        self.url = url
-        self.content = content
-        self.placeholder = placeholder
-    }
-    
-    var body: some View {
-        Group {
-            if let cachedImage = cachedImage {
-                content(Image(uiImage: cachedImage))
-            } else {
-                placeholder()
-                    .onAppear {
-                        loadImage()
-                    }
-            }
-        }
-    }
-    
-    private func loadImage() {
-        guard let url = url, !isLoading else { return }
-        isLoading = true
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            DispatchQueue.main.async {
-                isLoading = false
-                if let data = data, let uiImage = UIImage(data: data) {
-                    cachedImage = uiImage
-                }
-            }
-        }.resume()
-    }
-}
-
-
-
 // MARK: - Main CheckInsView
 struct CheckInsView: View {
     @State private var searchText = ""
@@ -1429,6 +1380,25 @@ struct PlaceDetailView: View {
             }
             .padding(.horizontal, 20)
             
+            // Check-in status message
+            if !attendees.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: isCheckedIn ? "eye" : "eye.slash")
+                        .font(.caption)
+                        .foregroundColor(isCheckedIn ? .green : .orange)
+                    
+                    Text(isCheckedIn ? 
+                         "You can see who's been here because you're checked in" : 
+                         "Check in to see who else has been here")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 8)
+            }
+            
             if attendees.isEmpty && !isLoadingAttendees {
                 VStack(spacing: 12) {
                     Image(systemName: "person.3.sequence")
@@ -1447,7 +1417,7 @@ struct PlaceDetailView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(attendees, id: \.uniqueID) { member in
-                            AttendeeCardView(member: member)
+                            AttendeeCardView(member: member, currentUserCheckedIn: isCheckedIn)
                         }
                     }
                     .padding(.horizontal, 20)
@@ -1809,6 +1779,25 @@ struct EventDetailView: View {
             }
             .padding(.horizontal, 20)
             
+            // Check-in status message
+            if !attendees.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: isCheckedIn ? "eye" : "eye.slash")
+                        .font(.caption)
+                        .foregroundColor(isCheckedIn ? .green : .orange)
+                    
+                    Text(isCheckedIn ? 
+                         "You can see who's going because you're checked in" : 
+                         "Check in to see who else is going")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 8)
+            }
+            
             if attendees.isEmpty && !isLoadingAttendees {
                 VStack(spacing: 12) {
                     Image(systemName: "person.3.sequence")
@@ -1827,7 +1816,7 @@ struct EventDetailView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(attendees, id: \.uniqueID) { member in
-                            AttendeeCardView(member: member)
+                            AttendeeCardView(member: member, currentUserCheckedIn: isCheckedIn)
                         }
                     }
                     .padding(.horizontal, 20)
@@ -2154,16 +2143,22 @@ struct EventDetailView: View {
 // MARK: - Attendee Card View
 struct AttendeeCardView: View {
     let member: FirebaseMember
+    let currentUserCheckedIn: Bool
     
     var body: some View {
         VStack(spacing: 8) {
-            // Profile Image
+            // Profile Image with conditional blur
             CachedAsyncImage(url: member.profileImageURL) { image in
                 image
                     .resizable()
                     .scaledToFill()
                     .frame(width: 60, height: 60)
                     .clipShape(Circle())
+                    .blur(radius: currentUserCheckedIn ? 0 : 8)
+                    .overlay(
+                        Circle()
+                            .stroke(currentUserCheckedIn ? Color.green : Color.gray, lineWidth: 2)
+                    )
             } placeholder: {
                 Circle()
                     .fill(LinearGradient(
@@ -2172,29 +2167,48 @@ struct AttendeeCardView: View {
                         endPoint: .bottomTrailing
                     ))
                     .frame(width: 60, height: 60)
+                    .blur(radius: currentUserCheckedIn ? 0 : 8)
                     .overlay(
                         Text(member.firstName.prefix(1).uppercased())
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
+                            .blur(radius: currentUserCheckedIn ? 0 : 6)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(currentUserCheckedIn ? Color.green : Color.gray, lineWidth: 2)
                     )
             }
             
-            // Member Info
+            // Lock icon overlay if not checked in
+            if !currentUserCheckedIn {
+                Image(systemName: "lock.fill")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .background(
+                        Circle()
+                            .fill(Color.black.opacity(0.7))
+                            .frame(width: 20, height: 20)
+                    )
+                    .offset(x: 20, y: -45)
+            }
+            
+            // Member Info with conditional blur
             VStack(spacing: 2) {
-                Text(member.firstName)
+                Text(currentUserCheckedIn ? member.firstName : "???")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .lineLimit(1)
                 
                 if let age = member.age {
-                    Text("\(age)")
+                    Text(currentUserCheckedIn ? "\(age)" : "??")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 if let city = member.city {
-                    Text(city)
+                    Text(currentUserCheckedIn ? city : "???")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
