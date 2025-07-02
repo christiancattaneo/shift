@@ -914,7 +914,7 @@ class FirebaseCheckInsService: ObservableObject {
             .whereField("userId", isEqualTo: userId)
             .whereField("eventId", isEqualTo: eventId)
             .whereField("isActive", isEqualTo: true)
-            .getDocuments { [weak self] querySnapshot, error in
+            .getDocuments { querySnapshot, error in
                 DispatchQueue.main.async {
                     if let error = error {
                         print("❌ FIREBASE CHECKOUT: Error finding check-in: \(error.localizedDescription)")
@@ -1040,12 +1040,12 @@ class FirebaseCheckInsService: ObservableObject {
                         firstName: data["firstName"] as? String ?? "Unknown",
                         lastName: data["lastName"] as? String ?? "",
                         age: data["age"] as? Int,
-                        bio: data["bio"] as? String,
-                        interests: data["interests"] as? [String],
                         city: data["city"] as? String,
-                        profileImageUrl: data["profileImageUrl"] as? String,
+                        approachTip: data["approachTip"] as? String,
                         profileImage: data["profileImage"] as? String,
-                        approachTip: data["approachTip"] as? String
+                        profileImageUrl: data["profileImageUrl"] as? String,
+                        bio: data["bio"] as? String,
+                        interests: data["interests"] as? [String]
                     )
                     members.append(member)
                 }
