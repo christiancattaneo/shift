@@ -64,7 +64,7 @@ struct EmailLinkAuthView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("EmailLinkNeedsEmail"))) { notification in
-            if let link = notification.object as? String {
+            if notification.object as? String != nil {
                 // Show alert asking for email if we have the link but no stored email
                 errorMessage = "Please enter your email address to complete sign in"
             }

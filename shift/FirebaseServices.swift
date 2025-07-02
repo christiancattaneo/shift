@@ -370,6 +370,11 @@ class FirebaseMembersService: ObservableObject {
     private var cacheTimestamp: Date?
     private let cacheValidDuration: TimeInterval = 300 // 5 minutes cache
     
+    // Pagination
+    private var lastDocument: DocumentSnapshot?
+    private var hasMoreData = true
+    private let batchSize = 50 // Reduced from 500 to 50
+    
     private init() {
         print("👥 FirebaseMembersService singleton initialized")
     }
@@ -381,6 +386,8 @@ class FirebaseMembersService: ObservableObject {
         cachedMembers = []
         cacheTimestamp = nil
         members = []
+        lastDocument = nil
+        hasMoreData = true
         fetchMembers()
     }
     
@@ -406,143 +413,130 @@ class FirebaseMembersService: ObservableObject {
         
         // Fetch in background to prevent UI blocking
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            // Get ALL users for dating app - we need the full pool
-            self?.db.collection("users")
+            var query = self?.db.collection("users")
                 .whereField("firstName", isNotEqualTo: "")  // Only users with names
-                .limit(to: 500)  // Much larger batch for dating app
-                .getDocuments { [weak self] querySnapshot, error in
-                    DispatchQueue.main.async {
-                        self?.isLoading = false
-                        self?.hasFetched = true
+                .order(by: "firstName") // Consistent ordering for pagination
+                .limit(to: self?.batchSize ?? 50)
+            
+            // If we have a last document, continue from there
+            if let lastDocument = self?.lastDocument {
+                query = query?.start(afterDocument: lastDocument)
+            }
+            
+            query?.getDocuments { [weak self] querySnapshot, error in
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    self?.hasFetched = true
+                    
+                    if let error = error {
+                        self?.errorMessage = error.localizedDescription
+                        print("❌ Error fetching members: \(error.localizedDescription)")
                         
-                        if let error = error {
-                            self?.errorMessage = error.localizedDescription
-                            print("❌ Error fetching members: \(error.localizedDescription)")
-                            
-                            // Use cached data if available during error
-                            if !(self?.cachedMembers.isEmpty ?? true) {
-                                print("🔄 Using cached data during network error")
-                                self?.members = self?.cachedMembers ?? []
-                            } else {
-                                // Load mock data as fallback
-                                self?.members = self?.getMockMembers() ?? []
-                            }
-                            return
+                        // Use cached data if available during error
+                        if !(self?.cachedMembers.isEmpty ?? true) {
+                            print("🔄 Using cached data during network error")
+                            self?.members = self?.cachedMembers ?? []
+                        } else {
+                            // Load mock data as fallback
+                            self?.members = self?.getMockMembers() ?? []
                         }
-                        
-                        guard let documents = querySnapshot?.documents else {
-                            self?.members = []
-                            return
-                        }
-                        
-                        // Process documents efficiently  
-                        let members = documents.compactMap { document -> FirebaseMember? in
-                            do {
-                                // First try to decode as FirebaseMember directly from the document
-                                // This will properly map all Firebase fields including profileImageUrl
-                                if let member = try? document.data(as: FirebaseMember.self) {
-                                    return member
-                                }
-                                
-                                // Fallback: decode as FirebaseUser and convert
-                                let user = try document.data(as: FirebaseUser.self)
-                                guard let firstName = user.firstName, !firstName.isEmpty else { 
-                                    return nil // This should be rare now due to the query filter
-                                }
-                                
-                                // Check for ALL possible image fields directly from document data
-                                let data = document.data()
-                                // Legacy URL fields exist but are ignored in pure UUID system
-                                let _ = data["profileImageUrl"] as? String
-                                let _ = data["firebaseImageUrl"] as? String  
-                                let _ = data["profilePhoto"] as? String
-                                let profilePicture = data["profilePicture"] as? String
-                                let legacyImageUrl = data["imageUrl"] as? String
-                                let photoUrl = data["photoUrl"] as? String
-                                
-                                print("🔍 === COMPLETE DOCUMENT DATA FOR \(firstName) ===")
-                                print("🔍 Document ID: \(document.documentID)")
-                                print("🔍 All available fields: \(data.keys.sorted().joined(separator: ", "))")
-                                print("🔍 Legacy URLs detected but IGNORED (using UUID-only system)")
-                                print("🔍 profilePicture: \(profilePicture ?? "nil")")
-                                print("🔍 legacyImageUrl: \(legacyImageUrl ?? "nil")")
-                                print("🔍 photoUrl: \(photoUrl ?? "nil")")
-                                print("🔍 user.profilePhoto: \(user.profilePhoto ?? "nil")")
-                                
-                                // Check for ID-related fields
-                                if let adaloId = data["adaloId"] {
-                                    print("🔍 adaloId: \(adaloId) (type: \(type(of: adaloId)))")
-                                } else {
-                                    print("🔍 ❌ adaloId: NOT FOUND")
-                                }
-                                
-                                if let id = data["id"] {
-                                    print("🔍 id: \(id) (type: \(type(of: id)))")
-                                } else {
-                                    print("🔍 ❌ id: NOT FOUND")
-                                }
-                                
-                                if let originalId = data["originalId"] {
-                                    print("🔍 originalId: \(originalId) (type: \(type(of: originalId)))")
-                                } else {
-                                    print("🔍 ❌ originalId: NOT FOUND")
-                                }
-                                
-                                print("🔍 ===================================================")
-                                
-                                // UNIVERSAL SYSTEM: Same image URL construction for ALL users (migrated + future)
-                                let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(document.documentID).jpg?alt=media"
-                                print("🔧 Using universal image URL for \(firstName): \(imageUrl)")
-                                
-                                let member = FirebaseMember(
-                                    userId: document.documentID, // Use document ID (UUID v4) instead of Firebase Auth UID
-                                    firstName: firstName,
-                                    lastName: user.fullName, // Use fullName as lastName fallback
-                                    age: user.age,
-                                    city: user.city,
-                                    attractedTo: user.attractedTo,
-                                    approachTip: user.howToApproachMe,
-                                    instagramHandle: user.instagramHandle,
-                                    profileImage: nil, // No legacy URLs
-                                    profileImageUrl: nil, // No legacy URLs
-                                    firebaseImageUrl: nil, // No legacy URLs
-                                    bio: nil, // Not available in FirebaseUser
-                                    location: user.city, // Use city as location
-                                    interests: nil, // Not available in FirebaseUser
-                                    gender: user.gender,
-                                    relationshipGoals: nil, // Not available in FirebaseUser
-                                    dateJoined: user.createdAt,
-                                    status: nil, // Not available in FirebaseUser
-                                    isActive: true, // Default to active
-                                    lastActiveDate: user.updatedAt,
-                                    isVerified: false, // Default to unverified
-                                    verificationDate: nil, // Not available in FirebaseUser
-                                    subscriptionStatus: user.subscribed == true ? "active" : "inactive",
-                                    fcmToken: nil, // Not available in FirebaseUser
-                                    profilePhoto: nil, // No legacy URLs
-                                    profileImageName: nil // No legacy URLs
-                                )
-                                
-                                print("🔧 ✅ FINAL MEMBER CREATED FOR \(firstName):")
-                                print("🔧    computed profileImageURL: \(member.profileImageURL?.absoluteString ?? "nil")")
-                                
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        self?.members = []
+                        return
+                    }
+                    
+                    // Store last document for pagination
+                    self?.lastDocument = documents.last
+                    self?.hasMoreData = documents.count == (self?.batchSize ?? 50)
+                    
+                    // Process documents efficiently with minimal logging
+                    let members = documents.compactMap { document -> FirebaseMember? in
+                        do {
+                            // First try to decode as FirebaseMember directly
+                            if let member = try? document.data(as: FirebaseMember.self) {
                                 return member
-                            } catch {
-                                // Log error but continue processing
-                                print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")
+                            }
+                            
+                            // Fallback: decode as FirebaseUser and convert
+                            let user = try document.data(as: FirebaseUser.self)
+                            guard let firstName = user.firstName, !firstName.isEmpty else { 
                                 return nil
                             }
+                            
+                            // MINIMAL LOGGING: Only log first 3 users for debugging
+                            let shouldLog = (self?.members.count ?? 0) < 3
+                            if shouldLog {
+                                print("🔧 Converting user \(firstName) to member (ID: \(document.documentID))")
+                            }
+                            
+                            let member = FirebaseMember(
+                                userId: document.documentID, // Use document ID (UUID v4)
+                                firstName: firstName,
+                                lastName: user.fullName,
+                                age: user.age,
+                                city: user.city,
+                                attractedTo: user.attractedTo,
+                                approachTip: user.howToApproachMe,
+                                instagramHandle: user.instagramHandle,
+                                profileImage: nil, // No legacy URLs
+                                profileImageUrl: nil, // No legacy URLs
+                                firebaseImageUrl: nil, // No legacy URLs
+                                bio: nil,
+                                location: user.city,
+                                interests: nil,
+                                gender: user.gender,
+                                relationshipGoals: nil,
+                                dateJoined: user.createdAt,
+                                status: nil,
+                                isActive: true,
+                                lastActiveDate: user.updatedAt,
+                                isVerified: false,
+                                verificationDate: nil,
+                                subscriptionStatus: user.subscribed == true ? "active" : "inactive",
+                                fcmToken: nil,
+                                profilePhoto: nil,
+                                profileImageName: nil
+                            )
+                            
+                            return member
+                        } catch {
+                            // Minimal error logging
+                            print("⚠️ Error decoding user \(document.documentID): \(error.localizedDescription)")
+                            return nil
                         }
-                        
-                        // Update cache
-                        self?.cachedMembers = members
-                        self?.cacheTimestamp = Date()
-                        self?.members = members
-                        
-                        print("✅ Successfully loaded \(members.count) members from \(documents.count) user documents")
                     }
+                    
+                    // Update cache with new members
+                    if self?.lastDocument == nil {
+                        // First batch - replace cache
+                        self?.cachedMembers = members
+                        self?.members = members
+                    } else {
+                        // Additional batch - append to cache
+                        self?.cachedMembers.append(contentsOf: members)
+                        self?.members.append(contentsOf: members)
+                    }
+                    
+                    self?.cacheTimestamp = Date()
+                    
+                    print("✅ Loaded \(members.count) members from \(documents.count) documents (Total: \(self?.members.count ?? 0))")
                 }
+            }
         }
+    }
+    
+    // Load more members (pagination)
+    func loadMoreMembers() {
+        guard hasMoreData && !isLoading else {
+            print("📋 No more members to load or already loading")
+            return
+        }
+        
+        print("🔄 Loading more members...")
+        fetchMembers()
     }
     
     func createMember(_ member: FirebaseMember, completion: @escaping (Bool, String?) -> Void) {

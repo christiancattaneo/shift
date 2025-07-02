@@ -4,263 +4,164 @@ import FirebaseFirestore
 import FirebaseStorage
 
 struct MembersView: View {
-    @ObservedObject private var membersService = FirebaseMembersService.shared
-    @StateObject private var userSession = FirebaseUserSession.shared
+    @StateObject private var membersService = FirebaseMembersService.shared
+    @EnvironmentObject private var userSession: FirebaseUserSession
+    
     @State private var searchText = ""
-    @State private var isRefreshing = false
-    @State private var selectedFilter = "All"
-    @State private var filteredMembers: [FirebaseMember] = []
-    @State private var currentUserPreferences: UserPreferences?
-    
-    // Lazy loading state - LOAD AT TOP
+    @State private var selectedFilter = "Compatible"
     @State private var displayedMembers: [FirebaseMember] = []
+    @State private var filteredMembers: [FirebaseMember] = []
     @State private var isLoadingMore = false
-    private let membersPerPage = 10 // Reduced to 10 members at a time
+    @State private var isRefreshing = false
+    @State private var selectedMember: FirebaseMember?
+    @State private var showingDetail = false
     
-    private let filters = ["Compatible", "Nearby", "All", "Online"]
-
+    // Debouncing for search
+    @State private var searchTask: Task<Void, Never>?
+    
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+    
+    private let filters = ["Compatible", "Nearby", "Online"]
+    
     var body: some View {
-        VStack(spacing: 0) {
-            // Custom Header with Title
-            customHeaderSection
-            
-            // Content Section
-            if isRefreshing {
-                loadingView
-            } else if displayedMembers.isEmpty {
-                emptyStateView
-            } else {
-                membersGridView
-            }
-        }
-        .refreshable {
-            await refreshMembers()
-        }
-        .onAppear {
-            setupInitialState()
-        }
-        .onChange(of: membersService.members) {
-            filterMembers()
-        }
-        .onChange(of: searchText) {
-            filterMembers()
-        }
-    }
-    
-    // MARK: - UI Components
-    
-    private var customHeaderSection: some View {
-        VStack(spacing: 16) {
-            // Title Section
-            HStack {
-                Text("Discover")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            
-            // Search and Filter Section
-            searchAndFilterSection
-        }
-        .background(Color(.systemBackground))
-    }
-    
-    private var searchAndFilterSection: some View {
-        VStack(spacing: 12) {
-            // Search Bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 16, weight: .medium))
-                
-                TextField("Search members...", text: $searchText)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .autocorrectionDisabled()
-                
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            .padding(.horizontal, 16)
-            
-            // Filter Pills
-            ScrollView(.horizontal, showsIndicators: false) {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Search Bar
                 HStack(spacing: 12) {
-                    ForEach(filters, id: \.self) { filter in
-                        FilterPill(
-                            title: filter,
-                            isSelected: selectedFilter == filter
-                        ) {
-                            withAnimation(.easeInOut(duration: 0.2)) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        
+                        TextField("Search members...", text: $searchText)
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .onChange(of: searchText) { oldValue, newValue in
+                                debouncedSearch()
+                            }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                
+                // Filter Pills
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(filters, id: \.self) { filter in
+                            FilterPill(
+                                title: filter,
+                                isSelected: selectedFilter == filter
+                            ) {
                                 selectedFilter = filter
-                                filterMembers()
+                                filterMembersAsync()
                             }
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
-            }
-            
-            // Results Counter
-            if !displayedMembers.isEmpty {
-                HStack {
-                    Text("\(displayedMembers.count) members")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-            }
-        }
-        .padding(.bottom, 12)
-    }
-    
-    private var loadingView: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.2)
-            Text("Finding compatible members...")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 40)
-    }
-    
-    private var membersGridView: some View {
-        ScrollView {
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 16) {
-                ForEach(displayedMembers, id: \.uniqueID) { member in
-                    NavigationLink(destination: MemberDetailView(member: member)) {
-                        MemberCardView(member: member)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .onAppear {
-                        if member.uniqueID == displayedMembers.last?.uniqueID {
-                            loadMoreMembers()
+                .padding(.vertical, 12)
+                
+                // Members Grid
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(Array(displayedMembers.enumerated()), id: \.element.id) { index, member in
+                            MemberCardView(member: member)
+                                .onTapGesture {
+                                    selectedMember = member
+                                    showingDetail = true
+                                }
+                                .onAppear {
+                                    if index == displayedMembers.count - 1 {
+                                        loadMoreMembers()
+                                    }
+                                }
+                        }
+                        
+                        // Loading More Indicator
+                        if isLoadingMore && displayedMembers.count < filteredMembers.count {
+                            LoadingMoreView()
                         }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 100)
                 }
-                
-                // Loading More Indicator
-                if isLoadingMore && filteredMembers.count > displayedMembers.count {
-                    LoadingMoreView()
-                        .gridCellColumns(2)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 16)
-        }
-    }
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "person.3")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            
-            VStack(spacing: 12) {
-                Text("No members found")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                
-                Text("Try adjusting your filters or check back later for new members to discover")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-            }
-            
-            Button("Refresh") {
-                Task {
+                .refreshable {
                     await refreshMembers()
                 }
             }
-            .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
-        .padding(.horizontal, 20)
-    }
-    
-    // MARK: - Helper Functions
-    
-    private func setupInitialState() {
-        loadUserPreferences()
-        // FORCE REFRESH to fix cached Firebase Auth UIDs issue
-        print("🔄 Forcing fresh member data to fix image URL issues...")
-        membersService.refreshMembers()
-        // Start with small batch
-        displayedMembers = []
-    }
-    
-    private func loadUserPreferences() {
-        guard let currentUser = userSession.currentUser else { return }
-        
-        currentUserPreferences = UserPreferences(
-            attractedTo: currentUser.attractedTo,
-            city: currentUser.city,
-            ageRange: (18, 50),
-            maxDistance: 50
-        )
-    }
-    
-    private func filterMembers() {
-        guard let currentUser = userSession.currentUser else {
-            print("⚠️ No current user available for filtering - showing all members")
-            // For debugging: Show all members when no current user
-            filteredMembers = membersService.members
-            displayedMembers = Array(membersService.members.prefix(membersPerPage))
-            return
-        }
-        
-        print("🔍 Filtering \(membersService.members.count) members for user: \(currentUser.firstName ?? "Unknown")")
-        
-        var filtered = membersService.members
-        let originalCount = filtered.count
-        
-        // Exclude current user (less restrictive)
-        filtered = filtered.filter { member in
-            // Only exclude if we can definitively identify it's the same user
-            if let memberId = member.id, let userId = currentUser.id, memberId == userId {
-                return false
+            .navigationTitle("Members")
+            .navigationBarTitleDisplayMode(.large)
+            .sheet(item: $selectedMember) { member in
+                NavigationView {
+                    MemberDetailView(member: member)
+                }
             }
-            if let memberUserId = member.userId, let userId = currentUser.id, memberUserId == userId {
-                return false
+        }
+        .onAppear {
+            membersService.fetchMembers()
+            filterMembersAsync()
+        }
+        .onChange(of: membersService.members) { oldValue, newValue in
+            filterMembersAsync()
+        }
+    }
+    
+    // MARK: - Debounced Search
+    
+    private func debouncedSearch() {
+        searchTask?.cancel()
+        searchTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
+            if !Task.isCancelled {
+                await MainActor.run {
+                    filterMembersAsync()
+                }
             }
-            // Allow different people with same first name
-            return true
+        }
+    }
+    
+    // MARK: - Filtering Logic (Now Async)
+    
+    private func filterMembersAsync() {
+        Task {
+            await filterMembers()
+        }
+    }
+    
+    @MainActor
+    private func filterMembers() async {
+        print("🔍 Filtering \(membersService.members.count) members for user: \(userSession.currentUser?.firstName ?? "unknown")")
+        
+        let allMembers = membersService.members
+        var filtered = allMembers
+        let beforeFilter = filtered.count
+        
+        // Exclude current user
+        if let currentUserId = userSession.currentUser?.id {
+            filtered = filtered.filter { $0.userId != currentUserId }
         }
         
-        print("🔍 After user exclusion: \(filtered.count) members (excluded \(originalCount - filtered.count))")
+        print("🔍 After user exclusion: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Apply search filter
-        if !searchText.isEmpty {
+        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let searchTerm = searchText.lowercased()
             let beforeSearch = filtered.count
             filtered = filtered.filter { member in
-                member.firstName.lowercased().contains(searchText.lowercased()) ||
-                (member.city?.lowercased().contains(searchText.lowercased()) ?? false) ||
-                (member.instagramHandle?.lowercased().contains(searchText.lowercased()) ?? false)
+                let name = member.firstName.lowercased()
+                let city = member.city?.lowercased() ?? ""
+                let tip = member.approachTip?.lowercased() ?? ""
+                return name.contains(searchTerm) || city.contains(searchTerm) || tip.contains(searchTerm)
             }
             print("🔍 After search filter '\(searchText)': \(filtered.count) members (excluded \(beforeSearch - filtered.count))")
         }
         
-        // Apply selected filter
-        let beforeFilter = filtered.count
+        // Apply filter-specific logic
         switch selectedFilter {
         case "Compatible":
             filtered = applyCompatibilityFilter(to: filtered)
@@ -269,16 +170,17 @@ struct MembersView: View {
         case "Online":
             filtered = applyOnlineFilter(to: filtered)
         default:
-            break // "All" - no additional filtering
+            break
         }
+        
         print("🔍 After '\(selectedFilter)' filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Sort members intelligently  
-        filtered = rankMembersByCompatibility(filtered, currentUser: currentUser)
+        filtered = rankMembersByCompatibility(filtered, currentUser: userSession.currentUser)
         
+        // ✅ CRITICAL FIX: Update both arrays and reset display
         filteredMembers = filtered
-        // Start with just 5 members initially for better performance
-        displayedMembers = Array(filtered.prefix(5))
+        displayedMembers = Array(filtered.prefix(5)) // Start with 5 members
         
         print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered")
     }
@@ -289,13 +191,25 @@ struct MembersView: View {
         let currentCount = displayedMembers.count
         let totalCount = filteredMembers.count
         
-        guard currentCount < totalCount else { return }
+        // ✅ CRITICAL FIX: Proper bounds checking
+        guard currentCount < totalCount else { 
+            print("📱 No more members to load: \(currentCount)/\(totalCount)")
+            return 
+        }
         
         isLoadingMore = true
-        let batchSize = 5 // Load 5 more members at a time
+        let batchSize = 5
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let nextBatch = Array(filteredMembers[currentCount..<min(currentCount + batchSize, totalCount)])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // Reduced delay
+            // ✅ CRITICAL FIX: Safe array access with bounds checking
+            let endIndex = min(currentCount + batchSize, totalCount)
+            guard currentCount < filteredMembers.count && endIndex <= filteredMembers.count else {
+                print("❌ Array bounds error prevented: currentCount=\(currentCount), endIndex=\(endIndex), filteredMembers.count=\(filteredMembers.count)")
+                isLoadingMore = false
+                return
+            }
+            
+            let nextBatch = Array(filteredMembers[currentCount..<endIndex])
             displayedMembers.append(contentsOf: nextBatch)
             isLoadingMore = false
             print("📱 Loaded \(nextBatch.count) more members. Total displayed: \(displayedMembers.count)/\(totalCount)")
@@ -310,8 +224,7 @@ struct MembersView: View {
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
         await MainActor.run {
-            displayedMembers = [] // Clear displayed members first
-            filterMembers()
+            filterMembersAsync() // This will reset displayedMembers
             isRefreshing = false
             print("✅ Refresh complete: \(displayedMembers.count) members loaded")
         }
