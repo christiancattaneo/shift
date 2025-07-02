@@ -225,6 +225,16 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
     
+    // MARK: - CodingKeys to map Swift property names to Firestore field names
+    private enum CodingKeys: String, CodingKey {
+        case userId, firstName, lastName, age, city, attractedTo, instagramHandle
+        case profileImage, profileImageUrl, firebaseImageUrl, bio, location, interests
+        case gender, relationshipGoals, dateJoined, status, isActive, lastActiveDate
+        case isVerified, verificationDate, subscriptionStatus, fcmToken, profilePhoto
+        case profileImageName, createdAt, updatedAt
+        case approachTip = "howToApproachMe"  // Map Swift property to Firestore field
+    }
+    
     // Computed property to ensure unique ID for SwiftUI ForEach
     var uniqueID: String {
         // Use Firebase document ID first (most stable)

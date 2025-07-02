@@ -189,6 +189,15 @@
       ]
     },
     {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "attractedTo", "mode": "ASCENDING" },
+        { "fieldPath": "createdAt", "mode": "DESCENDING" },
+        { "fieldPath": "firstName", "mode": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "places",
       "queryScope": "COLLECTION",
       "fields": [
@@ -251,6 +260,26 @@
       "fields": [
         { "fieldPath": "userId", "mode": "ASCENDING" },
         { "fieldPath": "checkedInAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "gender", "mode": "ASCENDING" },
+        { "fieldPath": "createdAt", "mode": "ASCENDING" },
+        { "fieldPath": "firstName", "mode": "ASCENDING" },
+        { "fieldPath": "__name__", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "attractedTo", "mode": "ASCENDING" },
+        { "fieldPath": "createdAt", "mode": "ASCENDING" },
+        { "fieldPath": "firstName", "mode": "ASCENDING" },
+        { "fieldPath": "__name__", "mode": "ASCENDING" }
       ]
     }
   ],

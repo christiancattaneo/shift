@@ -151,6 +151,20 @@ struct MemberRow: View {
                         .lineLimit(1)
                 }
                 
+                // Approach Tip - using exact same pattern as ProfileView
+                if let approachTip = member.approachTip, !approachTip.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                        Text(approachTip)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+                
                 if let instagram = member.instagramHandle, !instagram.isEmpty {
                     HStack {
                         Image(systemName: "camera")

@@ -556,6 +556,12 @@ class FirebaseMembersService: ObservableObject {
                                 print("❌ APPROACH TIP: \(member.firstName) has no tip (raw howToApproachMe: '\(user.howToApproachMe ?? "nil")')")
                             }
                             
+                            // ENHANCED DEBUG: Show the full conversion process
+                            print("🔍 CONVERSION DEBUG: \(member.firstName)")
+                            print("  - Original howToApproachMe: '\(user.howToApproachMe ?? "nil")'")
+                            print("  - Converted approachTip: '\(member.approachTip ?? "nil")'")
+                            print("  - Non-empty check: \(member.approachTip?.isEmpty == false)")
+                            
                             return member
                         } catch {
                             // Minimal error logging
@@ -2628,4 +2634,5 @@ class FirebaseServices {
     }
     
     // Legacy sync removed - using UUID-based system now
-} 
+}
+

@@ -80,6 +80,11 @@ struct MembersView: View {
         GridItem(.flexible(), spacing: 12)
     ]
     
+    // Computed property to break up complex expression
+    private var membersWithTips: [FirebaseMember] {
+        displayedMembers.filter { $0.approachTip != nil && !$0.approachTip!.isEmpty }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // Search Bar
@@ -1004,26 +1009,20 @@ struct MemberCardView: View {
                     }
                 }
                 
-                // DEBUG: Always show approach tip status
-                VStack(alignment: .leading, spacing: 2) {
-                    if let tip = member.approachTip, !tip.isEmpty {
-                        Text("💡 \(tip)")
+                // Show approach tip when available - using exact same pattern as ProfileView
+                if let tip = member.approachTip, !tip.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.caption2)
+                            .foregroundColor(.orange)
+                        Text(tip)
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.primary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                             .truncationMode(.tail)
-                    } else {
-                        Text("❌ No tip (raw: '\(String(describing: member.approachTip))')")
-                            .font(.caption2)
-                            .foregroundColor(.red)
-                            .italic()
                     }
-                    
-                    // Debug member data
-                    Text("ID: \(member.userId ?? "nil") | Gender: \(member.gender ?? "nil")")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
+                    .padding(.top, 4)
                 }
             }
             .padding(12)
