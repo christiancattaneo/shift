@@ -316,6 +316,12 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
     let address: String?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
+    // NEW: Popularity tracking fields
+    let popularityScore: Double?
+    let recentCheckIns: Int?
+    let weeklyCheckIns: Int?
+    let totalCheckIns: Int?
+    let popularityUpdatedAt: Timestamp?
     
     // Computed property to ensure unique ID for SwiftUI ForEach
     var uniqueID: String {
@@ -404,6 +410,12 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.address = try? container.decode(String.self, forKey: .address)
         self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
         self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
+        // NEW: Popularity fields
+        self.popularityScore = try? container.decode(Double.self, forKey: .popularityScore)
+        self.recentCheckIns = try? container.decode(Int.self, forKey: .recentCheckIns)
+        self.weeklyCheckIns = try? container.decode(Int.self, forKey: .weeklyCheckIns)
+        self.totalCheckIns = try? container.decode(Int.self, forKey: .totalCheckIns)
+        self.popularityUpdatedAt = try? container.decode(Timestamp.self, forKey: .popularityUpdatedAt)
         
         // DEBUG: Add logging to see what's happening with ID
         print("🔍 Event decoded: \(eventName ?? "Unknown") - Document ID will be set by @DocumentID")
@@ -432,6 +444,12 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         try container.encodeIfPresent(address, forKey: .address)
         try container.encodeIfPresent(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+        // NEW: Popularity fields
+        try container.encodeIfPresent(popularityScore, forKey: .popularityScore)
+        try container.encodeIfPresent(recentCheckIns, forKey: .recentCheckIns)
+        try container.encodeIfPresent(weeklyCheckIns, forKey: .weeklyCheckIns)
+        try container.encodeIfPresent(totalCheckIns, forKey: .totalCheckIns)
+        try container.encodeIfPresent(popularityUpdatedAt, forKey: .popularityUpdatedAt)
     }
     
     // Coding keys
@@ -439,6 +457,7 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         case eventName, venueName, eventLocation, eventStartTime, eventEndTime
         case image, imageUrl, firebaseImageUrl, isEventFree, eventCategory, eventDate, place
         case coordinates, city, state, country, address, createdAt, updatedAt
+        case popularityScore, recentCheckIns, weeklyCheckIns, totalCheckIns, popularityUpdatedAt
     }
     
     // Manual initializer for local creation (not from Firestore)
@@ -464,6 +483,12 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.address = nil
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
+        // NEW: Initialize popularity fields
+        self.popularityScore = nil
+        self.recentCheckIns = nil
+        self.weeklyCheckIns = nil
+        self.totalCheckIns = nil
+        self.popularityUpdatedAt = nil
     }
 }
 
@@ -490,6 +515,12 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
     let address: String?
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
+    // NEW: Popularity tracking fields
+    let popularityScore: Double?
+    let recentCheckIns: Int?
+    let weeklyCheckIns: Int?
+    let totalCheckIns: Int?
+    let popularityUpdatedAt: Timestamp?
     
     // Convenience initializer
     init(placeName: String, placeLocation: String? = nil, placeImage: String? = nil) {
@@ -508,6 +539,12 @@ struct FirebasePlace: Identifiable, Codable, Hashable {
         self.address = nil
         self.createdAt = Timestamp()
         self.updatedAt = Timestamp()
+        // NEW: Initialize popularity fields
+        self.popularityScore = nil
+        self.recentCheckIns = nil
+        self.weeklyCheckIns = nil
+        self.totalCheckIns = nil
+        self.popularityUpdatedAt = nil
     }
 }
 

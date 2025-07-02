@@ -60,14 +60,22 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
 struct CheckInsView: View {
     @State private var searchText = ""
     @State private var selectedFilter = "All"
+    @State private var selectedContentType: ContentType = .events
     @State private var selectedEvent: FirebaseEvent? = nil
+    @State private var selectedPlace: FirebasePlace? = nil
     @State private var showLocationPermissionAlert = false
     @StateObject private var eventsService = FirebaseEventsService()
+    @StateObject private var placesService = FirebasePlacesService()
     @StateObject private var checkInsService = FirebaseCheckInsService()
     @StateObject private var locationManager = LocationManager.shared
     @StateObject private var userSession = FirebaseUserSession.shared
     
     private let filters = ["All", "Tonight", "This Week", "In City", "Nearby"]
+    
+    enum ContentType: String, CaseIterable {
+        case events = "Events"
+        case places = "Places"
+    }
     
     var filteredEvents: [FirebaseEvent] {
         var events = eventsService.events
@@ -139,15 +147,68 @@ struct CheckInsView: View {
         return sortEventsByPopularity(events)
     }
     
+    var filteredPlaces: [FirebasePlace] {
+        var places = placesService.places
+        print("🎯 PLACES: Starting with \(places.count) total places from service")
+        
+        // Apply search filter
+        if !searchText.isEmpty {
+            let beforeSearch = places.count
+            places = places.filter { place in
+                (place.placeName?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (place.placeLocation?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (place.address?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+            print("🔍 PLACES: After search '\(searchText)': \(places.count) places (filtered out \(beforeSearch - places.count))")
+        }
+        
+        // Apply location filters
+        let beforeFilter = places.count
+        switch selectedFilter {
+        case "In City":
+            places = applyInCityFilterToPlaces(to: places)
+            print("🏙️ PLACES: After 'In City' filter: \(places.count) places (filtered out \(beforeFilter - places.count))")
+        case "Nearby":
+            places = applyNearbyFilterToPlaces(to: places)
+            print("📍 PLACES: After 'Nearby' filter: \(places.count) places (filtered out \(beforeFilter - places.count))")
+        default:
+            print("🌐 PLACES: 'All' filter: keeping all \(places.count) places")
+        }
+        
+        // Filter out places without names or images
+        let beforeNameFilter = places.count
+        places = places.filter { place in
+            let hasName = !(place.placeName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+            if !hasName {
+                print("🏷️ PLACES: Filtering out place with no name")
+            }
+            return hasName
+        }
+        
+        let beforeImageFilter = places.count
+        places = places.filter { place in
+            let hasImage = place.imageURL != nil
+            if !hasImage {
+                print("🖼️ PLACES: Filtering out place '\(place.placeName ?? "Unknown")' - no image available")
+            }
+            return hasImage
+        }
+        
+        print("🖼️ PLACES: After image filter: \(places.count) places (filtered out \(beforeImageFilter - places.count))")
+        print("🎯 PLACES: Final result: \(places.count) places")
+        
+        return sortPlacesByPopularity(places)
+    }
+    
     // MARK: - Location-based Filtering
     
     private func applyInCityFilter(to events: [FirebaseEvent]) -> [FirebaseEvent] {
         guard let currentUser = userSession.currentUser,
               let userCity = currentUser.city?.lowercased() else {
             print("📍 No user city available for filtering")
-            return events
-        }
-        
+        return events
+    }
+
         return events.filter { event in
             guard let eventCity = event.city?.lowercased() else {
                 // If event has no city data, check location string
@@ -189,35 +250,163 @@ struct CheckInsView: View {
     }
     
     private func sortEventsByPopularity(_ events: [FirebaseEvent]) -> [FirebaseEvent] {
-        // For now, return events as-is. This would be enhanced with cloud function data
-        return events
+        return events.sorted { event1, event2 in
+            // Priority 1: Most recent check-ins (last 24 hours)
+            let recent1 = event1.recentCheckIns ?? 0
+            let recent2 = event2.recentCheckIns ?? 0
+            if recent1 != recent2 {
+                return recent1 > recent2
+            }
+            
+            // Priority 2: Overall popularity score
+            let score1 = event1.popularityScore ?? 0
+            let score2 = event2.popularityScore ?? 0
+            if score1 != score2 {
+                return score1 > score2
+            }
+            
+            // Priority 3: Weekly check-ins
+            let weekly1 = event1.weeklyCheckIns ?? 0
+            let weekly2 = event2.weeklyCheckIns ?? 0
+            if weekly1 != weekly2 {
+                return weekly1 > weekly2
+            }
+            
+            // Priority 4: Total check-ins
+            let total1 = event1.totalCheckIns ?? 0
+            let total2 = event2.totalCheckIns ?? 0
+            if total1 != total2 {
+                return total1 > total2
+            }
+            
+            // Priority 5: Most recently created
+            let created1 = event1.createdAt?.dateValue() ?? Date.distantPast
+            let created2 = event2.createdAt?.dateValue() ?? Date.distantPast
+            return created1 > created2
+        }
     }
     
+    // MARK: - Places Location Filtering
+    
+    private func applyInCityFilterToPlaces(to places: [FirebasePlace]) -> [FirebasePlace] {
+        guard let currentUser = userSession.currentUser,
+              let userCity = currentUser.city?.lowercased() else {
+            print("📍 No user city available for filtering places")
+            return places
+        }
+
+        return places.filter { place in
+            guard let placeCity = place.city?.lowercased() else {
+                // If place has no city data, check location string
+                if let location = place.placeLocation?.lowercased() {
+                    return location.contains(userCity) || userCity.contains(location)
+                }
+                return false
+            }
+            return placeCity.contains(userCity) || userCity.contains(placeCity)
+        }
+    }
+    
+    private func applyNearbyFilterToPlaces(to places: [FirebasePlace]) -> [FirebasePlace] {
+        guard locationManager.hasLocationPermission,
+              locationManager.location != nil else {
+            print("📍 No location permission or location for nearby filtering places")
+            return places
+        }
+        
+        return places.filter { place in
+            guard let coordinates = place.coordinates else {
+                print("📍 Place '\(place.name)' has no coordinates, including in nearby")
+                return true // Include places without coordinates for now
+            }
+            
+            // Check if place is within 25 miles for "Nearby" (more generous than check-in range)
+            let distance = locationManager.distanceToEvent(coordinates)
+            let maxNearbyDistance = 40233.6 // 25 miles in meters
+            
+            if let distance = distance {
+                let isNearby = distance <= maxNearbyDistance
+                let miles = distance * 0.000621371
+                print("📍 Place '\(place.name)' is \(String(format: "%.1f", miles)) miles away, nearby: \(isNearby)")
+                return isNearby
+            }
+            
+            return true
+        }
+    }
+    
+    private func sortPlacesByPopularity(_ places: [FirebasePlace]) -> [FirebasePlace] {
+        return places.sorted { place1, place2 in
+            // Priority 1: Most recent check-ins (last 24 hours)
+            let recent1 = place1.recentCheckIns ?? 0
+            let recent2 = place2.recentCheckIns ?? 0
+            if recent1 != recent2 {
+                return recent1 > recent2
+            }
+            
+            // Priority 2: Overall popularity score
+            let score1 = place1.popularityScore ?? 0
+            let score2 = place2.popularityScore ?? 0
+            if score1 != score2 {
+                return score1 > score2
+            }
+            
+            // Priority 3: Weekly check-ins
+            let weekly1 = place1.weeklyCheckIns ?? 0
+            let weekly2 = place2.weeklyCheckIns ?? 0
+            if weekly1 != weekly2 {
+                return weekly1 > weekly2
+            }
+            
+            // Priority 4: Total check-ins
+            let total1 = place1.totalCheckIns ?? 0
+            let total2 = place2.totalCheckIns ?? 0
+            if total1 != total2 {
+                return total1 > total2
+            }
+            
+            // Priority 5: Most recently created
+            let created1 = place1.createdAt?.dateValue() ?? Date.distantPast
+            let created2 = place2.createdAt?.dateValue() ?? Date.distantPast
+            return created1 > created2
+        }
+    }
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // Content Type Toggle
+                contentTypeToggle
+                
                 searchAndFilterSection
                 
-                if eventsService.isLoading {
+                if (selectedContentType == .events && eventsService.isLoading) || 
+                   (selectedContentType == .places && placesService.isLoading) {
                     loadingSection
-                } else if filteredEvents.isEmpty {
+                } else if (selectedContentType == .events && filteredEvents.isEmpty) || 
+                          (selectedContentType == .places && filteredPlaces.isEmpty) {
                     emptyStateSection
                 } else {
-                    eventsListSection
+                    contentListSection
                 }
             }
-            .navigationTitle("Events")
+            .navigationTitle("Check Ins")
             .navigationBarTitleDisplayMode(.large)
-            .refreshable {
+        .refreshable {
+            if selectedContentType == .events {
                 eventsService.refreshEvents()
+            } else {
+                placesService.refreshPlaces()
             }
-            .onAppear {
-                eventsService.fetchEvents()
-                // Request location permission if needed for nearby filtering
-                if locationManager.needsLocationPermission {
-                    locationManager.requestLocationPermission()
-                }
+        }
+        .onAppear {
+            eventsService.fetchEvents()
+            placesService.fetchPlaces()
+            // Request location permission if needed for nearby filtering
+            if locationManager.needsLocationPermission {
+                locationManager.requestLocationPermission()
             }
+        }
             .sheet(isPresented: $showLocationPermissionAlert) {
                 LocationPermissionAlert(
                     isPresented: $showLocationPermissionAlert,
@@ -235,6 +424,53 @@ struct CheckInsView: View {
         .sheet(item: $selectedEvent) { event in
             EventDetailView(event: event)
         }
+        .sheet(item: $selectedPlace) { place in
+            PlaceDetailView(place: place)
+        }
+    }
+    
+    // MARK: - Content Type Toggle
+    private var contentTypeToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(ContentType.allCases, id: \.self) { contentType in
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedContentType = contentType
+                    }
+                }) {
+                    VStack(spacing: 6) {
+                        HStack(spacing: 4) {
+                            Image(systemName: contentType == .events ? "calendar" : "location")
+                                .font(.system(size: 16, weight: .medium))
+                            
+                            Text(contentType.rawValue)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(selectedContentType == contentType ? .white : .primary)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            selectedContentType == contentType ?
+                                AnyView(
+                                    LinearGradient(
+                                        colors: [.blue, .blue.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                ) :
+                                AnyView(Color.clear)
+                        )
+                        .cornerRadius(12)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
+        .background(Color(.systemBackground))
     }
     
     private var searchAndFilterSection: some View {
@@ -245,7 +481,7 @@ struct CheckInsView: View {
                     .foregroundColor(.secondary)
                     .font(.system(size: 16))
                 
-                TextField("Search events, venues, or locations", text: $searchText)
+                TextField(selectedContentType == .events ? "Search events, venues, or locations" : "Search places, locations, or addresses", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
                     .font(.body)
                 
@@ -282,9 +518,13 @@ struct CheckInsView: View {
             }
             
             // Results Counter
-            if !filteredEvents.isEmpty {
+            if (selectedContentType == .events && !filteredEvents.isEmpty) || 
+               (selectedContentType == .places && !filteredPlaces.isEmpty) {
                 HStack {
-                    Text("\(filteredEvents.count) events")
+                    let count = selectedContentType == .events ? filteredEvents.count : filteredPlaces.count
+                    let itemType = selectedContentType == .events ? "events" : "places"
+                    
+                    Text("\(count) \(itemType)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Spacer()
@@ -297,7 +537,7 @@ struct CheckInsView: View {
                 .padding(.horizontal, 20)
             }
         }
-        .padding(.bottom, 12)
+        .padding(.bottom, 8)
     }
     
     private var locationStatusIndicator: some View {
@@ -352,55 +592,74 @@ struct CheckInsView: View {
                 .foregroundColor(.gray.opacity(0.6))
             
             Text("No Events Found")
-                .font(.title2)
-                .fontWeight(.semibold)
+                    .font(.title2)
+                    .fontWeight(.semibold)
                 .foregroundColor(.primary)
-            
+                
             Text(emptyStateMessage)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
             if selectedFilter == "Nearby" && !locationManager.hasLocationPermission {
                 Button("Enable Location") {
                     showLocationPermissionAlert = true
-                }
-                .buttonStyle(.borderedProminent)
+            }
+            .buttonStyle(.borderedProminent)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var emptyStateMessage: String {
+        let itemType = selectedContentType == .events ? "events" : "places"
+        
         switch selectedFilter {
         case "Tonight":
-            return "No events scheduled for tonight. Check back tomorrow!"
+            return selectedContentType == .events ? 
+                "No events scheduled for tonight. Check back tomorrow!" :
+                "Tonight filter only applies to events. Try switching to Events or use a different filter."
         case "This Week":
-            return "No events scheduled for this week. Try expanding your search."
+            return selectedContentType == .events ? 
+                "No events scheduled for this week. Try expanding your search." :
+                "This Week filter only applies to events. Try switching to Events or use a different filter."
         case "In City":
-            return "No events found in your city. Try the 'All' or 'Nearby' filters."
+            return "No \(itemType) found in your city. Try the 'All' or 'Nearby' filters."
         case "Nearby":
             return locationManager.hasLocationPermission ? 
-                "No events found within 25 miles of your location." :
-                "Enable location services to find events near you."
+                "No \(itemType) found within 25 miles of your location." :
+                "Enable location services to find \(itemType) near you."
         default:
-            return "No events match your search criteria. Try adjusting your filters."
+            return "No \(itemType) match your search criteria. Try adjusting your filters."
         }
     }
     
-    private var eventsListSection: some View {
+    private var contentListSection: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                ForEach(filteredEvents, id: \.uniqueID) { event in
-                    EventCardView(
-                        event: event,
-                        checkInsService: checkInsService,
-                        onCardTap: {
-                            selectedEvent = event
-                        }
-                    )
-                    .padding(.horizontal, 20)
+                if selectedContentType == .events {
+                    ForEach(filteredEvents, id: \.uniqueID) { event in
+                        EventCardView(
+                            event: event,
+                            checkInsService: checkInsService,
+                            onCardTap: {
+                                selectedEvent = event
+                            }
+                        )
+                        .padding(.horizontal, 20)
+                    }
+                } else {
+                    ForEach(filteredPlaces, id: \.id) { place in
+                        PlaceCardView(
+                            place: place,
+                            checkInsService: checkInsService,
+                            onCardTap: {
+                                selectedPlace = place
+                            }
+                        )
+                        .padding(.horizontal, 20)
+                    }
                 }
             }
             .padding(.top, 8)
@@ -461,7 +720,7 @@ struct EventCardView: View {
                 // Distance indicator for events with coordinates
                 if let coordinates = event.coordinates,
                    locationManager.hasLocationPermission,
-                   let distance = locationManager.distanceToEvent(coordinates) {
+                   let _ = locationManager.distanceToEvent(coordinates) {
                     VStack {
                         Spacer()
                         HStack {
@@ -527,7 +786,7 @@ struct EventCardView: View {
                                 .frame(width: 16, height: 16)
                         } else {
                             Image(systemName: checkInButtonIcon)
-                                .font(.subheadline)
+                            .font(.subheadline)
                         }
                         Text(checkInButtonText)
                             .font(.subheadline)
@@ -598,19 +857,19 @@ struct EventCardView: View {
         Group {
             if isCheckedIn {
                 LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
-            } else {
+        } else {
                 LinearGradient(colors: [.blue.opacity(0.1), .blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
             }
         }
     }
     
     private var eventImagePlaceholder: some View {
-        LinearGradient(
-            colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .frame(height: 200)
+            LinearGradient(
+                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 200)
         .overlay(
             VStack {
                 Image(systemName: "calendar.badge.clock")
@@ -695,6 +954,593 @@ struct EventCardView: View {
     }
 }
 
+// MARK: - Place Card View
+struct PlaceCardView: View {
+    let place: FirebasePlace
+    let checkInsService: FirebaseCheckInsService
+    let onCardTap: () -> Void
+    
+    @State private var isCheckedIn = false
+    @State private var isProcessing = false
+    @State private var checkInCount = 0
+    @State private var showLocationAlert = false
+    @State private var locationError: String?
+    @StateObject private var locationManager = LocationManager.shared
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Place Image Header
+            ZStack(alignment: .topTrailing) {
+                CachedAsyncImage(url: place.imageURL) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 200)
+                        .clipped()
+                } placeholder: {
+                    placeImagePlaceholder
+                }
+                .cornerRadius(16, corners: [.topLeft, .topRight])
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    print("🎯 Place image tapped for: \(place.name)")
+                    onCardTap()
+                }
+                
+                // Check-in count badge
+                if checkInCount > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2.fill")
+                            .font(.caption2)
+                        Text("\(checkInCount)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(12)
+                }
+                
+                // Distance indicator for places with coordinates
+                if let coordinates = place.coordinates,
+                   locationManager.hasLocationPermission,
+                   let _ = locationManager.distanceToEvent(coordinates) {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Text(locationManager.formattedDistance(to: coordinates))
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(.ultraThinMaterial, in: Capsule())
+                                .padding(12)
+                        }
+                    }
+                }
+            }
+            
+            // Place Details
+            VStack(spacing: 12) {
+                // Place Info Section
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(place.name)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    if let location = place.placeLocation {
+                        HStack(spacing: 4) {
+                            Image(systemName: "location")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(location)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
+                    
+                    if let isFree = place.isPlaceFree, isFree {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                            Text("Free to visit")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    print("🎯 Place info tapped for: \(place.name)")
+                    onCardTap()
+                }
+                
+                // Check-in Button
+                Button(action: {
+                    print("🎯 Check-in button tapped for place: \(place.name)")
+                    toggleCheckIn()
+                }) {
+                    HStack(spacing: 6) {
+                        if isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .frame(width: 16, height: 16)
+                        } else {
+                            Image(systemName: checkInButtonIcon)
+                                .font(.subheadline)
+                        }
+                        Text(checkInButtonText)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(isCheckedIn ? .white : .green)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(checkInButtonBackground)
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(isCheckedIn ? Color.clear : Color.green.opacity(0.3), lineWidth: 1)
+                    )
+                }
+                .disabled(isProcessing)
+                .buttonStyle(PlainButtonStyle())
+                .contentShape(RoundedRectangle(cornerRadius: 20))
+            }
+            .padding(16)
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+        .onAppear {
+            checkIfUserCheckedIn()
+            loadCheckInCount()
+        }
+        .alert("Location Required", isPresented: $showLocationAlert) {
+            Button("Enable Location") {
+                if locationManager.locationDenied {
+                    if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(settingsUrl)
+                    }
+                } else {
+                    locationManager.requestLocationPermission()
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(locationError ?? "Location access is required to check in to places. This helps verify you're actually at the location.")
+        }
+    }
+    
+    private var checkInButtonIcon: String {
+        if isCheckedIn {
+            return "checkmark.circle.fill"
+        } else if place.coordinates != nil && locationManager.hasLocationPermission {
+            return "location.circle"
+        } else {
+            return "plus.circle"
+        }
+    }
+    
+    private var checkInButtonText: String {
+        if isProcessing {
+            return "Processing..."
+        } else if isCheckedIn {
+            return "Check Out"
+        } else {
+            return "Check In"
+        }
+    }
+    
+    private var checkInButtonBackground: some View {
+        Group {
+            if isCheckedIn {
+                LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
+            } else {
+                LinearGradient(colors: [.green.opacity(0.1), .green.opacity(0.05)], startPoint: .leading, endPoint: .trailing)
+            }
+        }
+    }
+    
+    private var placeImagePlaceholder: some View {
+        LinearGradient(
+            colors: [Color.green.opacity(0.8), Color.blue.opacity(0.6)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .frame(height: 200)
+        .overlay(
+            VStack {
+                Image(systemName: "location.circle")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white.opacity(0.9))
+                Text(place.name.prefix(20))
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+        )
+    }
+    
+    private func toggleCheckIn() {
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser,
+              let placeId = place.id else {
+            print("❌ Missing user or place ID")
+            return
+        }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        isProcessing = true
+        
+        if isCheckedIn {
+            // Check out
+            checkInsService.checkOut(userId: firebaseAuthUID, eventId: placeId) { [self] success, error in
+                DispatchQueue.main.async {
+                    isProcessing = false
+                    if success {
+                        isCheckedIn = false
+                        loadCheckInCount()
+                    } else {
+                        print("❌ Place check out failed: \(error ?? "Unknown error")")
+                    }
+                }
+            }
+        } else {
+            // Check in
+            checkInsService.checkIn(userId: firebaseAuthUID, eventId: placeId) { [self] success, error in
+                DispatchQueue.main.async {
+                    isProcessing = false
+                    if success {
+                        isCheckedIn = true
+                        loadCheckInCount()
+                    } else {
+                        locationError = error
+                        showLocationAlert = true
+                        print("❌ Place check in failed: \(error ?? "Unknown error")")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func checkIfUserCheckedIn() {
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser,
+              let placeId = place.id else { return }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        
+        checkInsService.isUserCheckedIn(userId: firebaseAuthUID, eventId: placeId) { [self] checkedIn in
+            DispatchQueue.main.async {
+                isCheckedIn = checkedIn
+            }
+        }
+    }
+    
+    private func loadCheckInCount() {
+        guard let placeId = place.id else { return }
+        
+        checkInsService.getCheckInCount(for: placeId) { [self] count in
+            DispatchQueue.main.async {
+                checkInCount = count
+            }
+        }
+    }
+}
+
+// MARK: - Place Detail View
+struct PlaceDetailView: View {
+    let place: FirebasePlace
+    
+    @StateObject private var checkInsService = FirebaseCheckInsService()
+    @State private var isCheckedIn = false
+    @State private var isProcessing = false
+    @State private var checkInCount = 0
+    @State private var attendees: [FirebaseMember] = []
+    @State private var isLoadingAttendees = false
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Place Image Header
+                ZStack(alignment: .bottomLeading) {
+                    AsyncImage(url: place.imageURL) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 300)
+                                .clipped()
+                        default:
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.8), Color.blue.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                            .frame(height: 300)
+                            .overlay(
+                                VStack {
+                                    Image(systemName: "location.circle")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Text("Place Image")
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                            )
+                        }
+                    }
+                    
+                    // Check-in count overlay
+                    if checkInCount > 0 {
+                        HStack(spacing: 6) {
+                            Image(systemName: "person.2.fill")
+                                .font(.caption)
+                            Text("\(checkInCount) been here")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(16)
+                    }
+                }
+                
+                // Place Details Section
+                VStack(spacing: 20) {
+                    // Basic Info
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(place.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .lineLimit(3)
+                        
+                        if let location = place.placeLocation {
+                            HStack(spacing: 8) {
+                                Image(systemName: "location")
+                                    .foregroundColor(.secondary)
+                                Text(location)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if let isFree = place.isPlaceFree, isFree {
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Free to visit")
+                                    .font(.body)
+                                    .foregroundColor(.green)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    
+                    // Check-in Button
+                    checkInButtonSection
+                    
+                    // Attendees Section
+                    if !attendees.isEmpty || isLoadingAttendees {
+                        attendeesSection
+                    }
+                    
+                    Spacer(minLength: 100)
+                }
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            setupPlaceDetail()
+        }
+    }
+    
+    private var checkInButtonSection: some View {
+        VStack(spacing: 12) {
+            Button(action: toggleCheckIn) {
+                HStack(spacing: 8) {
+                    if isProcessing {
+                        ProgressView()
+                            .scaleEffect(0.9)
+                            .frame(width: 20, height: 20)
+                    } else {
+                        Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle.fill")
+                            .font(.title3)
+                    }
+                    
+                    Text(getCheckInButtonText())
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: isCheckedIn ? 
+                            [Color.green, Color.green.opacity(0.8)] :
+                            [Color.green, Color.green.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(16)
+                .shadow(color: .green.opacity(0.3), radius: 8, x: 0, y: 4)
+            }
+            .disabled(isProcessing)
+            .buttonStyle(PlainButtonStyle())
+            
+            if isCheckedIn {
+                Text("You're checked in to this place!")
+                    .font(.caption)
+                    .foregroundColor(.green)
+                    .fontWeight(.medium)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var attendeesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Who's Been Here")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                if checkInCount > 0 {
+                    Text("(\(checkInCount))")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                }
+                
+                Spacer()
+                
+                if isLoadingAttendees {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            if attendees.isEmpty && !isLoadingAttendees {
+                VStack(spacing: 12) {
+                    Image(systemName: "person.3.sequence")
+                        .font(.system(size: 40))
+                        .foregroundColor(.secondary)
+                    Text("No one has checked in yet")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Text("Be the first to check in!")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 30)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(attendees, id: \.uniqueID) { member in
+                            AttendeeCardView(member: member)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+            }
+        }
+        .padding(.top, 20)
+    }
+    
+    private func setupPlaceDetail() {
+        checkIfUserCheckedIn()
+        loadCheckInCount()
+        loadAttendees()
+    }
+    
+    private func toggleCheckIn() {
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser,
+              let placeId = place.id else {
+            print("❌ Cannot check in: Missing Firebase Auth UID or place ID")
+            return
+        }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        isProcessing = true
+        
+        if isCheckedIn {
+            // Check out
+            checkInsService.checkOut(userId: firebaseAuthUID, eventId: placeId) { [self] success, error in
+                DispatchQueue.main.async {
+                    isProcessing = false
+                    if success {
+                        isCheckedIn = false
+                        checkInCount = max(0, checkInCount - 1)
+                        Haptics.successNotification()
+                    } else {
+                        print("❌ Place check out failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
+                    }
+                }
+            }
+        } else {
+            // Check in
+            checkInsService.checkIn(userId: firebaseAuthUID, eventId: placeId) { [self] success, error in
+                DispatchQueue.main.async {
+                    isProcessing = false
+                    if success {
+                        isCheckedIn = true
+                        checkInCount += 1
+                        Haptics.successNotification()
+                    } else {
+                        print("❌ Place check in failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func checkIfUserCheckedIn() {
+        guard let firebaseAuthUser = FirebaseUserSession.shared.firebaseAuthUser,
+              let placeId = place.id else { return }
+        
+        let firebaseAuthUID = firebaseAuthUser.uid
+        
+        checkInsService.isUserCheckedIn(userId: firebaseAuthUID, eventId: placeId) { isCheckedIn in
+            DispatchQueue.main.async {
+                self.isCheckedIn = isCheckedIn
+            }
+        }
+    }
+    
+    private func loadCheckInCount() {
+        guard let placeId = place.id else { return }
+        
+        checkInsService.getCheckInCount(for: placeId) { count in
+            DispatchQueue.main.async {
+                self.checkInCount = count
+            }
+        }
+    }
+    
+    private func loadAttendees() {
+        guard let placeId = place.id else { return }
+        
+        isLoadingAttendees = true
+        checkInsService.getMembersAtEvent(placeId) { members in
+            DispatchQueue.main.async {
+                self.attendees = members
+                self.isLoadingAttendees = false
+            }
+        }
+    }
+    
+    private func getCheckInButtonText() -> String {
+        if isProcessing {
+            return isCheckedIn ? "Checking Out..." : "Checking In..."
+        } else {
+            return isCheckedIn ? "Check Out" : "Check In to Place"
+        }
+    }
+}
+
 // MARK: - Image Cache
 class ImageCache {
     static let shared = ImageCache()
@@ -771,15 +1617,15 @@ struct EventDetailView: View {
             VStack(spacing: 0) {
                 // Event Image Header
                 ZStack(alignment: .bottomLeading) {
-                    AsyncImage(url: event.imageURL) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 300)
-                                .clipped()
-                        default:
+                AsyncImage(url: event.imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 300)
+                            .clipped()
+                    default:
                             LinearGradient(
                                 colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
                                 startPoint: .topLeading,
@@ -820,30 +1666,30 @@ struct EventDetailView: View {
                 VStack(spacing: 20) {
                     // Basic Info
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(event.name)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                    Text(event.name)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                             .lineLimit(3)
-                        
-                        if let venueName = event.venueName {
+                    
+                    if let venueName = event.venueName {
                             HStack(spacing: 8) {
                                 Image(systemName: "building.2")
                                     .foregroundColor(.secondary)
-                                Text(venueName)
-                                    .font(.title2)
-                                    .foregroundColor(.secondary)
+                        Text(venueName)
+                            .font(.title2)
+                            .foregroundColor(.secondary)
                             }
-                        }
-                        
-                        if let location = event.eventLocation {
+                    }
+                    
+                    if let location = event.eventLocation {
                             HStack(spacing: 8) {
                                 Image(systemName: "location")
                                     .foregroundColor(.secondary)
-                                Text(location)
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
+                        Text(location)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                }
                         
                         // Event Time
                         if let startTime = event.eventStartTime {

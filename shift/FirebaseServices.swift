@@ -809,6 +809,93 @@ class FirebaseEventsService: ObservableObject {
     }
 }
 
+// MARK: - Firebase Places Service
+class FirebasePlacesService: ObservableObject {
+    private let db = Firestore.firestore()
+    
+    @Published var places: [FirebasePlace] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    
+    private var hasFetched = false
+    private var cachedPlaces: [FirebasePlace] = []
+    private var cacheTimestamp: Date?
+    private let cacheValidDuration: TimeInterval = 600 // 10 minutes cache for places
+    
+    func fetchPlaces() {
+        // Prevent redundant calls
+        guard !hasFetched && !isLoading else {
+            print("📋 Skipping fetchPlaces - already fetched or in progress")
+            return
+        }
+        
+        // Check cache first
+        if let cacheTimestamp = cacheTimestamp,
+           Date().timeIntervalSince(cacheTimestamp) < cacheValidDuration,
+           !cachedPlaces.isEmpty {
+            print("📋 Using cached places (\(cachedPlaces.count) items)")
+            places = cachedPlaces
+            hasFetched = true
+            return
+        }
+        
+        print("🔄 Starting fetchPlaces...")
+        isLoading = true
+        errorMessage = nil
+        
+        // Fetch in background to prevent UI blocking
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.db.collection("places")
+                .order(by: "createdAt", descending: true)
+                .limit(to: 100)
+                .getDocuments { snapshot, error in
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                        
+                        if let error = error {
+                            print("❌ Error fetching places: \(error)")
+                            self?.errorMessage = error.localizedDescription
+                            return
+                        }
+                        
+                        guard let documents = snapshot?.documents else {
+                            print("⚠️ No places found")
+                            self?.places = []
+                            self?.hasFetched = true
+                            return
+                        }
+                        
+                        do {
+                            let fetchedPlaces = try documents.compactMap { document -> FirebasePlace? in
+                                return try document.data(as: FirebasePlace.self)
+                            }
+                            
+                            print("✅ Fetched \(fetchedPlaces.count) places from Firebase")
+                            
+                            // Cache the results
+                            self?.cachedPlaces = fetchedPlaces
+                            self?.cacheTimestamp = Date()
+                            self?.places = fetchedPlaces
+                            self?.hasFetched = true
+                            
+                        } catch {
+                            print("❌ Error decoding places: \(error)")
+                            self?.errorMessage = "Failed to load places data"
+                        }
+                    }
+                }
+        }
+    }
+    
+    func refreshPlaces() {
+        print("🔄 Forcing places refresh...")
+        hasFetched = false
+        cacheTimestamp = nil
+        cachedPlaces = []
+        fetchPlaces()
+    }
+}
+
 // MARK: - Firebase Check-ins Service
 class FirebaseCheckInsService: ObservableObject {
     private let db = Firestore.firestore()
