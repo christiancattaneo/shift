@@ -1352,10 +1352,8 @@ struct PlaceDetailView: View {
                     // Check-in Button
                     checkInButtonSection
                     
-                    // Attendees Section
-                    if !attendees.isEmpty || isLoadingAttendees {
-                        attendeesSection
-                    }
+                    // Attendees Section - Always show who's ever been here
+                    attendeesSection
                     
                     Spacer(minLength: 100)
                 }
@@ -1540,7 +1538,7 @@ struct PlaceDetailView: View {
         guard let placeId = place.id else { return }
         
         isLoadingAttendees = true
-        checkInsService.getMembersAtEvent(placeId) { members in
+        checkInsService.getMembersAtPlace(placeId) { members in
             DispatchQueue.main.async {
                 self.attendees = members
                 self.isLoadingAttendees = false
@@ -1729,10 +1727,8 @@ struct EventDetailView: View {
                     // Check-in Button
                     checkInButtonSection
                     
-                    // Attendees Section - Show who's checked in
-                    if !attendees.isEmpty || isLoadingAttendees {
-                        attendeesSection
-                    }
+                    // Attendees Section - Always show who's ever been here
+                    attendeesSection
                     
                     // Additional Event Info Section (minimalist)
                     if hasAdditionalInfo {

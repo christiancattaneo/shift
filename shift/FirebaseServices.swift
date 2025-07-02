@@ -1169,38 +1169,107 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     func getMembersAtEvent(_ eventId: String, completion: @escaping ([FirebaseMember]) -> Void) {
-        print("👥 FIREBASE CHECKIN: Getting members checked in to event: \(eventId)")
+        print("👥 FIREBASE CHECKIN: Getting ALL members who have EVER checked in to event: \(eventId)")
         
-        // Get all active check-ins for this event
+        var allUserIds: Set<String> = []
+        let dispatchGroup = DispatchGroup()
+        
+        // Get ALL check-ins for this event (current AND historical)
+        dispatchGroup.enter()
         db.collection("checkIns")
             .whereField("eventId", isEqualTo: eventId)
-            .whereField("isActive", isEqualTo: true)
-            .getDocuments { [weak self] querySnapshot, error in
+            .getDocuments { querySnapshot, error in
                 if let error = error {
                     print("❌ FIREBASE CHECKIN: Error getting check-ins: \(error.localizedDescription)")
-                    completion([])
-                    return
+                } else if let documents = querySnapshot?.documents {
+                    let userIds = documents.compactMap { document -> String? in
+                        return document.data()["userId"] as? String
+                    }
+                    allUserIds.formUnion(userIds)
+                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in checkIns collection")
                 }
-                
-                guard let documents = querySnapshot?.documents else {
-                    print("📊 FIREBASE CHECKIN: No check-ins found for event")
-                    completion([])
-                    return
-                }
-                
-                let userIds = documents.compactMap { document -> String? in
-                    return document.data()["userId"] as? String
-                }
-                
-                guard !userIds.isEmpty else {
-                    print("📊 FIREBASE CHECKIN: No user IDs found in check-ins")
-                    completion([])
-                    return
-                }
-                
-                // Batch fetch user profiles for all checked-in users
-                self?.fetchMembersById(userIds: userIds, completion: completion)
+                dispatchGroup.leave()
             }
+        
+        // ALSO get users from checkInHistory in user documents
+        dispatchGroup.enter()
+        db.collection("users")
+            .whereField("checkInHistory.events", arrayContains: eventId)
+            .getDocuments { querySnapshot, error in
+                if let error = error {
+                    print("❌ FIREBASE CHECKIN: Error getting historical check-ins: \(error.localizedDescription)")
+                } else if let documents = querySnapshot?.documents {
+                    let userIds = documents.map { $0.documentID }
+                    allUserIds.formUnion(userIds)
+                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in user history")
+                }
+                dispatchGroup.leave()
+            }
+        
+        dispatchGroup.notify(queue: .main) {
+            let finalUserIds = Array(allUserIds)
+            guard !finalUserIds.isEmpty else {
+                print("📊 FIREBASE CHECKIN: No user IDs found in total")
+                completion([])
+                return
+            }
+            
+            print("📊 FIREBASE CHECKIN: Total unique users found: \(finalUserIds.count)")
+            // Batch fetch user profiles for all users who have ever checked in
+            self.fetchMembersById(userIds: finalUserIds, completion: completion)
+        }
+    }
+    
+    func getMembersAtPlace(_ placeId: String, completion: @escaping ([FirebaseMember]) -> Void) {
+        print("👥 FIREBASE CHECKIN: Getting ALL members who have EVER checked in to place: \(placeId)")
+        
+        var allUserIds: Set<String> = []
+        let dispatchGroup = DispatchGroup()
+        
+        // Get ALL check-ins for this place (current AND historical)
+        dispatchGroup.enter()
+        db.collection("checkIns")
+            .whereField("eventId", isEqualTo: placeId)
+            .getDocuments { querySnapshot, error in
+                if let error = error {
+                    print("❌ FIREBASE CHECKIN: Error getting place check-ins: \(error.localizedDescription)")
+                } else if let documents = querySnapshot?.documents {
+                    let userIds = documents.compactMap { document -> String? in
+                        return document.data()["userId"] as? String
+                    }
+                    allUserIds.formUnion(userIds)
+                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in checkIns collection for place")
+                }
+                dispatchGroup.leave()
+            }
+        
+        // ALSO get users from checkInHistory in user documents
+        dispatchGroup.enter()
+        db.collection("users")
+            .whereField("checkInHistory.places", arrayContains: placeId)
+            .getDocuments { querySnapshot, error in
+                if let error = error {
+                    print("❌ FIREBASE CHECKIN: Error getting historical place check-ins: \(error.localizedDescription)")
+                } else if let documents = querySnapshot?.documents {
+                    let userIds = documents.map { $0.documentID }
+                    allUserIds.formUnion(userIds)
+                    print("📊 FIREBASE CHECKIN: Found \(userIds.count) users in place history")
+                }
+                dispatchGroup.leave()
+            }
+        
+        dispatchGroup.notify(queue: .main) {
+            let finalUserIds = Array(allUserIds)
+            guard !finalUserIds.isEmpty else {
+                print("📊 FIREBASE CHECKIN: No user IDs found for place")
+                completion([])
+                return
+            }
+            
+            print("📊 FIREBASE CHECKIN: Total unique users found for place: \(finalUserIds.count)")
+            // Batch fetch user profiles for all users who have ever checked in
+            self.fetchMembersById(userIds: finalUserIds, completion: completion)
+        }
     }
     
     private func fetchMembersById(userIds: [String], completion: @escaping ([FirebaseMember]) -> Void) {
