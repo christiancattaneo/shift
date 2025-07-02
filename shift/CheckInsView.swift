@@ -15,6 +15,8 @@ struct CheckInsView: View {
     @State private var selectedEvent: FirebaseEvent? = nil
     @State private var selectedPlace: FirebasePlace? = nil
     @State private var showLocationPermissionAlert = false
+    @State private var recentlyCheckedInEventIds: Set<String> = []
+    @State private var recentlyCheckedInPlaceIds: Set<String> = []
     @StateObject private var eventsService = FirebaseEventsService()
     @StateObject private var placesService = FirebasePlacesService()
     @StateObject private var checkInsService = FirebaseCheckInsService()
@@ -94,8 +96,9 @@ struct CheckInsView: View {
         print("🖼️ EVENTS: After image filter: \(events.count) events (filtered out \(beforeImageFilter - events.count))")
         print("🎯 EVENTS: Final result: \(events.count) events")
         
-        // Sort by recent check-ins (most popular first)
-        return sortEventsByPopularity(events)
+        // Sort by recent check-ins (most popular first), but prioritize recently checked-in events
+        let sortedEvents = sortEventsByPopularity(events)
+        return prioritizeRecentlyCheckedInEvents(sortedEvents)
     }
     
     var filteredPlaces: [FirebasePlace] {
@@ -147,7 +150,9 @@ struct CheckInsView: View {
         print("🖼️ PLACES: After image filter: \(places.count) places (filtered out \(beforeImageFilter - places.count))")
         print("🎯 PLACES: Final result: \(places.count) places")
         
-        return sortPlacesByPopularity(places)
+        // Sort by popularity, but prioritize recently checked-in places
+        let sortedPlaces = sortPlacesByPopularity(places)
+        return prioritizeRecentlyCheckedInPlaces(sortedPlaces)
     }
     
     // MARK: - Location-based Filtering
@@ -321,6 +326,32 @@ struct CheckInsView: View {
             return created1 > created2
         }
     }
+    
+    // MARK: - Recently Checked-In Prioritization
+    
+    private func prioritizeRecentlyCheckedInEvents(_ events: [FirebaseEvent]) -> [FirebaseEvent] {
+        let recentlyCheckedIn = events.filter { event in
+            recentlyCheckedInEventIds.contains(event.id ?? event.uniqueID)
+        }
+        let others = events.filter { event in
+            !recentlyCheckedInEventIds.contains(event.id ?? event.uniqueID)
+        }
+        
+        print("🎯 PRIORITY: Moving \(recentlyCheckedIn.count) recently checked-in events to top")
+        return recentlyCheckedIn + others
+    }
+    
+    private func prioritizeRecentlyCheckedInPlaces(_ places: [FirebasePlace]) -> [FirebasePlace] {
+        let recentlyCheckedIn = places.filter { place in
+            recentlyCheckedInPlaceIds.contains(place.id ?? "")
+        }
+        let others = places.filter { place in
+            !recentlyCheckedInPlaceIds.contains(place.id ?? "")
+        }
+        
+        print("🎯 PRIORITY: Moving \(recentlyCheckedIn.count) recently checked-in places to top")
+        return recentlyCheckedIn + others
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -339,6 +370,11 @@ struct CheckInsView: View {
                     }
             }
         .refreshable {
+            // Clear prioritization on refresh to show latest data order
+            recentlyCheckedInEventIds.removeAll()
+            recentlyCheckedInPlaceIds.removeAll()
+            print("🎯 PRIORITY: Cleared prioritization lists due to refresh")
+            
             if selectedContentType == .events {
                 eventsService.refreshEvents()
             } else {
@@ -353,6 +389,52 @@ struct CheckInsView: View {
                     locationManager.requestLocationPermission()
                 }
             }
+        .onReceive(NotificationCenter.default.publisher(for: .checkInStatusChanged)) { notification in
+            // Listen for check-in status changes and prioritize checked-in items
+            guard let userInfo = notification.userInfo else { return }
+            
+            if let eventId = userInfo["eventId"] as? String,
+               let isCheckedIn = userInfo["isCheckedIn"] as? Bool {
+                print("🎯 CHECKINS: Received event check-in notification - eventId: \(eventId), isCheckedIn: \(isCheckedIn)")
+                
+                if isCheckedIn {
+                    // Add to recently checked-in events (move to top)
+                    recentlyCheckedInEventIds.insert(eventId)
+                    print("🎯 PRIORITY: Added event \(eventId) to priority list")
+                    
+                    // Auto-remove from priority list after 30 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                        recentlyCheckedInEventIds.remove(eventId)
+                        print("🎯 PRIORITY: Auto-removed event \(eventId) from priority list after 30s")
+                    }
+                } else {
+                    // Remove from recently checked-in events
+                    recentlyCheckedInEventIds.remove(eventId)
+                    print("🎯 PRIORITY: Removed event \(eventId) from priority list")
+                }
+            }
+            
+            if let placeId = userInfo["placeId"] as? String,
+               let isCheckedIn = userInfo["isCheckedIn"] as? Bool {
+                print("🎯 CHECKINS: Received place check-in notification - placeId: \(placeId), isCheckedIn: \(isCheckedIn)")
+                
+                if isCheckedIn {
+                    // Add to recently checked-in places (move to top)
+                    recentlyCheckedInPlaceIds.insert(placeId)
+                    print("🎯 PRIORITY: Added place \(placeId) to priority list")
+                    
+                    // Auto-remove from priority list after 30 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                        recentlyCheckedInPlaceIds.remove(placeId)
+                        print("🎯 PRIORITY: Auto-removed place \(placeId) from priority list after 30s")
+                    }
+                } else {
+                    // Remove from recently checked-in places
+                    recentlyCheckedInPlaceIds.remove(placeId)
+                    print("🎯 PRIORITY: Removed place \(placeId) from priority list")
+                }
+            }
+        }
             .sheet(isPresented: $showLocationPermissionAlert) {
                 LocationPermissionAlert(
                     isPresented: $showLocationPermissionAlert,
@@ -404,6 +486,10 @@ struct CheckInsView: View {
                 Button(action: {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         selectedContentType = contentType
+                        // Clear prioritization when switching content types
+                        recentlyCheckedInEventIds.removeAll()
+                        recentlyCheckedInPlaceIds.removeAll()
+                        print("🎯 PRIORITY: Cleared prioritization lists due to content type change")
                     }
                 }) {
                     VStack(spacing: 6) {
