@@ -1571,8 +1571,15 @@ struct PlaceDetailView: View {
             }
             .padding(.horizontal, 20)
             
+            // Current User Card - Show prominently when checked in
+            if isCheckedIn, let currentUser = FirebaseUserSession.shared.currentUser {
+                CurrentUserMemberCard(user: currentUser, type: "place")
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 20)
+            }
+            
             // Check-in status message
-            if !attendees.isEmpty {
+            if !attendees.isEmpty || isCheckedIn {
                 HStack(spacing: 8) {
                     Image(systemName: isCheckedIn ? "eye" : "eye.slash")
                         .font(.caption)
@@ -1590,7 +1597,7 @@ struct PlaceDetailView: View {
                 .padding(.bottom, 8)
             }
             
-            if attendees.isEmpty && !isLoadingAttendees {
+            if attendees.isEmpty && !isLoadingAttendees && !isCheckedIn {
                 VStack(spacing: 12) {
                     Image(systemName: "person.3.sequence")
                         .font(.system(size: 40))
@@ -1604,7 +1611,7 @@ struct PlaceDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 30)
-            } else {
+            } else if attendees.count > 0 {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(attendees, id: \.uniqueID) { member in

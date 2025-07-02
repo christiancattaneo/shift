@@ -173,8 +173,14 @@ struct FirebaseEventDetailView: View {
                 }
             }
             
+            // Current User Card - Show prominently when checked in
+            if isCheckedIn, let currentUser = FirebaseUserSession.shared.currentUser {
+                CurrentUserMemberCard(user: currentUser, type: "event")
+                    .padding(.vertical, 8)
+            }
+            
             // Check-in status message
-            if !attendees.isEmpty {
+            if !attendees.isEmpty || isCheckedIn {
                 HStack(spacing: 8) {
                     Image(systemName: isCheckedIn ? "eye" : "eye.slash")
                         .font(.caption)
@@ -191,7 +197,7 @@ struct FirebaseEventDetailView: View {
                 .padding(.bottom, 8)
             }
             
-            if attendees.isEmpty && !isLoadingAttendees {
+            if attendees.isEmpty && !isLoadingAttendees && !isCheckedIn {
                 VStack(spacing: 12) {
                     Image(systemName: "person.3.sequence")
                         .font(.system(size: 40))
@@ -205,7 +211,7 @@ struct FirebaseEventDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 30)
-            } else {
+            } else if attendees.count > 0 {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(attendees, id: \.uniqueID) { member in
@@ -372,6 +378,152 @@ struct EventAttendeeCardView: View {
         .background(Color(.tertiarySystemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Current User Member Card
+struct CurrentUserMemberCard: View {
+    let user: FirebaseUser
+    let type: String // "event" or "place"
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with "You're Here!" indicator
+            HStack(spacing: 8) {
+                Image(systemName: type == "event" ? "calendar.badge.checkmark" : "location.badge.checkmark")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                Text("You're \(type == "event" ? "Going!" : "Here!")")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Image(systemName: "star.fill")
+                    .font(.caption)
+                    .foregroundColor(.yellow)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            
+            // User Profile Content
+            HStack(spacing: 16) {
+                // Profile Image
+                AsyncImage(url: URL(string: user.profilePhoto ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 80, height: 80)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue, lineWidth: 3)
+                            )
+                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                    default:
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Text(user.firstName?.prefix(1).uppercased() ?? "?")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            )
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue, lineWidth: 3)
+                            )
+                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                    }
+                }
+                
+                // User Info
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(user.firstName ?? "Unknown")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        if let age = user.age {
+                            Text("\(age)")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let city = user.city {
+                        HStack(spacing: 4) {
+                            Image(systemName: "location")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(city)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let howToApproach = user.howToApproachMe, !howToApproach.isEmpty {
+                        Text(howToApproach)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+                    
+                    // Instagram handle if available
+                    if let instagram = user.instagramHandle, !instagram.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "camera")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                            Text(instagram.hasPrefix("@") ? instagram : "@\(instagram)")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(16)
+            .background(Color(.systemBackground))
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
+        )
+        .padding(.horizontal, 20)
     }
 }
 
