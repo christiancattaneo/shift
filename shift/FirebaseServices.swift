@@ -1319,10 +1319,6 @@ class FirebaseEventsService: ObservableObject {
                         let events = documents.compactMap { document -> FirebaseEvent? in
                             do {
                                 let event = try document.data(as: FirebaseEvent.self)
-                                // Log if document ID is missing for debugging
-                                if event.id == nil || event.id?.isEmpty == true {
-                                    print("🔧 DEBUG: Event '\(event.eventName ?? "Unknown")' missing document ID (will use computed uniqueID)")
-                                }
                                 return event
                             } catch {
                                 eventDecodingErrors += 1

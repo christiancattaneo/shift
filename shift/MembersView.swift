@@ -330,7 +330,6 @@ struct MembersView: View {
         // Apply filter-specific logic
         filtered = applyCompatibilityFilter(to: filtered)
         
-        print("🔍 After compatibility filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Sort members intelligently  
         filtered = rankMembersByCompatibility(filtered, currentUser: userSession.currentUser)
@@ -343,7 +342,6 @@ struct MembersView: View {
         filteredMembers = filtered
         displayedMembers = Array(filtered.prefix(10)) // Start with 10 members
         
-        print("🎯 Final result: \(displayedMembers.count) compatible members displayed from \(filteredMembers.count) total compatible")
     }
     
     private func loadMoreMembers() {
@@ -503,9 +501,7 @@ struct MembersView: View {
         if members.count < 100 || currentUser.attractedTo != nil {
             fetchMoreCompatibleMembers()
         }
-        
-        print("🔍 COMPATIBILITY FILTER: Current user - Gender: '\(currentUser.gender ?? "nil")', Attracted to: '\(currentUser.attractedTo ?? "nil")'")
-        
+                
         let filtered = members.filter { otherUser in
             // STRICT: Both people MUST have complete gender and preference data
             let currentUserHasGender = currentUser.gender != nil && !currentUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -541,9 +537,7 @@ struct MembersView: View {
             
             return isMutuallyCompatible
         }
-        
-        print("🔗 COMPATIBILITY: Filtered \(members.count) → \(filtered.count) strictly compatible members")
-        
+                
         // FALLBACK: If we have few or no strictly compatible members, add users attracted to current user
         if filtered.count < 10 && currentUser.gender != nil && !currentUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             print("🔄 FALLBACK: Adding users attracted to current user's gender (\(currentUser.gender!))")
@@ -813,9 +807,6 @@ struct MembersView: View {
         
         // If either person is missing critical data, NOT compatible
         if !currentUserHasGender || !otherUserHasGender || !currentUserHasPreference || !otherUserHasPreference {
-            print("🔗 COMPATIBILITY: \(user.firstName ?? "Current user") vs \(otherUser.firstName) = NOT COMPATIBLE (missing data)")
-            print("   - Current user gender: '\(user.gender ?? "nil")', preference: '\(user.attractedTo ?? "nil")'")
-            print("   - \(otherUser.firstName) gender: '\(otherUser.gender ?? "nil")', preference: '\(otherUser.attractedTo ?? "nil")'")
             return false
         }
         
@@ -823,10 +814,6 @@ struct MembersView: View {
         let currentUserAttractedToOther = isAttractedTo(userAttractedTo: user.attractedTo, personGender: otherUser.gender)
         let otherUserAttractedToCurrent = isAttractedTo(userAttractedTo: otherUser.attractedTo, personGender: user.gender)
         let isCompatible = currentUserAttractedToOther && otherUserAttractedToCurrent
-        
-        print("🔗 COMPATIBILITY: \(user.firstName ?? "Current user") vs \(otherUser.firstName) = \(isCompatible ? "COMPATIBLE" : "NOT COMPATIBLE")")
-        print("   - Current user attracted to \(otherUser.firstName): \(currentUserAttractedToOther) (wants '\(user.attractedTo ?? "nil")', \(otherUser.firstName) is '\(otherUser.gender ?? "nil")')")
-        print("   - \(otherUser.firstName) attracted to current user: \(otherUserAttractedToCurrent) (\(otherUser.firstName) wants '\(otherUser.attractedTo ?? "nil")', current user is '\(user.gender ?? "nil")')")
         
         return isCompatible
     }
@@ -837,8 +824,6 @@ struct MembersView: View {
         
         // Clean and normalize gender
         let gender = personGender?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        
-        print("   🔍 CHECKING: '\(attractedTo)' attracted to '\(gender)'")
         
         // STRICT: Return false if no preference or gender specified
         if attractedTo.isEmpty {
@@ -878,7 +863,6 @@ struct MembersView: View {
                                gender.hasPrefix("woman") ||
                                gender.hasPrefix("female") ||
                                gender.hasPrefix("girl")
-            print("   - Person wants FEMALES, target is female: \(isPersonFemale)")
             return isPersonFemale
         }
         
@@ -898,7 +882,6 @@ struct MembersView: View {
                              (gender.hasPrefix("man") && !gender.hasPrefix("woman")) ||
                              (gender.hasPrefix("male") && !gender.hasPrefix("female")) ||
                              gender.hasPrefix("guy")
-            print("   - Person wants MALES, target is male: \(isPersonMale)")
             return isPersonMale
         }
         
@@ -919,7 +902,6 @@ struct MembersView: View {
                                   gender.contains("transgender") ||
                                   gender.contains("trans") ||
                                   gender.contains("queer")
-            print("   - Person wants NON-BINARY/TRANS, target matches: \(isPersonNonBinary)")
             return isPersonNonBinary
         }
         
@@ -959,8 +941,10 @@ struct MemberCardView: View {
             AsyncImage(url: member.profileImageURL) { phase in
                 switch phase {
                 case .empty:
+                    let _ = print("🖼️ ASYNC: '\(member.firstName)' - Loading image from URL: \(member.profileImageURL?.absoluteString ?? "nil")")
                     loadingImageView
                 case .success(let image):
+                    let _ = print("✅ ASYNC: '\(member.firstName)' - Image loaded successfully")
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -968,9 +952,12 @@ struct MemberCardView: View {
                         .clipped()
                         .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                case .failure(_):
+                case .failure(let error):
+                    let _ = print("❌ ASYNC: '\(member.firstName)' - Image load failed: \(error.localizedDescription)")
+                    let _ = print("❌ ASYNC: '\(member.firstName)' - Failed URL: \(member.profileImageURL?.absoluteString ?? "nil")")
                     fallbackImageView
                 @unknown default:
+                    let _ = print("⚠️ ASYNC: '\(member.firstName)' - Unknown phase")
                     fallbackImageView
                 }
             }

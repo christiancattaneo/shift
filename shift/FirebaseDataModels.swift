@@ -225,14 +225,100 @@ struct FirebaseMember: Identifiable, Codable, Hashable {
     let createdAt: Timestamp?
     let updatedAt: Timestamp?
     
-    // MARK: - CodingKeys to map Swift property names to Firestore field names
+    // MARK: - Custom decoder to handle field mapping
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // IMPORTANT: Let @DocumentID handle itself - don't try to decode it manually
+        // The @DocumentID property wrapper will be handled automatically by Firestore
+        
+        // Standard fields with automatic decoding
+        self.userId = try? container.decode(String.self, forKey: .userId)
+        self.firstName = try container.decode(String.self, forKey: .firstName)
+        self.lastName = try? container.decode(String.self, forKey: .lastName)
+        self.age = try? container.decode(Int.self, forKey: .age)
+        self.city = try? container.decode(String.self, forKey: .city)
+        self.attractedTo = try? container.decode(String.self, forKey: .attractedTo)
+        self.instagramHandle = try? container.decode(String.self, forKey: .instagramHandle)
+        self.profileImage = try? container.decode(String.self, forKey: .profileImage)
+        self.profileImageUrl = try? container.decode(String.self, forKey: .profileImageUrl)
+        self.firebaseImageUrl = try? container.decode(String.self, forKey: .firebaseImageUrl)
+        self.bio = try? container.decode(String.self, forKey: .bio)
+        self.location = try? container.decode(String.self, forKey: .location)
+        self.interests = try? container.decode([String].self, forKey: .interests)
+        self.gender = try? container.decode(String.self, forKey: .gender)
+        self.relationshipGoals = try? container.decode(String.self, forKey: .relationshipGoals)
+        self.dateJoined = try? container.decode(Timestamp.self, forKey: .dateJoined)
+        self.status = try? container.decode(String.self, forKey: .status)
+        self.isActive = try? container.decode(Bool.self, forKey: .isActive)
+        self.lastActiveDate = try? container.decode(Timestamp.self, forKey: .lastActiveDate)
+        self.isVerified = try? container.decode(Bool.self, forKey: .isVerified)
+        self.verificationDate = try? container.decode(Timestamp.self, forKey: .verificationDate)
+        self.subscriptionStatus = try? container.decode(String.self, forKey: .subscriptionStatus)
+        self.fcmToken = try? container.decode(String.self, forKey: .fcmToken)
+        self.profilePhoto = try? container.decode(String.self, forKey: .profilePhoto)
+        self.profileImageName = try? container.decode(String.self, forKey: .profileImageName)
+        self.createdAt = try? container.decode(Timestamp.self, forKey: .createdAt)
+        self.updatedAt = try? container.decode(Timestamp.self, forKey: .updatedAt)
+        
+        // SPECIAL: Map approachTip from Firestore field "howToApproachMe"
+        self.approachTip = try? container.decode(String.self, forKey: .howToApproachMe)
+        
+        // DEBUG: Log member data after decoding (Document ID will be set by @DocumentID)
+        print("🔍 MEMBER: Decoded '\(firstName)' - Document ID will be set by @DocumentID")
+        print("🔍 MEMBER: - userId: '\(userId ?? "nil")'")
+        print("🔍 MEMBER: - profileImage: '\(profileImage ?? "nil")'")
+        print("🔍 MEMBER: - profileImageUrl: '\(profileImageUrl ?? "nil")'")
+        print("🔍 MEMBER: - firebaseImageUrl: '\(firebaseImageUrl ?? "nil")'")
+        print("🔍 MEMBER: - profilePhoto: '\(profilePhoto ?? "nil")'")
+        print("🔍 MEMBER: - approachTip: '\(approachTip ?? "nil")'")
+    }
+    
+    // MARK: - Custom encoder to handle field mapping
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        // Standard fields
+        try container.encodeIfPresent(userId, forKey: .userId)
+        try container.encode(firstName, forKey: .firstName)
+        try container.encodeIfPresent(lastName, forKey: .lastName)
+        try container.encodeIfPresent(age, forKey: .age)
+        try container.encodeIfPresent(city, forKey: .city)
+        try container.encodeIfPresent(attractedTo, forKey: .attractedTo)
+        try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
+        try container.encodeIfPresent(profileImage, forKey: .profileImage)
+        try container.encodeIfPresent(profileImageUrl, forKey: .profileImageUrl)
+        try container.encodeIfPresent(firebaseImageUrl, forKey: .firebaseImageUrl)
+        try container.encodeIfPresent(bio, forKey: .bio)
+        try container.encodeIfPresent(location, forKey: .location)
+        try container.encodeIfPresent(interests, forKey: .interests)
+        try container.encodeIfPresent(gender, forKey: .gender)
+        try container.encodeIfPresent(relationshipGoals, forKey: .relationshipGoals)
+        try container.encodeIfPresent(dateJoined, forKey: .dateJoined)
+        try container.encodeIfPresent(status, forKey: .status)
+        try container.encodeIfPresent(isActive, forKey: .isActive)
+        try container.encodeIfPresent(lastActiveDate, forKey: .lastActiveDate)
+        try container.encodeIfPresent(isVerified, forKey: .isVerified)
+        try container.encodeIfPresent(verificationDate, forKey: .verificationDate)
+        try container.encodeIfPresent(subscriptionStatus, forKey: .subscriptionStatus)
+        try container.encodeIfPresent(fcmToken, forKey: .fcmToken)
+        try container.encodeIfPresent(profilePhoto, forKey: .profilePhoto)
+        try container.encodeIfPresent(profileImageName, forKey: .profileImageName)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+        
+        // SPECIAL: Map approachTip to Firestore field "howToApproachMe"
+        try container.encodeIfPresent(approachTip, forKey: .howToApproachMe)
+    }
+    
+    // MARK: - CodingKeys for field mapping
     private enum CodingKeys: String, CodingKey {
         case userId, firstName, lastName, age, city, attractedTo, instagramHandle
         case profileImage, profileImageUrl, firebaseImageUrl, bio, location, interests
         case gender, relationshipGoals, dateJoined, status, isActive, lastActiveDate
         case isVerified, verificationDate, subscriptionStatus, fcmToken, profilePhoto
         case profileImageName, createdAt, updatedAt
-        case approachTip = "howToApproachMe"  // Map Swift property to Firestore field
+        case howToApproachMe  // Firestore field name for approach tips
     }
     
     // Computed property to ensure unique ID for SwiftUI ForEach
@@ -441,9 +527,6 @@ struct FirebaseEvent: Identifiable, Codable, Hashable {
         self.weeklyCheckIns = try? container.decode(Int.self, forKey: .weeklyCheckIns)
         self.totalCheckIns = try? container.decode(Int.self, forKey: .totalCheckIns)
         self.popularityUpdatedAt = try? container.decode(Timestamp.self, forKey: .popularityUpdatedAt)
-        
-        // DEBUG: Add logging to see what's happening with ID
-        print("🔍 Event decoded: \(eventName ?? "Unknown") - Document ID will be set by @DocumentID")
     }
     
     // Custom encoding
@@ -697,12 +780,75 @@ extension FirebaseMember {
     
     // Helper to get profile image URL from Firebase Storage - Universal System
     var profileImageURL: URL? {
-        guard let documentId = id, !documentId.isEmpty else { return nil }
+        let memberName = firstName
         
-        // Universal Firebase Storage API URL construction for ALL users
-        // Works for both migrated users (UUID v4) and future users (Firebase Auth UID)
-        let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
-        return URL(string: imageUrl)
+        // DEBUG: Log all available image-related fields
+        print("🖼️ MEMBER: Checking image URL for '\(memberName)'")
+        print("🖼️ MEMBER: - id (document ID): '\(id ?? "nil")'")
+        print("🖼️ MEMBER: - userId: '\(userId ?? "nil")'")
+        print("🖼️ MEMBER: - profileImage: '\(profileImage ?? "nil")'")
+        print("🖼️ MEMBER: - profileImageUrl: '\(profileImageUrl ?? "nil")'")
+        print("🖼️ MEMBER: - firebaseImageUrl: '\(firebaseImageUrl ?? "nil")'")
+        print("🖼️ MEMBER: - profilePhoto: '\(profilePhoto ?? "nil")'")
+        
+        // PRIORITY 1: Check profileImageUrl field FIRST (NEW Firebase Storage field)
+        if let profileImageUrl = profileImageUrl, !profileImageUrl.isEmpty {
+            print("🖼️ MEMBER: Using profileImageUrl for '\(memberName)': \(profileImageUrl)")
+            return URL(string: profileImageUrl)
+        }
+        
+        // PRIORITY 2: Check firebaseImageUrl field
+        if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
+            print("🖼️ MEMBER: Using firebaseImageUrl for '\(memberName)': \(firebaseImageUrl)")
+            return URL(string: firebaseImageUrl)
+        }
+        
+        // PRIORITY 3: Try document ID-based Firebase Storage URL (standard pattern)
+        if let documentId = id, !documentId.isEmpty {
+            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
+            print("🖼️ MEMBER: Using document ID pattern for '\(memberName)': \(imageUrl)")
+            return URL(string: imageUrl)
+        }
+        
+        // PRIORITY 4: Try userId-based Firebase Storage URL (fallback)
+        if let userId = userId, !userId.isEmpty {
+            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(userId).jpg?alt=media"
+            print("🖼️ MEMBER: Using userId pattern for '\(memberName)': \(imageUrl)")
+            return URL(string: imageUrl)
+        }
+        
+        // PRIORITY 5: Try legacy profilePhoto field
+        if let profilePhoto = profilePhoto, !profilePhoto.isEmpty {
+            // If it's already a complete URL, use it
+            if profilePhoto.hasPrefix("http") {
+                print("🖼️ MEMBER: Using legacy profilePhoto URL for '\(memberName)': \(profilePhoto)")
+                return URL(string: profilePhoto)
+            }
+            // If it's just a filename, construct the proper URL
+            else {
+                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(profilePhoto)?alt=media"
+                print("🔄 MEMBER: Converting profilePhoto filename for '\(memberName)': \(profilePhoto) -> \(properUrl)")
+                return URL(string: properUrl)
+            }
+        }
+        
+        // PRIORITY 6: Try legacy profileImage field
+        if let profileImage = profileImage, !profileImage.isEmpty {
+            // If it's already a complete URL, use it
+            if profileImage.hasPrefix("http") {
+                print("🖼️ MEMBER: Using legacy profileImage URL for '\(memberName)': \(profileImage)")
+                return URL(string: profileImage)
+            }
+            // If it's just a filename, construct the proper URL
+            else {
+                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(profileImage)?alt=media"
+                print("🔄 MEMBER: Converting profileImage filename for '\(memberName)': \(profileImage) -> \(properUrl)")
+                return URL(string: properUrl)
+            }
+        }
+        
+        print("❌ MEMBER: No image URL available for '\(memberName)' - all fields are nil or empty")
+        return nil
     }
 }
 

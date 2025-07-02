@@ -2406,6 +2406,7 @@ struct AttendeeCardView: View {
             // Profile Image Header with conditional blur
             ZStack {
             CachedAsyncImage(url: member.profileImageURL) { image in
+                let _ = print("✅ CHECKINS ASYNC: '\(member.firstName)' - Image loaded successfully in CheckInsView")
                 image
                     .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -2415,6 +2416,7 @@ struct AttendeeCardView: View {
                         .blur(radius: currentUserCheckedIn ? 0 : 8)
                         .background(Color.gray.opacity(0.1))
             } placeholder: {
+                let _ = print("🖼️ CHECKINS ASYNC: '\(member.firstName)' - Loading placeholder in CheckInsView, URL: \(member.profileImageURL?.absoluteString ?? "nil")")
                     ZStack {
                         LinearGradient(
                             colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.2)],
