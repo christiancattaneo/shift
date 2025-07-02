@@ -5,8 +5,17 @@ service cloud.firestore {
     // Users collection - Allow users to create and manage their own profiles
     match /users/{userId} {
       allow read: if request.auth != null; // All authenticated users can read profiles
-      allow write: if request.auth != null && request.auth.uid == userId; // Users can only write their own profile
-      allow create: if request.auth != null && request.auth.uid == userId; // Users can create their own profile
+      // Allow write if user is authenticated AND either:
+      // 1. Document ID matches Firebase Auth UID (new users), OR
+      // 2. Document email matches authenticated user's email (migrated users)
+      allow write: if request.auth != null && (
+        request.auth.uid == userId || 
+        (resource.data.email == request.auth.token.email || request.resource.data.email == request.auth.token.email)
+      );
+      allow create: if request.auth != null && (
+        request.auth.uid == userId || 
+        request.resource.data.email == request.auth.token.email
+      );
     }
     
     // Events collection - Enhanced with popularity protection
