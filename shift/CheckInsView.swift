@@ -717,21 +717,19 @@ struct EventCardView: View {
                     onCardTap()
                 }
                 
-                // Check-in count badge
-                if checkInCount > 0 {
-                    HStack(spacing: 4) {
-                        Image(systemName: "person.2.fill")
-                            .font(.caption2)
-                        Text("\(checkInCount)")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .padding(12)
+                // Check-in count badge - always show count
+                HStack(spacing: 4) {
+                    Image(systemName: "person.2.fill")
+                        .font(.caption2)
+                    Text("\(checkInCount)")
+                        .font(.caption)
+                        .fontWeight(.semibold)
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(12)
                 
                 // Distance indicator for events with coordinates
                 if let coordinates = event.coordinates,
@@ -1006,21 +1004,19 @@ struct PlaceCardView: View {
                     onCardTap()
                 }
                 
-                // Check-in count badge
-                if checkInCount > 0 {
-                    HStack(spacing: 4) {
-                        Image(systemName: "person.2.fill")
-                            .font(.caption2)
-                        Text("\(checkInCount)")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .padding(12)
+                // Check-in count badge - always show count
+                HStack(spacing: 4) {
+                    Image(systemName: "person.2.fill")
+                        .font(.caption2)
+                    Text("\(checkInCount)")
+                        .font(.caption)
+                        .fontWeight(.semibold)
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(12)
                 
                 // Distance indicator for places with coordinates
                 if let coordinates = place.coordinates,
@@ -1304,21 +1300,19 @@ struct PlaceDetailView: View {
                         }
                     }
                     
-                    // Check-in count overlay
-                    if checkInCount > 0 {
-                        HStack(spacing: 6) {
-                            Image(systemName: "person.2.fill")
-                                .font(.caption)
-                            Text("\(checkInCount) been here")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .padding(16)
+                    // Check-in count overlay - always show
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.2.fill")
+                            .font(.caption)
+                        Text("\(checkInCount) been here")
+                            .font(.caption)
+                            .fontWeight(.medium)
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(16)
                 }
                 
                 // Place Details Section
@@ -1425,12 +1419,10 @@ struct PlaceDetailView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                if checkInCount > 0 {
-                    Text("(\(checkInCount))")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
+                Text("(\(checkInCount))")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
                 
                 Spacer()
                 
@@ -1669,21 +1661,19 @@ struct EventDetailView: View {
                         }
                     }
                     
-                    // Check-in count overlay
-                    if checkInCount > 0 {
-                        HStack(spacing: 6) {
-                            Image(systemName: "person.2.fill")
-                                .font(.caption)
-                            Text("\(checkInCount) attending")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .padding(16)
+                    // Check-in count overlay - always show
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.2.fill")
+                            .font(.caption)
+                        Text("\(checkInCount) attending")
+                            .font(.caption)
+                            .fontWeight(.medium)
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(16)
                 }
                 
                 // Event Details Section
@@ -1811,12 +1801,10 @@ struct EventDetailView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                if checkInCount > 0 {
-                    Text("(\(checkInCount))")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
-                }
+                Text("(\(checkInCount))")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
                 
                 Spacer()
                 
