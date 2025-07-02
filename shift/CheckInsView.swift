@@ -2060,8 +2060,15 @@ struct EventDetailView: View {
             }
             .padding(.horizontal, 20)
             
+            // Current User Card - Show prominently when checked in
+            if isCheckedIn, let currentUser = FirebaseUserSession.shared.currentUser {
+                CurrentUserMemberCard(user: currentUser, type: "event")
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 20)
+            }
+            
             // Check-in status message
-            if !attendees.isEmpty {
+            if !attendees.isEmpty || isCheckedIn {
                 HStack(spacing: 8) {
                     Image(systemName: isCheckedIn ? "eye" : "eye.slash")
                         .font(.caption)
@@ -2079,7 +2086,7 @@ struct EventDetailView: View {
                 .padding(.bottom, 8)
             }
             
-            if attendees.isEmpty && !isLoadingAttendees {
+            if attendees.isEmpty && !isLoadingAttendees && !isCheckedIn {
                 VStack(spacing: 12) {
                     Image(systemName: "person.3.sequence")
                         .font(.system(size: 40))
@@ -2093,7 +2100,7 @@ struct EventDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 30)
-            } else {
+            } else if attendees.count > 0 {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(attendees, id: \.uniqueID) { member in
@@ -2571,5 +2578,29 @@ extension DateFormatter {
     func with(_ configurator: (DateFormatter) -> Void) -> DateFormatter {
         configurator(self)
         return self
+    }
+} 
+
+// MARK: - Supporting Views
+
+struct FilterPill: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(isSelected ? .white : .primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color.blue : Color(.systemGray6))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 } 

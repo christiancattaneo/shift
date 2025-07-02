@@ -397,7 +397,9 @@ class FirebaseMembersService: ObservableObject {
     
     // Pagination
     private var lastDocument: DocumentSnapshot?
-    private var hasMoreData = true
+    private var lastCompatibleDocument: DocumentSnapshot? // Separate pagination for compatible members
+    @Published var hasMoreData = true
+    @Published var hasMoreCompatibleData = true
     private let batchSize = 50 // Reduced from 500 to 50
     
     private init() {
@@ -412,7 +414,9 @@ class FirebaseMembersService: ObservableObject {
         cacheTimestamp = nil
         members = []
         lastDocument = nil
+        lastCompatibleDocument = nil
         hasMoreData = true
+        hasMoreCompatibleData = true
         fetchMembers()
     }
     
@@ -597,30 +601,32 @@ class FirebaseMembersService: ObservableObject {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var queries: [Query] = []
             
-            // Build queries based on attraction preference
-            if attractedTo.contains("female") || attractedTo.contains("woman") || attractedTo.contains("women") {
-                // Query for women/females
+            // ENHANCED: More flexible gender queries with broader matching
+            if attractedTo.contains("female") || attractedTo.contains("woman") || attractedTo.contains("women") || attractedTo.contains("girl") {
+                // More comprehensive query for female-identifying people
+                let femaleVariations = ["Female", "female", "Woman", "woman", "Girl", "girl", "F", "f", "fem", "Fem"]
                 queries.append(
                     self?.db.collection("users")
-                        .whereField("gender", in: ["Female", "female", "Woman", "woman"])
+                        .whereField("gender", in: femaleVariations)
                         .whereField("firstName", isNotEqualTo: "")
                         .order(by: "updatedAt", descending: true)
                         .limit(to: 100) ?? self!.db.collection("users").limit(to: 100)
                 )
             }
             
-            if attractedTo.contains("male") || attractedTo.contains("man") || attractedTo.contains("men") {
-                // Query for men/males
+            if attractedTo.contains("male") || attractedTo.contains("man") || attractedTo.contains("men") || attractedTo.contains("guy") {
+                // More comprehensive query for male-identifying people  
+                let maleVariations = ["Male", "male", "Man", "man", "Guy", "guy", "M", "m", "masc", "Masc"]
                 queries.append(
                     self?.db.collection("users")
-                        .whereField("gender", in: ["Male", "male", "Man", "man"])
+                        .whereField("gender", in: maleVariations)
                         .whereField("firstName", isNotEqualTo: "")
                         .order(by: "updatedAt", descending: true)
                         .limit(to: 100) ?? self!.db.collection("users").limit(to: 100)
                 )
             }
             
-            if attractedTo.contains("everyone") || attractedTo.contains("all") || attractedTo.contains("both") {
+            if attractedTo.contains("everyone") || attractedTo.contains("all") || attractedTo.contains("both") || attractedTo.contains("any") {
                 // Query for all genders
                 queries.append(
                     self?.db.collection("users")
@@ -630,27 +636,312 @@ class FirebaseMembersService: ObservableObject {
                 )
             }
             
-            // If no specific queries, fall back to general query
+            // ENHANCED: If no specific queries, OR if we want to be more inclusive, add a general query
             if queries.isEmpty {
+                print("🔍 COMPATIBILITY: No specific gender queries, fetching all members")
                 queries.append(
                     self?.db.collection("users")
                         .whereField("firstName", isNotEqualTo: "")
                         .order(by: "createdAt", descending: true)
-                        .limit(to: 100) ?? self!.db.collection("users").limit(to: 100)
+                        .limit(to: 150) ?? self!.db.collection("users").limit(to: 150)
+                )
+            } else {
+                // ADDITIONAL: Also add a fallback query without gender filtering
+                // This ensures we get some results even if gender data is inconsistent
+                queries.append(
+                    self?.db.collection("users")
+                        .whereField("firstName", isNotEqualTo: "")
+                        .order(by: "createdAt", descending: true)
+                        .limit(to: 50) ?? self!.db.collection("users").limit(to: 50)
                 )
             }
             
             // Execute queries and combine results
             let group = DispatchGroup()
             var allResults: [FirebaseMember] = []
+            var queryErrors: [String] = []
             
-            for query in queries {
+            for (index, query) in queries.enumerated() {
                 group.enter()
                 query.getDocuments { snapshot, error in
                     defer { group.leave() }
                     
                     if let error = error {
-                        print("❌ Error in compatible members query: \(error.localizedDescription)")
+                        let errorMsg = "Query \(index): \(error.localizedDescription)"
+                        print("❌ Error in compatible members query: \(errorMsg)")
+                        queryErrors.append(errorMsg)
+                        return
+                    }
+                    
+                    guard let documents = snapshot?.documents else { 
+                        print("📄 Query \(index): No documents returned")
+                        return 
+                    }
+                    
+                    print("📄 Query \(index): Processing \(documents.count) documents")
+                    
+                    let members = documents.compactMap { document -> FirebaseMember? in
+                        do {
+                            if let member = try? document.data(as: FirebaseMember.self) {
+                                return member
+                            }
+                            
+                            let user = try document.data(as: FirebaseUser.self)
+                            guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
+                            
+                            return FirebaseMember(
+                                userId: document.documentID,
+                                firstName: firstName,
+                                lastName: user.fullName,
+                                age: user.age,
+                                city: user.city,
+                                attractedTo: user.attractedTo,
+                                approachTip: user.howToApproachMe,
+                                instagramHandle: user.instagramHandle,
+                                gender: user.gender
+                            )
+                        } catch {
+                            print("⚠️ Error decoding document \(document.documentID): \(error)")
+                            return nil
+                        }
+                    }
+                    
+                    print("✅ Query \(index): Successfully decoded \(members.count) members")
+                    allResults.append(contentsOf: members)
+                }
+            }
+            
+            group.notify(queue: .main) {
+                // Remove duplicates based on userId
+                var uniqueResults: [FirebaseMember] = []
+                var seenIds: Set<String> = []
+                
+                for member in allResults {
+                    let memberId = member.userId ?? member.uniqueID
+                    if !seenIds.contains(memberId) {
+                        seenIds.insert(memberId)
+                        uniqueResults.append(member)
+                    }
+                }
+                
+                print("🔍 COMPATIBILITY: Processed \(allResults.count) total results, \(uniqueResults.count) unique members")
+                
+                if uniqueResults.isEmpty {
+                    print("⚠️ COMPATIBILITY: No members found via queries, falling back to cached members")
+                    if !queryErrors.isEmpty {
+                        print("❌ Query errors encountered: \(queryErrors.joined(separator: "; "))")
+                    }
+                    // Fallback to existing cached members
+                    completion(self?.members ?? [])
+                } else {
+                    completion(uniqueResults)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Fetch More Compatible Members with Pagination
+    func fetchMoreCompatibleMembers(userGender: String?, userAttractedTo: String?, completion: @escaping ([FirebaseMember]) -> Void) {
+        guard hasMoreCompatibleData else {
+            print("🔍 PAGINATION: No more compatible members to fetch")
+            completion([])
+            return
+        }
+        
+        guard let attractedTo = userAttractedTo?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+              !attractedTo.isEmpty else {
+            print("🔍 PAGINATION: No attraction preference specified")
+            completion([])
+            return
+        }
+        
+        print("🔍 PAGINATION: Fetching more compatible members for user attracted to '\(attractedTo)'")
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var query: Query?
+            
+            // Build targeted query based on user preferences with unique ordering
+            if attractedTo.contains("female") || attractedTo.contains("woman") || attractedTo.contains("women") || attractedTo.contains("girl") {
+                let femaleVariations = ["Female", "female", "Woman", "woman", "Girl", "girl", "F", "f", "fem", "Fem"]
+                query = self?.db.collection("users")
+                    .whereField("gender", in: femaleVariations)
+                    .whereField("firstName", isNotEqualTo: "")
+                    .order(by: "createdAt", descending: true)  // Use createdAt for more stable ordering
+                    .limit(to: self?.batchSize ?? 50)
+            } else if attractedTo.contains("male") || attractedTo.contains("man") || attractedTo.contains("men") || attractedTo.contains("guy") {
+                let maleVariations = ["Male", "male", "Man", "man", "Guy", "guy", "M", "m", "masc", "Masc"]
+                query = self?.db.collection("users")
+                    .whereField("gender", in: maleVariations)
+                    .whereField("firstName", isNotEqualTo: "")
+                    .order(by: "createdAt", descending: true)  // Use createdAt for more stable ordering
+                    .limit(to: self?.batchSize ?? 50)
+            } else {
+                // Generic query for all genders or other preferences
+                query = self?.db.collection("users")
+                    .whereField("firstName", isNotEqualTo: "")
+                    .order(by: "createdAt", descending: true)  // Use createdAt for more stable ordering
+                    .limit(to: self?.batchSize ?? 50)
+            }
+            
+            // Add pagination if we have a last document
+            if let lastDoc = self?.lastCompatibleDocument {
+                print("🔍 PAGINATION: Using cursor from lastDoc.id: \(lastDoc.documentID)")
+                query = query?.start(afterDocument: lastDoc)
+            } else {
+                print("🔍 PAGINATION: No cursor, fetching first batch")
+            }
+            
+            query?.getDocuments { [weak self] snapshot, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        print("❌ Error fetching more compatible members: \(error.localizedDescription)")
+                        completion([])
+                        return
+                    }
+                    
+                    guard let documents = snapshot?.documents else {
+                        print("📄 No more compatible members found")
+                        self?.hasMoreCompatibleData = false
+                        completion([])
+                        return
+                    }
+                    
+                    // Debug pagination state
+                    print("🔍 PAGINATION: Got \(documents.count) documents")
+                    print("🔍 PAGINATION: First doc ID: \(documents.first?.documentID ?? "none")")
+                    print("🔍 PAGINATION: Last doc ID: \(documents.last?.documentID ?? "none")")
+                    
+                    // Update pagination state
+                    self?.lastCompatibleDocument = documents.last
+                    self?.hasMoreCompatibleData = documents.count == (self?.batchSize ?? 50)
+                    
+                    // Convert documents to members
+                    let newMembers = documents.compactMap { document -> FirebaseMember? in
+                        do {
+                            if let member = try? document.data(as: FirebaseMember.self) {
+                                return member
+                            }
+                            
+                            let user = try document.data(as: FirebaseUser.self)
+                            guard let firstName = user.firstName, !firstName.isEmpty else { return nil }
+                            
+                            return FirebaseMember(
+                                userId: document.documentID,
+                                firstName: firstName,
+                                lastName: user.fullName,
+                                age: user.age,
+                                city: user.city,
+                                attractedTo: user.attractedTo,
+                                approachTip: user.howToApproachMe,
+                                instagramHandle: user.instagramHandle,
+                                gender: user.gender
+                            )
+                        } catch {
+                            print("⚠️ Error decoding compatible member \(document.documentID): \(error)")
+                            return nil
+                        }
+                    }
+                    
+                    print("✅ PAGINATION: Fetched \(newMembers.count) new compatible members, hasMore: \(self?.hasMoreCompatibleData ?? false)")
+                    completion(newMembers)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Fetch Users Attracted To Target Gender (Fallback Function)
+    func fetchUsersAttractedTo(targetGender: String, completion: @escaping ([FirebaseMember]) -> Void) {
+        let normalizedGender = targetGender.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        print("🔄 FALLBACK: Fetching users attracted to '\(normalizedGender)'")
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var queries: [Query] = []
+            
+            // Build queries based on what gender we're looking for people attracted to
+            if normalizedGender.contains("female") || normalizedGender.contains("woman") || normalizedGender.contains("girl") {
+                // Find users attracted to females
+                let femaleAttractedVariations = ["Female", "female", "Women", "women", "Woman", "woman", "Girls", "girls", "Girl", "girl", "Females", "females"]
+                
+                for variation in femaleAttractedVariations {
+                    queries.append(
+                        self?.db.collection("users")
+                            .whereField("attractedTo", isGreaterThanOrEqualTo: variation)
+                            .whereField("attractedTo", isLessThan: variation + "\u{f8ff}")
+                            .whereField("firstName", isNotEqualTo: "")
+                            .order(by: "createdAt", descending: true)
+                            .limit(to: 50) ?? self!.db.collection("users").limit(to: 50)
+                    )
+                }
+                
+                // Also search for users with "everyone" / "all" preferences
+                let openPreferences = ["Everyone", "everyone", "All", "all", "Both", "both", "Anyone", "anyone"]
+                for preference in openPreferences {
+                    queries.append(
+                        self?.db.collection("users")
+                            .whereField("attractedTo", isEqualTo: preference)
+                            .whereField("firstName", isNotEqualTo: "")
+                            .order(by: "createdAt", descending: true)
+                            .limit(to: 30) ?? self!.db.collection("users").limit(to: 30)
+                    )
+                }
+                
+            } else if normalizedGender.contains("male") || normalizedGender.contains("man") || normalizedGender.contains("guy") {
+                // Find users attracted to males
+                let maleAttractedVariations = ["Male", "male", "Men", "men", "Man", "man", "Guys", "guys", "Guy", "guy", "Males", "males"]
+                
+                for variation in maleAttractedVariations {
+                    queries.append(
+                        self?.db.collection("users")
+                            .whereField("attractedTo", isGreaterThanOrEqualTo: variation)
+                            .whereField("attractedTo", isLessThan: variation + "\u{f8ff}")
+                            .whereField("firstName", isNotEqualTo: "")
+                            .order(by: "createdAt", descending: true)
+                            .limit(to: 50) ?? self!.db.collection("users").limit(to: 50)
+                    )
+                }
+                
+                // Also search for users with "everyone" / "all" preferences
+                let openPreferences = ["Everyone", "everyone", "All", "all", "Both", "both", "Anyone", "anyone"]
+                for preference in openPreferences {
+                    queries.append(
+                        self?.db.collection("users")
+                            .whereField("attractedTo", isEqualTo: preference)
+                            .whereField("firstName", isNotEqualTo: "")
+                            .order(by: "createdAt", descending: true)
+                            .limit(to: 30) ?? self!.db.collection("users").limit(to: 30)
+                    )
+                }
+            } else {
+                // For other genders, look for open preferences
+                let openPreferences = ["Everyone", "everyone", "All", "all", "Both", "both", "Anyone", "anyone", "No preference", "no preference"]
+                for preference in openPreferences {
+                    queries.append(
+                        self?.db.collection("users")
+                            .whereField("attractedTo", isEqualTo: preference)
+                            .whereField("firstName", isNotEqualTo: "")
+                            .order(by: "createdAt", descending: true)
+                            .limit(to: 50) ?? self!.db.collection("users").limit(to: 50)
+                    )
+                }
+            }
+            
+            if queries.isEmpty {
+                print("🔄 FALLBACK: No queries built for gender '\(normalizedGender)'")
+                DispatchQueue.main.async { completion([]) }
+                return
+            }
+            
+            // Execute all queries
+            let group = DispatchGroup()
+            var allResults: [FirebaseMember] = []
+            
+            for (index, query) in queries.enumerated() {
+                group.enter()
+                query.getDocuments { snapshot, error in
+                    defer { group.leave() }
+                    
+                    if let error = error {
+                        print("❌ Error in fallback query \(index): \(error.localizedDescription)")
                         return
                     }
                     
@@ -691,13 +982,14 @@ class FirebaseMembersService: ObservableObject {
                 var seenIds: Set<String> = []
                 
                 for member in allResults {
-                    if let userId = member.userId, !seenIds.contains(userId) {
-                        seenIds.insert(userId)
+                    let memberId = member.userId ?? member.uniqueID
+                    if !seenIds.contains(memberId) {
+                        seenIds.insert(memberId)
                         uniqueResults.append(member)
                     }
                 }
                 
-                print("🔍 COMPATIBILITY: Found \(uniqueResults.count) compatible members")
+                print("🔄 FALLBACK: Found \(uniqueResults.count) users attracted to '\(normalizedGender)'")
                 completion(uniqueResults)
             }
         }

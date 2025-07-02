@@ -61,7 +61,6 @@ struct MembersView: View {
     @EnvironmentObject private var userSession: FirebaseUserSession
     
     @State private var searchText = ""
-    @State private var selectedFilter = "Compatible"
     @State private var displayedMembers: [FirebaseMember] = []
     @State private var filteredMembers: [FirebaseMember] = []
     @State private var allSearchResults: [FirebaseMember] = []
@@ -81,8 +80,6 @@ struct MembersView: View {
         GridItem(.flexible(), spacing: 12)
     ]
     
-    private let filters = ["Compatible", "Nearby", "Online"]
-    
     var body: some View {
         VStack(spacing: 0) {
             // Search Bar
@@ -91,7 +88,7 @@ struct MembersView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField("Search members...", text: $searchText)
+                    TextField("Search compatible members...", text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .onChange(of: searchText) { oldValue, newValue in
                             debouncedSearch()
@@ -104,28 +101,12 @@ struct MembersView: View {
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
-            
-            // Filter Pills
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(filters, id: \.self) { filter in
-                        FilterPill(
-                            title: filter,
-                            isSelected: selectedFilter == filter
-                        ) {
-                            selectedFilter = filter
-                            filterMembersAsync()
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.vertical, 12)
+            .padding(.bottom, 16)
             
             // Members Grid
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(Array(displayedMembers.enumerated()), id: \.element.id) { index, member in
+                    ForEach(Array(displayedMembers.enumerated()), id: \.offset) { index, member in
                         MemberCardView(member: member)
                             .onTapGesture {
                                 selectedMember = member
@@ -148,7 +129,7 @@ struct MembersView: View {
                         HStack(spacing: 12) {
                             ProgressView()
                                 .scaleEffect(0.8)
-                            Text("Searching all members...")
+                            Text("Searching compatible members...")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -230,31 +211,59 @@ struct MembersView: View {
     private func filterSearchResults() {
         var filtered = allSearchResults
         
-        // Exclude current user
-        if let currentUserId = userSession.currentUser?.id {
-            filtered = filtered.filter { $0.userId != currentUserId }
+        // SEARCH MODE: Only exclude current user, NO compatibility filters
+        if let currentUser = userSession.currentUser {
+            let currentUserDocumentId = currentUser.id
+            
+            filtered = filtered.filter { member in
+                // Exclude if document IDs match
+                if let memberUserId = member.userId, let currentUserId = currentUserDocumentId {
+                    if memberUserId == currentUserId {
+                        print("🚫 SEARCH EXCLUDED: \(member.firstName) (same document ID)")
+                        return false
+                    }
+                }
+                
+                // Exclude if first names match (additional safety check)
+                if let currentFirstName = currentUser.firstName,
+                   member.firstName.lowercased() == currentFirstName.lowercased() {
+                    print("🚫 SEARCH EXCLUDED: \(member.firstName) (same first name)")
+                    return false
+                }
+                
+                return true
+            }
         }
         
-        // Apply current filter logic
-        switch selectedFilter {
-        case "Compatible":
-            filtered = applyCompatibilityFilter(to: filtered)
-        case "Nearby":
-            filtered = applyLocationFilter(to: filtered)
-        case "Online":
-            filtered = applyOnlineFilter(to: filtered)
-        default:
-            break
+        // SEARCH MODE: Sort by name relevance, NOT compatibility
+        let searchTerm = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        filtered = filtered.sorted { member1, member2 in
+            let name1 = member1.firstName.lowercased()
+            let name2 = member2.firstName.lowercased()
+            
+            // Exact matches first
+            let exactMatch1 = name1 == searchTerm
+            let exactMatch2 = name2 == searchTerm
+            if exactMatch1 != exactMatch2 {
+                return exactMatch1
+            }
+            
+            // Prefix matches next
+            let prefixMatch1 = name1.hasPrefix(searchTerm)
+            let prefixMatch2 = name2.hasPrefix(searchTerm)
+            if prefixMatch1 != prefixMatch2 {
+                return prefixMatch1
+            }
+            
+            // Then alphabetical by name
+            return name1 < name2
         }
         
-        // Sort by compatibility
-        filtered = rankMembersByCompatibility(filtered, currentUser: userSession.currentUser)
-        
-        // Update display
+        // Update display - NO compatibility filtering in search mode
         filteredMembers = filtered
-        displayedMembers = Array(filtered.prefix(10)) // Show first 10 search results
+        displayedMembers = Array(filtered.prefix(20)) // Show more search results (20 instead of 10)
         
-        print("🔍 SEARCH RESULTS: \(displayedMembers.count) members displayed from \(filteredMembers.count) filtered search results")
+        print("🔍 SEARCH RESULTS: \(displayedMembers.count) total members displayed from \(filteredMembers.count) search results (NO compatibility filters)")
     }
     
     // MARK: - Filtering Logic (Now Async)
@@ -272,45 +281,64 @@ struct MembersView: View {
             return
         }
         
-        print("🔍 Filtering \(membersService.members.count) members for user: \(userSession.currentUser?.firstName ?? "unknown")")
+        print("🔍 Finding compatible members from \(membersService.members.count) total members for user: \(userSession.currentUser?.firstName ?? "unknown")")
         
         let allMembers = membersService.members
         var filtered = allMembers
         let beforeFilter = filtered.count
         
-        // Exclude current user
-        if let currentUserId = userSession.currentUser?.id {
-            filtered = filtered.filter { $0.userId != currentUserId }
+        // FIXED: Exclude current user properly
+        if let currentUser = userSession.currentUser {
+            let currentUserDocumentId = currentUser.id
+            
+            filtered = filtered.filter { member in
+                // Exclude if document IDs match
+                if let memberUserId = member.userId, let currentUserId = currentUserDocumentId {
+                    if memberUserId == currentUserId {
+                        print("🚫 EXCLUDED: \(member.firstName) (same document ID: \(memberUserId))")
+                        return false
+                    }
+                }
+                
+                // Exclude if first names match (additional safety check)
+                if let currentFirstName = currentUser.firstName,
+                   member.firstName.lowercased() == currentFirstName.lowercased() {
+                    print("🚫 EXCLUDED: \(member.firstName) (same first name as current user)")
+                    return false
+                }
+                
+                // Exclude if emails match (additional safety check)
+                if let memberUserId = member.userId {
+                    // Check if the member's userId matches the current user's document ID
+                    if memberUserId == currentUserDocumentId {
+                        print("🚫 EXCLUDED: \(member.firstName) (matches current user document ID)")
+                        return false
+                    }
+                }
+                
+                return true
+            }
         }
         
         print("🔍 After user exclusion: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Apply filter-specific logic
-        switch selectedFilter {
-        case "Compatible":
-            filtered = applyCompatibilityFilter(to: filtered)
-        case "Nearby":
-            filtered = applyLocationFilter(to: filtered)
-        case "Online":
-            filtered = applyOnlineFilter(to: filtered)
-        default:
-            break
-        }
+        filtered = applyCompatibilityFilter(to: filtered)
         
-        print("🔍 After '\(selectedFilter)' filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
+        print("🔍 After compatibility filter: \(filtered.count) members (excluded \(beforeFilter - filtered.count))")
         
         // Sort members intelligently  
         filtered = rankMembersByCompatibility(filtered, currentUser: userSession.currentUser)
         
         // Reset pagination
         currentPage = 0
-        hasMoreMembers = filtered.count > 10
+        hasMoreMembers = filtered.count > 10 || membersService.hasMoreData || membersService.hasMoreCompatibleData
         
         // Update both arrays and reset display
         filteredMembers = filtered
         displayedMembers = Array(filtered.prefix(10)) // Start with 10 members
         
-        print("🎯 Final result: \(displayedMembers.count) members displayed from \(filteredMembers.count) total filtered")
+        print("🎯 Final result: \(displayedMembers.count) compatible members displayed from \(filteredMembers.count) total compatible")
     }
     
     private func loadMoreMembers() {
@@ -320,38 +348,123 @@ struct MembersView: View {
         }
         
         let currentCount = displayedMembers.count
-        let totalCount = filteredMembers.count
+        let totalCachedCount = filteredMembers.count
         
-        guard currentCount < totalCount else { 
-            print("📱 No more members to load: \(currentCount)/\(totalCount)")
+        print("📱 Loading more: current=\(currentCount), cached=\(totalCachedCount), hasFirebaseMore=\(membersService.hasMoreData)")
+        
+        // ENHANCED: First try to load from cached filtered members
+        if currentCount < totalCachedCount {
+            // Load from local filtered cache
+            isLoadingMore = true
+            let batchSize = 10
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                let endIndex = min(currentCount + batchSize, totalCachedCount)
+                guard currentCount < self.filteredMembers.count && endIndex <= self.filteredMembers.count else {
+                    print("❌ Array bounds error prevented: currentCount=\(currentCount), endIndex=\(endIndex), filteredMembers.count=\(self.filteredMembers.count)")
+                    self.isLoadingMore = false
+                    return
+                }
+                
+                let nextBatch = Array(self.filteredMembers[currentCount..<endIndex])
+                self.displayedMembers.append(contentsOf: nextBatch)
+                self.currentPage += 1
+                self.isLoadingMore = false
+                
+                print("📱 Loaded \(nextBatch.count) more from cache. Total displayed: \(self.displayedMembers.count)/\(totalCachedCount)")
+                
+                // Check if we need to fetch more from Firebase
+                if self.displayedMembers.count >= totalCachedCount - 5 && (self.membersService.hasMoreData || self.membersService.hasMoreCompatibleData) {
+                    print("📱 Approaching end of cached data, fetching more from Firebase...")
+                    self.fetchMoreFromFirebase()
+                }
+            }
+        } else if membersService.hasMoreData || membersService.hasMoreCompatibleData {
+            // Load more from Firebase when cache is exhausted
+            print("📱 Cache exhausted, fetching more from Firebase...")
+            fetchMoreFromFirebase()
+        } else {
+            // No more data available
+            print("📱 No more data available from Firebase")
             hasMoreMembers = false
-            return 
         }
+    }
+    
+    private func fetchMoreFromFirebase() {
+        guard !isLoadingMore else { return }
         
         isLoadingMore = true
-        let batchSize = 10
+        print("🔄 Fetching more compatible members from Firebase...")
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            let endIndex = min(currentCount + batchSize, totalCount)
-            guard currentCount < self.filteredMembers.count && endIndex <= self.filteredMembers.count else {
-                print("❌ Array bounds error prevented: currentCount=\(currentCount), endIndex=\(endIndex), filteredMembers.count=\(self.filteredMembers.count)")
-                self.isLoadingMore = false
-                return
+        if let currentUser = userSession.currentUser {
+            // Use the new paginated compatible members function
+            membersService.fetchMoreCompatibleMembers(
+                userGender: currentUser.gender,
+                userAttractedTo: currentUser.attractedTo
+            ) { newCompatibleMembers in
+                DispatchQueue.main.async {
+                    print("📱 Received \(newCompatibleMembers.count) new compatible members from Firebase")
+                    
+                    if !newCompatibleMembers.isEmpty {
+                        // Enhanced duplicate detection with better logging
+                        let existingUserIds = Set(self.membersService.members.compactMap { $0.userId })
+                        let existingDocIds = Set(self.membersService.members.compactMap { $0.id })
+                        
+                        print("📱 DUPLICATE CHECK: Existing UserIds count: \(existingUserIds.count), Existing DocIds count: \(existingDocIds.count)")
+                        print("📱 DUPLICATE CHECK: First few existing UserIds: \(Array(existingUserIds.prefix(3)))")
+                        print("📱 DUPLICATE CHECK: First few new member UserIds: \(newCompatibleMembers.prefix(3).compactMap { $0.userId })")
+                        print("📱 DUPLICATE CHECK: First few new member DocIds: \(newCompatibleMembers.prefix(3).compactMap { $0.id })")
+                        
+                        let uniqueNewMembers = newCompatibleMembers.filter { member in
+                            // Check both userId and document id for duplicates
+                            let userIdUnique = member.userId.map { !existingUserIds.contains($0) } ?? true
+                            let docIdUnique = member.id.map { !existingDocIds.contains($0) } ?? true
+                            
+                            let isUnique = userIdUnique && docIdUnique
+                            
+                            if !isUnique {
+                                print("📱 DUPLICATE: \(member.firstName) - userId: \(member.userId ?? "nil"), docId: \(member.id ?? "nil")")
+                            }
+                            
+                            return isUnique
+                        }
+                        
+                        print("📱 DUPLICATE CHECK: \(newCompatibleMembers.count) new members → \(uniqueNewMembers.count) unique")
+                        
+                        if !uniqueNewMembers.isEmpty {
+                            // Add to service's members array
+                            self.membersService.members.append(contentsOf: uniqueNewMembers)
+                            print("📱 Added \(uniqueNewMembers.count) unique new members to cache (Total now: \(self.membersService.members.count))")
+                            
+                            // Re-filter with expanded dataset (this will include new members)
+                            self.filterMembersAsync()
+                        } else {
+                            print("📱 All new members were duplicates")
+                            // Even if duplicates, we should continue paginating to get different results
+                            self.isLoadingMore = false
+                        }
+                    } else {
+                        print("📱 No more compatible members available from Firebase")
+                        // Try fallback: fetch users attracted to current user's gender
+                        self.fetchFallbackMembers()
+                    }
+                }
             }
+        } else {
+            // Fallback: load general members if no current user
+            print("📱 No current user, loading general members...")
+            membersService.loadMoreMembers()
             
-            let nextBatch = Array(self.filteredMembers[currentCount..<endIndex])
-            self.displayedMembers.append(contentsOf: nextBatch)
-            self.currentPage += 1
-            self.hasMoreMembers = self.displayedMembers.count < self.filteredMembers.count
-            self.isLoadingMore = false
-            
-            print("📱 Loaded \(nextBatch.count) more members. Total displayed: \(self.displayedMembers.count)/\(totalCount), hasMore: \(self.hasMoreMembers)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.isLoadingMore = false
+                self.filterMembersAsync()
+            }
         }
     }
     
     private func refreshMembers() async {
         isRefreshing = true
-        print("🔄 Refreshing members with fresh data...")
+        print("🔄 Refreshing compatible members with fresh data...")
         
         // Reset search and pagination state
         allSearchResults = []
@@ -369,7 +482,7 @@ struct MembersView: View {
                 filterMembersAsync()
             }
             isRefreshing = false
-            print("✅ Refresh complete: \(displayedMembers.count) members loaded")
+            print("✅ Refresh complete: \(displayedMembers.count) compatible members loaded")
         }
     }
     
@@ -386,12 +499,126 @@ struct MembersView: View {
             fetchMoreCompatibleMembers()
         }
         
-        let filtered = members.filter { member in
-            return areMutuallyCompatible(user: currentUser, member: member)
+        print("🔍 COMPATIBILITY FILTER: Current user - Gender: '\(currentUser.gender ?? "nil")', Attracted to: '\(currentUser.attractedTo ?? "nil")'")
+        
+        let filtered = members.filter { otherUser in
+            // STRICT: Both people MUST have complete gender and preference data
+            let currentUserHasGender = currentUser.gender != nil && !currentUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let currentUserHasPreference = currentUser.attractedTo != nil && !currentUser.attractedTo!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let otherUserHasGender = otherUser.gender != nil && !otherUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let otherUserHasPreference = otherUser.attractedTo != nil && !otherUser.attractedTo!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            
+            // STRICT: Require ALL data to be present for compatibility tab
+            if !currentUserHasGender || !currentUserHasPreference || !otherUserHasGender || !otherUserHasPreference {
+                let missingData = [
+                    !currentUserHasGender ? "current user gender" : nil,
+                    !currentUserHasPreference ? "current user preference" : nil,
+                    !otherUserHasGender ? "\(otherUser.firstName) gender" : nil,
+                    !otherUserHasPreference ? "\(otherUser.firstName) preference" : nil
+                ].compactMap { $0 }
+                print("🚫 EXCLUDED \(otherUser.firstName): Missing \(missingData.joined(separator: ", "))")
+                return false
+            }
+            
+            // Check mutual compatibility with strict logic
+            let currentUserAttractedToOther = isStrictlyAttractedTo(userAttractedTo: currentUser.attractedTo!, personGender: otherUser.gender!)
+            let otherUserAttractedToCurrent = isStrictlyAttractedTo(userAttractedTo: otherUser.attractedTo!, personGender: currentUser.gender!)
+            
+            let isMutuallyCompatible = currentUserAttractedToOther && otherUserAttractedToCurrent
+            
+            if isMutuallyCompatible {
+                print("✅ COMPATIBLE: \(otherUser.firstName) - Current user (\(currentUser.gender!)) wants (\(currentUser.attractedTo!)) ← \(otherUser.firstName) (\(otherUser.gender!)) wants (\(otherUser.attractedTo!))")
+            } else {
+                print("❌ NOT COMPATIBLE: \(otherUser.firstName)")
+                print("   - Current user (\(currentUser.gender!)) attracted to \(otherUser.firstName) (\(otherUser.gender!)): \(currentUserAttractedToOther)")
+                print("   - \(otherUser.firstName) (\(otherUser.attractedTo!)) attracted to current user (\(currentUser.gender!)): \(otherUserAttractedToCurrent)")
+            }
+            
+            return isMutuallyCompatible
         }
         
-        print("🔗 COMPATIBILITY: Filtered \(members.count) → \(filtered.count) mutually compatible members")
+        print("🔗 COMPATIBILITY: Filtered \(members.count) → \(filtered.count) strictly compatible members")
+        
+        // FALLBACK: If we have few or no strictly compatible members, add users attracted to current user
+        if filtered.count < 10 && currentUser.gender != nil && !currentUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            print("🔄 FALLBACK: Adding users attracted to current user's gender (\(currentUser.gender!))")
+            
+            let fallbackMembers = members.filter { otherUser in
+                // Skip if already in compatible list
+                if filtered.contains(where: { $0.userId == otherUser.userId }) {
+                    return false
+                }
+                
+                // Require other user to have complete data
+                let otherUserHasGender = otherUser.gender != nil && !otherUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                let otherUserHasPreference = otherUser.attractedTo != nil && !otherUser.attractedTo!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                
+                if !otherUserHasGender || !otherUserHasPreference {
+                    return false
+                }
+                
+                // Check if other user is attracted to current user's gender
+                let otherUserAttractedToCurrent = isStrictlyAttractedTo(userAttractedTo: otherUser.attractedTo!, personGender: currentUser.gender!)
+                
+                if otherUserAttractedToCurrent {
+                    print("🎯 FALLBACK MATCH: \(otherUser.firstName) (\(otherUser.attractedTo!)) is attracted to current user (\(currentUser.gender!))")
+                    return true
+                }
+                
+                return false
+            }
+            
+            // Add fallback members to the filtered list
+            let combinedMembers = filtered + fallbackMembers
+            print("🔄 FALLBACK: Added \(fallbackMembers.count) fallback members. Total: \(combinedMembers.count)")
+            
+            return rankMembersByCompatibility(combinedMembers, currentUser: currentUser)
+        }
+        
+        // STRICT FALLBACK: If still empty and we have many members, show no one
+        if filtered.isEmpty && members.count > 50 {
+            print("⚠️ STRICT FALLBACK: No compatible or interested members found")
+            return []
+        }
+        
         return rankMembersByCompatibility(filtered, currentUser: currentUser)
+    }
+    
+    // STRICT compatibility checking function
+    private func isStrictlyAttractedTo(userAttractedTo: String, personGender: String) -> Bool {
+        let attractedTo = userAttractedTo.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let gender = personGender.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        print("   🔍 Checking: attracted to '\(attractedTo)' vs gender '\(gender)'")
+        
+        // Check for female attraction
+        if attractedTo.contains("female") || attractedTo.contains("woman") || attractedTo.contains("women") || attractedTo.contains("girl") {
+            // FIXED: Use precise matching to avoid "female" containing "male" bug
+            let isFemaleMatch = gender == "female" || gender == "woman" || gender == "girl" || gender == "f" ||
+                               gender.hasPrefix("female") || gender.hasPrefix("woman") || gender.hasPrefix("girl")
+            print("   🔍 Female check: \(isFemaleMatch)")
+            return isFemaleMatch
+        }
+        
+        // Check for male attraction
+        if attractedTo.contains("male") || attractedTo.contains("man") || attractedTo.contains("men") || attractedTo.contains("guy") {
+            // FIXED: Use precise matching to avoid "female" containing "male" bug
+            let isMaleMatch = gender == "male" || gender == "man" || gender == "guy" || gender == "m" ||
+                             (gender.hasPrefix("male") && !gender.hasPrefix("female")) ||
+                             (gender.hasPrefix("man") && !gender.hasPrefix("woman")) ||
+                             gender.hasPrefix("guy")
+            print("   🔍 Male check: \(isMaleMatch)")
+            return isMaleMatch
+        }
+        
+        // Check for "everyone" or "all" or "both"
+        if attractedTo.contains("everyone") || attractedTo.contains("all") || attractedTo.contains("both") {
+            print("   🔍 Open to all: true")
+            return true
+        }
+        
+        print("   🔍 No match found: false")
+        return false
     }
     
     private func fetchMoreCompatibleMembers() {
@@ -427,118 +654,49 @@ struct MembersView: View {
         }
     }
     
-    // MARK: - Mutual Compatibility Logic
-    
-    private func areMutuallyCompatible(user: FirebaseUser, member: FirebaseMember) -> Bool {
-        // Check if user is attracted to member's gender
-        let userAttractedToMember = isAttractedTo(userAttractedTo: user.attractedTo, personGender: member.gender)
-        
-        // Check if member is attracted to user's gender  
-        let memberAttractedToUser = isAttractedTo(userAttractedTo: member.attractedTo, personGender: user.gender)
-        
-        let isCompatible = userAttractedToMember && memberAttractedToUser
-        
-        if !isCompatible {
-            print("🔗 COMPATIBILITY: \(user.firstName ?? "User") (attracted to: \(user.attractedTo ?? "nil"), gender: \(user.gender ?? "nil")) vs \(member.firstName) (attracted to: \(member.attractedTo ?? "nil"), gender: \(member.gender ?? "nil")) = NOT compatible")
-        }
-        
-        return isCompatible
-    }
-    
-    private func isAttractedTo(userAttractedTo: String?, personGender: String?) -> Bool {
-        // Clean and normalize attracted to preference
-        let attractedTo = userAttractedTo?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        
-        // Clean and normalize gender
-        let gender = personGender?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        
-        // If no preference specified OR empty, assume they're open to everyone
-        if attractedTo.isEmpty || 
-           attractedTo == "everyone" || 
-           attractedTo == "all" || 
-           attractedTo == "anyone" || 
-           attractedTo == "both" ||
-           attractedTo == "all genders" {
-            return true
-        }
-        
-        // If gender not specified or empty, assume compatibility for inclusivity
-        // This handles the case where current user's gender is missing
-        if gender.isEmpty {
-            return true 
-        }
-        
-        // Check for female attraction
-        if attractedTo.contains("women") || 
-           attractedTo.contains("woman") || 
-           attractedTo.contains("female") ||
-           attractedTo.contains("girls") ||
-           attractedTo.contains("girl") {
-            if gender.contains("woman") || 
-               gender.contains("female") || 
-               gender.contains("girl") {
-                return true
-            }
-        }
-        
-        // Check for male attraction
-        if attractedTo.contains("men") || 
-           attractedTo.contains("man") || 
-           attractedTo.contains("male") ||
-           attractedTo.contains("guys") ||
-           attractedTo.contains("guy") {
-            if gender.contains("man") || 
-               gender.contains("male") || 
-               gender.contains("guy") {
-                return true
-            }
-        }
-        
-        // Check for non-binary and other gender identities
-        if attractedTo.contains("non-binary") ||
-           attractedTo.contains("nonbinary") ||
-           attractedTo.contains("enby") ||
-           attractedTo.contains("genderfluid") ||
-           attractedTo.contains("genderqueer") ||
-           attractedTo.contains("transgender") ||
-           attractedTo.contains("trans") {
-            if gender.contains("non-binary") ||
-               gender.contains("nonbinary") ||
-               gender.contains("enby") ||
-               gender.contains("genderfluid") ||
-               gender.contains("genderqueer") ||
-               gender.contains("transgender") ||
-               gender.contains("trans") {
-                return true
-            }
-        }
-        
-        // If no match found, default to false for specific preferences
-        return false
-    }
-    
-    private func checkGenderCompatibility(userAttractedTo: String?, memberGender: String?) -> Bool {
-        // Legacy function - keeping for backward compatibility but using new logic
-        return isAttractedTo(userAttractedTo: userAttractedTo, personGender: memberGender)
-    }
-    
-    private func applyLocationFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
+    private func fetchFallbackMembers() {
         guard let currentUser = userSession.currentUser,
-              let userCity = currentUser.city?.lowercased() else {
-            return members
+              let currentUserGender = currentUser.gender,
+              !currentUserGender.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            print("📱 Cannot fetch fallback members: missing current user gender")
+            self.hasMoreMembers = false
+            self.isLoadingMore = false
+            return
         }
         
-        return members.filter { member in
-            guard let memberCity = member.city?.lowercased() else { return false }
-            return memberCity.contains(userCity) || userCity.contains(memberCity)
+        print("🔄 FALLBACK: Fetching users attracted to current user's gender (\(currentUserGender))")
+        
+        // Fetch users who might be attracted to the current user's gender
+        membersService.fetchUsersAttractedTo(targetGender: currentUserGender) { fallbackMembers in
+            DispatchQueue.main.async {
+                if !fallbackMembers.isEmpty {
+                    // Merge with existing members without duplicates
+                    let existingIds = Set(self.membersService.members.compactMap { $0.userId })
+                    let uniqueFallbackMembers = fallbackMembers.filter { member in
+                        if let userId = member.userId {
+                            return !existingIds.contains(userId)
+                        }
+                        return false
+                    }
+                    
+                    if !uniqueFallbackMembers.isEmpty {
+                        self.membersService.members.append(contentsOf: uniqueFallbackMembers)
+                        print("🔄 FALLBACK: Added \(uniqueFallbackMembers.count) users interested in current user")
+                        
+                        // Re-filter with expanded dataset
+                        self.filterMembersAsync()
+                    } else {
+                        print("📱 No new fallback members to add")
+                        self.hasMoreMembers = false
+                        self.isLoadingMore = false
+                    }
+                } else {
+                    print("📱 No fallback members found")
+                    self.hasMoreMembers = false
+                    self.isLoadingMore = false
+                }
+            }
         }
-    }
-    
-    private func applyOnlineFilter(to members: [FirebaseMember]) -> [FirebaseMember] {
-        // For now, return all members for "Online" filter to debug
-        // Later we can implement proper online status tracking
-        print("🔍 Online filter: showing all \(members.count) members (online status not implemented)")
-        return members
     }
     
     private func rankMembersByCompatibility(_ members: [FirebaseMember], currentUser: FirebaseUser?) -> [FirebaseMember] {
@@ -581,15 +739,22 @@ struct MembersView: View {
         }
         
         // Mutual attraction compatibility (0-25 points) - ENHANCED
-        if areMutuallyCompatible(user: currentUser, member: member) {
-            score += 25  // Higher score for mutual compatibility
+        if areMutuallyCompatible(user: currentUser, otherUser: member) {
+            score += 25  // Highest score for mutual compatibility
         } else {
-            // Give partial credit if only one direction is compatible
-            let userAttractedToMember = isAttractedTo(userAttractedTo: currentUser.attractedTo, personGender: member.gender)
-            let memberAttractedToUser = isAttractedTo(userAttractedTo: member.attractedTo, personGender: currentUser.gender)
+            // Give partial credit based on attraction direction
+            let currentUserAttractedToOther = isAttractedTo(userAttractedTo: currentUser.attractedTo, personGender: member.gender)
+            let otherUserAttractedToCurrent = isAttractedTo(userAttractedTo: member.attractedTo, personGender: currentUser.gender)
             
-            if userAttractedToMember || memberAttractedToUser {
-                score += 10  // Partial compatibility
+            if currentUserAttractedToOther && otherUserAttractedToCurrent {
+                // This should be caught by areMutuallyCompatible, but just in case
+                score += 25
+            } else if otherUserAttractedToCurrent {
+                // Fallback member: they're attracted to current user (potential matches)
+                score += 15  // Good fallback score
+            } else if currentUserAttractedToOther {
+                // Current user likes them but they don't like current user back
+                score += 8   // Lower score since interest isn't mutual
             }
         }
         
@@ -631,31 +796,139 @@ struct MembersView: View {
         
         return completenessScore / totalFields
     }
+    
+    // MARK: - Mutual Compatibility Logic
+    
+    private func areMutuallyCompatible(user: FirebaseUser, otherUser: FirebaseMember) -> Bool {
+        // STRICT: Only allow compatibility when both have complete data and are mutually attracted
+        let currentUserHasGender = user.gender != nil && !user.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let currentUserHasPreference = user.attractedTo != nil && !user.attractedTo!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let otherUserHasGender = otherUser.gender != nil && !otherUser.gender!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let otherUserHasPreference = otherUser.attractedTo != nil && !otherUser.attractedTo!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        
+        // If either person is missing critical data, NOT compatible
+        if !currentUserHasGender || !otherUserHasGender || !currentUserHasPreference || !otherUserHasPreference {
+            print("🔗 COMPATIBILITY: \(user.firstName ?? "Current user") vs \(otherUser.firstName) = NOT COMPATIBLE (missing data)")
+            print("   - Current user gender: '\(user.gender ?? "nil")', preference: '\(user.attractedTo ?? "nil")'")
+            print("   - \(otherUser.firstName) gender: '\(otherUser.gender ?? "nil")', preference: '\(otherUser.attractedTo ?? "nil")'")
+            return false
+        }
+        
+        // Both have complete data - check mutual compatibility
+        let currentUserAttractedToOther = isAttractedTo(userAttractedTo: user.attractedTo, personGender: otherUser.gender)
+        let otherUserAttractedToCurrent = isAttractedTo(userAttractedTo: otherUser.attractedTo, personGender: user.gender)
+        let isCompatible = currentUserAttractedToOther && otherUserAttractedToCurrent
+        
+        print("🔗 COMPATIBILITY: \(user.firstName ?? "Current user") vs \(otherUser.firstName) = \(isCompatible ? "COMPATIBLE" : "NOT COMPATIBLE")")
+        print("   - Current user attracted to \(otherUser.firstName): \(currentUserAttractedToOther) (wants '\(user.attractedTo ?? "nil")', \(otherUser.firstName) is '\(otherUser.gender ?? "nil")')")
+        print("   - \(otherUser.firstName) attracted to current user: \(otherUserAttractedToCurrent) (\(otherUser.firstName) wants '\(otherUser.attractedTo ?? "nil")', current user is '\(user.gender ?? "nil")')")
+        
+        return isCompatible
+    }
+    
+    private func isAttractedTo(userAttractedTo: String?, personGender: String?) -> Bool {
+        // Clean and normalize attracted to preference
+        let attractedTo = userAttractedTo?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        
+        // Clean and normalize gender
+        let gender = personGender?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        
+        print("   🔍 CHECKING: '\(attractedTo)' attracted to '\(gender)'")
+        
+        // STRICT: Return false if no preference or gender specified
+        if attractedTo.isEmpty {
+            print("   - No preference specified: NOT COMPATIBLE")
+            return false
+        }
+        
+        if gender.isEmpty {
+            print("   - No gender specified: NOT COMPATIBLE")
+            return false 
+        }
+        
+        // Check for open preferences - only explicit "everyone"/"all"/"both" type preferences
+        if attractedTo == "everyone" || 
+           attractedTo == "all" || 
+           attractedTo == "anyone" || 
+           attractedTo == "both" ||
+           attractedTo == "all genders" ||
+           attractedTo == "no preference" {
+            print("   - Open to all: COMPATIBLE")
+            return true
+        }
+        
+        // Check for female attraction - person attracted to FEMALES
+        if attractedTo.contains("women") || 
+           attractedTo.contains("woman") || 
+           attractedTo.contains("female") ||
+           attractedTo.contains("girls") ||
+           attractedTo.contains("girl") ||
+           attractedTo.contains("fem") {
+            // FIXED: Use precise matching to avoid "female" containing "male" bug
+            let isPersonFemale = gender == "woman" || 
+                               gender == "female" || 
+                               gender == "girl" ||
+                               gender == "fem" ||
+                               gender == "f" ||
+                               gender.hasPrefix("woman") ||
+                               gender.hasPrefix("female") ||
+                               gender.hasPrefix("girl")
+            print("   - Person wants FEMALES, target is female: \(isPersonFemale)")
+            return isPersonFemale
+        }
+        
+        // Check for male attraction - person attracted to MALES  
+        if attractedTo.contains("men") || 
+           attractedTo.contains("man") || 
+           attractedTo.contains("male") ||
+           attractedTo.contains("guys") ||
+           attractedTo.contains("guy") ||
+           attractedTo.contains("masc") {
+            // FIXED: Use precise matching to avoid "female" containing "male" bug
+            let isPersonMale = gender == "man" || 
+                             gender == "male" || 
+                             gender == "guy" ||
+                             gender == "masc" ||
+                             gender == "m" ||
+                             (gender.hasPrefix("man") && !gender.hasPrefix("woman")) ||
+                             (gender.hasPrefix("male") && !gender.hasPrefix("female")) ||
+                             gender.hasPrefix("guy")
+            print("   - Person wants MALES, target is male: \(isPersonMale)")
+            return isPersonMale
+        }
+        
+        // Check for non-binary and other gender identities
+        if attractedTo.contains("non-binary") ||
+           attractedTo.contains("nonbinary") ||
+           attractedTo.contains("enby") ||
+           attractedTo.contains("genderfluid") ||
+           attractedTo.contains("genderqueer") ||
+           attractedTo.contains("transgender") ||
+           attractedTo.contains("trans") ||
+           attractedTo.contains("queer") {
+            let isPersonNonBinary = gender.contains("non-binary") ||
+                                  gender.contains("nonbinary") ||
+                                  gender.contains("enby") ||
+                                  gender.contains("genderfluid") ||
+                                  gender.contains("genderqueer") ||
+                                  gender.contains("transgender") ||
+                                  gender.contains("trans") ||
+                                  gender.contains("queer")
+            print("   - Person wants NON-BINARY/TRANS, target matches: \(isPersonNonBinary)")
+            return isPersonNonBinary
+        }
+        
+        print("   - No match found: NOT COMPATIBLE")
+        return false
+    }
+    
+    private func checkGenderCompatibility(userAttractedTo: String?, memberGender: String?) -> Bool {
+        // Legacy function - keeping for backward compatibility but using new logic
+        return isAttractedTo(userAttractedTo: userAttractedTo, personGender: memberGender)
+    }
 }
 
 // MARK: - Supporting Views
-
-struct FilterPill: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.blue : Color(.systemGray6))
-                )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
 
 struct LoadingMoreView: View {
     var body: some View {
@@ -813,7 +1086,7 @@ struct MemberDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Profile Image
+                // Profile Image - Cropped with smart aspect ratio
                 AsyncImage(url: member.profileImageURL) { phase in
                     switch phase {
                     case .empty:
@@ -825,8 +1098,8 @@ struct MemberDetailView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(maxWidth: .infinity, maxHeight: 500)
-                            .frame(height: 500)
+                            .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
+                            .frame(maxHeight: 400)
                             .clipped()
                             .overlay {
                                 VStack(spacing: 12) {
@@ -841,8 +1114,8 @@ struct MemberDetailView: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: .infinity, maxHeight: 500)
-                            .frame(height: 500)
+                            .frame(maxWidth: .infinity)
+                            .aspectRatio(4/5, contentMode: .fit) // Crop to portrait aspect ratio
                             .clipped()
                             .background(Color.gray.opacity(0.1))
                     case .failure(_):
@@ -854,8 +1127,8 @@ struct MemberDetailView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(maxWidth: .infinity, maxHeight: 500)
-                            .frame(height: 500)
+                            .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
+                            .frame(maxHeight: 400)
                             .clipped()
                             .overlay {
                                 VStack(spacing: 12) {
@@ -871,8 +1144,8 @@ struct MemberDetailView: View {
                     @unknown default:
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
-                            .frame(maxWidth: .infinity, maxHeight: 500)
-                            .frame(height: 500)
+                            .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
+                            .frame(maxHeight: 400)
                             .clipped()
                     }
                 }

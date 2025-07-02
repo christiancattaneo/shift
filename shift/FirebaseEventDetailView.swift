@@ -371,6 +371,15 @@ struct EventAttendeeCardView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
+                
+                if let tip = member.approachTip, !tip.isEmpty {
+                    Text(currentUserCheckedIn ? tip : "???")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .truncationMode(.tail)
+                }
             }
         }
         .frame(width: 80)

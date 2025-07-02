@@ -22,7 +22,7 @@ struct MainTabView: View {
                 CheckInsView()
             }
             .tabItem {
-                Label("Events", systemImage: "mappin.and.ellipse")
+                Label("Check-Ins", systemImage: "mappin.and.ellipse")
             }
             .tag(1)
 
