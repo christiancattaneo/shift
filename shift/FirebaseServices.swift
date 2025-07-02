@@ -1619,7 +1619,7 @@ class FirebaseCheckInsService: ObservableObject {
     }
     
     // Helper function to search for similar items when exact match fails
-    // NEW: Find real document ID by computed uniqueID
+    // NEW: Find real document ID by computed uniqueID with flexible fuzzy matching
     private func findEventByComputedId(itemId: String, collection: String, completion: @escaping (String?) -> Void) {
         // Parse the computed ID to extract event/place name
         let components = itemId.components(separatedBy: "_")
@@ -1631,74 +1631,154 @@ class FirebaseCheckInsService: ObservableObject {
         let searchName = components[0].trimmingCharacters(in: .whitespacesAndNewlines)
         let venueName = components.count > 2 ? components[1].trimmingCharacters(in: .whitespacesAndNewlines) : ""
         
-        print("🔍 FIREBASE CHECKIN: Searching \(collection) for name '\(searchName)' or venue '\(venueName)'")
+        print("🔍 FIREBASE CHECKIN: Flexible search in \(collection) for name '\(searchName)' or venue '\(venueName)'")
         
-        // Search by event/place name
-        var query = db.collection(collection).limit(to: 10)
-        
-        if collection == "events" {
-            // For events, search by eventName or venueName
-            if !venueName.isEmpty {
-                query = db.collection(collection)
-                    .whereField("venueName", isGreaterThanOrEqualTo: venueName)
-                    .whereField("venueName", isLessThan: venueName + "\u{f8ff}")
-                    .limit(to: 5)
-            } else {
-                query = db.collection(collection)
-                    .whereField("eventName", isGreaterThanOrEqualTo: searchName)
-                    .whereField("eventName", isLessThan: searchName + "\u{f8ff}")
-                    .limit(to: 5)
-            }
-        } else {
-            // For places, search by placeName
-            query = db.collection(collection)
-                .whereField("placeName", isGreaterThanOrEqualTo: searchName)
-                .whereField("placeName", isLessThan: searchName + "\u{f8ff}")
-                .limit(to: 5)
-        }
-        
-        query.getDocuments { snapshot, error in
-            if let error = error {
-                print("❌ FIREBASE CHECKIN: Error searching \(collection): \(error.localizedDescription)")
-                completion(nil)
-                return
-            }
-            
-            guard let documents = snapshot?.documents else {
-                print("📭 FIREBASE CHECKIN: No documents found in \(collection) search")
-                completion(nil)
-                return
-            }
-            
-            // Find the best match
-            for document in documents {
-                let data = document.data()
+        // Perform broader search to get more documents for fuzzy matching
+        db.collection(collection)
+            .limit(to: 50) // Get more documents for better matching
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("❌ FIREBASE CHECKIN: Error searching \(collection): \(error.localizedDescription)")
+                    completion(nil)
+                    return
+                }
                 
-                if collection == "events" {
-                    let eventName = (data["eventName"] as? String ?? "").lowercased()
-                    let venue = (data["venueName"] as? String ?? "").lowercased()
+                guard let documents = snapshot?.documents else {
+                    print("📭 FIREBASE CHECKIN: No documents found in \(collection) search")
+                    completion(nil)
+                    return
+                }
+                
+                print("🔍 FIREBASE CHECKIN: Got \(documents.count) documents to search through")
+                
+                // Fuzzy matching with scoring
+                var bestMatch: (documentId: String, score: Double)? = nil
+                
+                for document in documents {
+                    let data = document.data()
+                    var score = 0.0
                     
-                    if eventName.contains(searchName.lowercased()) || 
-                       venue.contains(searchName.lowercased()) ||
-                       (!venueName.isEmpty && venue.contains(venueName.lowercased())) {
-                        print("✅ FIREBASE CHECKIN: Found matching event: \(document.documentID)")
-                        completion(document.documentID)
-                        return
+                    if collection == "events" {
+                        let eventName = (data["eventName"] as? String ?? "").lowercased()
+                        let venue = (data["venueName"] as? String ?? "").lowercased()
+                        
+                        // Score based on how well the search name matches
+                        score += self.calculateMatchScore(searchName.lowercased(), eventName)
+                        score += self.calculateMatchScore(searchName.lowercased(), venue)
+                        
+                        // Bonus for venue name match if provided
+                        if !venueName.isEmpty {
+                            score += self.calculateMatchScore(venueName.lowercased(), venue) * 1.5
+                            score += self.calculateMatchScore(venueName.lowercased(), eventName) * 1.2
+                        }
+                        
+                        print("🔍 FIREBASE CHECKIN: Event '\(eventName)' at '\(venue)' - Score: \(score)")
+                        
+                    } else {
+                        let placeName = (data["placeName"] as? String ?? "").lowercased()
+                        
+                        score += self.calculateMatchScore(searchName.lowercased(), placeName)
+                        
+                        print("🔍 FIREBASE CHECKIN: Place '\(placeName)' - Score: \(score)")
                     }
-                } else {
-                    let placeName = (data["placeName"] as? String ?? "").lowercased()
                     
-                    if placeName.contains(searchName.lowercased()) {
-                        print("✅ FIREBASE CHECKIN: Found matching place: \(document.documentID)")
-                        completion(document.documentID)
-                        return
+                    // Update best match if this is better
+                    if score > 0.5 && (bestMatch == nil || score > bestMatch!.score) {
+                        bestMatch = (document.documentID, score)
                     }
                 }
+                
+                if let match = bestMatch {
+                    print("✅ FIREBASE CHECKIN: Best match found: \(match.documentId) with score \(match.score)")
+                    completion(match.documentId)
+                } else {
+                    print("❌ FIREBASE CHECKIN: No good matches found for '\(searchName)'")
+                    completion(nil)
+                }
+            }
+    }
+    
+    // Calculate fuzzy match score between two strings
+    private func calculateMatchScore(_ search: String, _ target: String) -> Double {
+        guard !search.isEmpty && !target.isEmpty else { return 0.0 }
+        
+        let searchWords = search.components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+        let targetWords = target.components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+        
+        var totalScore = 0.0
+        var maxPossibleScore = 0.0
+        
+        for searchWord in searchWords {
+            maxPossibleScore += 1.0
+            var bestWordScore = 0.0
+            
+            for targetWord in targetWords {
+                let wordScore = calculateWordMatchScore(searchWord, targetWord)
+                bestWordScore = max(bestWordScore, wordScore)
             }
             
-            print("❌ FIREBASE CHECKIN: No matching document found for '\(searchName)'")
-            completion(nil)
+            totalScore += bestWordScore
         }
+        
+        return maxPossibleScore > 0 ? totalScore / maxPossibleScore : 0.0
+    }
+    
+    // Calculate similarity between two words
+    private func calculateWordMatchScore(_ word1: String, _ word2: String) -> Double {
+        // Exact match
+        if word1 == word2 {
+            return 1.0
+        }
+        
+        // Contains match
+        if word2.contains(word1) || word1.contains(word2) {
+            return 0.8
+        }
+        
+        // Starts with match
+        if word2.hasPrefix(word1) || word1.hasPrefix(word2) {
+            return 0.7
+        }
+        
+        // Levenshtein distance-based similarity
+        let distance = levenshteinDistance(word1, word2)
+        let maxLength = max(word1.count, word2.count)
+        let similarity = 1.0 - Double(distance) / Double(maxLength)
+        
+        // Only consider it a match if similarity is high enough
+        return similarity > 0.6 ? similarity * 0.6 : 0.0
+    }
+    
+    // Calculate Levenshtein distance between two strings
+    private func levenshteinDistance(_ s1: String, _ s2: String) -> Int {
+        let a1 = Array(s1)
+        let a2 = Array(s2)
+        let m = a1.count
+        let n = a2.count
+        
+        var dp = Array(repeating: Array(repeating: 0, count: n + 1), count: m + 1)
+        
+        for i in 0...m {
+            dp[i][0] = i
+        }
+        
+        for j in 0...n {
+            dp[0][j] = j
+        }
+        
+        for i in 1...m {
+            for j in 1...n {
+                if a1[i-1] == a2[j-1] {
+                    dp[i][j] = dp[i-1][j-1]
+                } else {
+                    dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+                }
+            }
+        }
+        
+        return dp[m][n]
     }
     
     private func debugSearchForSimilarItems(searchId: String, completion: @escaping ([String]) -> Void) {
