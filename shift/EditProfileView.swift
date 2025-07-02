@@ -55,33 +55,7 @@ struct EditProfileView: View {
                     // Form Section
                     formSection
                     
-                    // Debug info (remove this later)
-                    if true { // Set to false to hide debug info
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Debug Info:")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                            Text("isCreatingNew: \(isCreatingNew)")
-                                .font(.caption2)
-                            Text("isFormValid: \(isFormValid)")
-                                .font(.caption2)
-                            Text("hasChanges: \(hasChanges)")
-                                .font(.caption2)
-                            Text("canSave: \(canSave)")
-                                .font(.caption2)
-                            Text("firstName empty: \(firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)")
-                                .font(.caption2)
-                            Text("age empty: \(age.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)")
-                                .font(.caption2)
-                            Text("city empty: \(city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)")
-                                .font(.caption2)
-                            Text("gender empty: \(gender.isEmpty)")
-                                .font(.caption2)
-                        }
-                        .padding(8)
-                        .background(Color.yellow.opacity(0.1))
-                        .cornerRadius(8)
-                    }
+
                     
                     // Action Buttons
                     actionButtonsSection
