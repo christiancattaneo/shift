@@ -959,23 +959,41 @@ struct EventCardView: View {
     }
     
     private func toggleCheckIn() {
+        print("🎯 EventCard: toggleCheckIn called for event: \(event.name)")
+        
         guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else {
-            print("❌ Missing user or event ID")
+              let userId = currentUser.id else {
+            print("❌ EventCard: Missing user or user ID")
             return
         }
         
+        // Improved event ID resolution
+        let eventId: String
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+        } else {
+            eventId = event.uniqueID
+        }
+        
+        guard !eventId.isEmpty else {
+            print("❌ EventCard: Event has no valid ID")
+            return
+        }
+        
+        print("🎯 EventCard: Using userId=\(userId), eventId=\(eventId)")
         isProcessing = true
         
         if isCheckedIn {
             // Check out
+            print("🔄 EventCard: Checking out...")
             checkInsService.checkOut(userId: userId, eventId: eventId) { [self] success, error in
                 DispatchQueue.main.async {
                     isProcessing = false
                     if success {
+                        print("✅ EventCard: Check out successful")
                         isCheckedIn = false
                         loadCheckInCount()
+                        Haptics.successNotification()
                         let notificationData = ["eventId": eventId, "isCheckedIn": false] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
@@ -984,22 +1002,22 @@ struct EventCardView: View {
                         )
                         print("📢 EventCard: Posted check-out notification for eventId: \(eventId)")
                     } else {
-                        print("❌ Check out failed: \(error ?? "Unknown error")")
+                        print("❌ EventCard: Check out failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
                     }
                 }
             }
         } else {
-            // Check in with location validation
-            checkInsService.checkInWithLocationValidation(
-                userId: userId,
-                eventId: eventId,
-                event: event
-            ) { [self] success, error in
+            // Check in - use basic check-in for consistency with detail view
+            print("🔄 EventCard: Checking in...")
+            checkInsService.checkIn(userId: userId, eventId: eventId) { [self] success, error in
                 DispatchQueue.main.async {
                     isProcessing = false
                     if success {
+                        print("✅ EventCard: Check in successful")
                         isCheckedIn = true
                         loadCheckInCount()
+                        Haptics.successNotification()
                         let notificationData = ["eventId": eventId, "isCheckedIn": true] as [String : Any]
                         NotificationCenter.default.post(
                             name: .checkInStatusChanged, 
@@ -1008,9 +1026,10 @@ struct EventCardView: View {
                         )
                         print("📢 EventCard: Posted check-in notification for eventId: \(eventId)")
                     } else {
+                        print("❌ EventCard: Check in failed: \(error ?? "Unknown error")")
                         locationError = error
                         showLocationAlert = true
-                        print("❌ Check in failed: \(error ?? "Unknown error")")
+                        Haptics.errorNotification()
                     }
                 }
             }
@@ -1019,8 +1038,17 @@ struct EventCardView: View {
     
     private func checkIfUserCheckedIn() {
         guard let currentUser = FirebaseUserSession.shared.currentUser,
-              let userId = currentUser.id,
-              let eventId = event.id else { return }
+              let userId = currentUser.id else { return }
+        
+        // Use same event ID resolution as toggleCheckIn
+        let eventId: String
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+        } else {
+            eventId = event.uniqueID
+        }
+        
+        guard !eventId.isEmpty else { return }
         
         checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { [self] checkedIn in
             DispatchQueue.main.async {
@@ -1030,7 +1058,15 @@ struct EventCardView: View {
     }
     
     private func loadCheckInCount() {
-        guard let eventId = event.id else { return }
+        // Use same event ID resolution as toggleCheckIn
+        let eventId: String
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+        } else {
+            eventId = event.uniqueID
+        }
+        
+        guard !eventId.isEmpty else { return }
         
         // ENHANCED: Get both current and historical check-in counts
         checkInsService.getCombinedCheckInCount(for: eventId, itemType: "event") { [self] currentCount, historicalCount in
@@ -2180,86 +2216,49 @@ struct EventDetailView: View {
     }
     
     private func toggleCheckIn() {
-        print("🔍 DEBUG: EventDetailView toggleCheckIn called")
-        print("🔍 DEBUG: event.name = \(event.eventName ?? "nil")")
-        print("🔍 DEBUG: event.id = \(event.id ?? "nil")")
-        print("🔍 DEBUG: event.uniqueID = \(event.uniqueID)")
-        print("🔍 DEBUG: currentUser = \(FirebaseUserSession.shared.currentUser?.firstName ?? "nil")")
-        print("🔍 DEBUG: currentUser.id = \(FirebaseUserSession.shared.currentUser?.id ?? "nil")")
-        print("🔍 DEBUG: CURRENT isCheckedIn = \(isCheckedIn)")
-        print("🔍 DEBUG: CURRENT checkInCount = \(checkInCount)")
-        print("🔍 DEBUG: CURRENT isProcessing = \(isProcessing)")
+        print("🎯 EventDetail: toggleCheckIn called for event: \(event.eventName ?? "Unknown")")
         
-        guard let currentUser = FirebaseUserSession.shared.currentUser else {
-            print("❌ Cannot check in: Missing user")
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id else {
+            print("❌ EventDetail: Missing user or user ID")
             return
         }
         
-        // CORRECT FIX: Use user's document ID (UUID) for check-ins
-        guard let userUUID = currentUser.id else {
-            print("❌ Cannot check in: Missing user UUID")
-            print("❌ Current user: \(currentUser.firstName ?? "nil")")
-            return
-        }
-        
-        let userIdForCheckIn = userUUID
-        print("🔧 USING User UUID: \(userIdForCheckIn)")
-        print("🔧 This will match the migrated Users arrays")
-        
-        // IMPROVED: Better event ID resolution
-        var eventId: String = ""
+        // Improved event ID resolution - same as EventCardView
+        let eventId: String
         if let id = event.id, !id.isEmpty {
             eventId = id
-            print("🔧 Using event.id: \(eventId)")
         } else {
-            // For events without proper document IDs, check if they're actually places
-            if event.uniqueID.contains("_") && event.imageURL?.absoluteString.contains("places%2F") == true {
-                print("⚠️ This appears to be a place misidentified as an event")
-                print("⚠️ Image URL: \(event.imageURL?.absoluteString ?? "nil")")
-                print("⚠️ Cannot check into events that are actually places")
-                return
-            }
-            
             eventId = event.uniqueID
-            print("🔧 Using fallback uniqueID: \(eventId)")
         }
         
         guard !eventId.isEmpty else {
-            print("❌ Cannot check in: Event has no valid ID")
-            print("❌ event.id: \(event.id ?? "nil")")
-            print("❌ event.uniqueID: \(event.uniqueID)")
+            print("❌ EventDetail: Event has no valid ID")
             return
         }
         
         guard !isProcessing else { 
-            print("⚠️ Check-in already in progress")
+            print("⚠️ EventDetail: Check-in already in progress")
             return 
         }
         
-        print("🎯 Starting check-in process for UUID \(userIdForCheckIn) at event \(eventId)")
-        print("🎯 Current state - isCheckedIn: \(isCheckedIn), will \(isCheckedIn ? "CHECK OUT" : "CHECK IN")")
+        print("🎯 EventDetail: Using userId=\(userId), eventId=\(eventId)")
+        print("🎯 EventDetail: Current state - isCheckedIn: \(isCheckedIn), will \(isCheckedIn ? "CHECK OUT" : "CHECK IN")")
+        
         Haptics.lightImpact()
         isProcessing = true
-        print("🔍 Set isProcessing = true")
         
         if isCheckedIn {
             // Check out
-            print("🔄 CHECKOUT: Starting check-out process...")
-            checkInsService.checkOut(userId: userIdForCheckIn, eventId: eventId) { success, error in
-                print("🔄 CHECKOUT: Firebase response received - success: \(success), error: \(error ?? "none")")
+            print("🔄 EventDetail: Checking out...")
+            checkInsService.checkOut(userId: userId, eventId: eventId) { success, error in
                 DispatchQueue.main.async {
-                    print("🔄 CHECKOUT: Processing response on main thread")
                     self.isProcessing = false
-                    print("🔍 Set isProcessing = false")
                     if success {
-                        print("✅ CHECKOUT: Success - updating UI state")
-                        let oldCheckedIn = self.isCheckedIn
-                        let oldCount = self.checkInCount
+                        print("✅ EventDetail: Check out successful")
                         self.isCheckedIn = false
                         self.checkInCount = max(0, self.checkInCount - 1)
-                        print("✅ CHECKOUT: State updated - isCheckedIn: \(oldCheckedIn) → \(self.isCheckedIn), checkInCount: \(oldCount) → \(self.checkInCount)")
                         Haptics.successNotification()
-                        print("✅ Successfully checked out of event")
                         
                         // Notify other views about check-in status change
                         let notificationData = ["eventId": eventId, "isCheckedIn": false] as [String : Any]
@@ -2270,29 +2269,22 @@ struct EventDetailView: View {
                         )
                         print("📢 EventDetail: Posted check-out notification for eventId: \(eventId)")
                     } else {
-                        print("❌ CHECKOUT: Failed - \(error ?? "Unknown error")")
+                        print("❌ EventDetail: Check out failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
                     }
                 }
             }
         } else {
             // Check in
-            print("🔄 CHECKIN: Starting check-in process...")
-            checkInsService.checkIn(userId: userIdForCheckIn, eventId: eventId) { success, error in
-                print("🔄 CHECKIN: Firebase response received - success: \(success), error: \(error ?? "none")")
+            print("🔄 EventDetail: Checking in...")
+            checkInsService.checkIn(userId: userId, eventId: eventId) { success, error in
                 DispatchQueue.main.async {
-                    print("🔄 CHECKIN: Processing response on main thread")
                     self.isProcessing = false
-                    print("🔍 Set isProcessing = false")
                     if success {
-                        print("✅ CHECKIN: Success - updating UI state")
-                        let oldCheckedIn = self.isCheckedIn
-                        let oldCount = self.checkInCount
+                        print("✅ EventDetail: Check in successful")
                         self.isCheckedIn = true
                         self.checkInCount += 1
-                        print("✅ CHECKIN: State updated - isCheckedIn: \(oldCheckedIn) → \(self.isCheckedIn), checkInCount: \(oldCount) → \(self.checkInCount)")
                         Haptics.successNotification()
-                        print("✅ Successfully checked in to event")
                         
                         // Notify other views about check-in status change
                         let notificationData = ["eventId": eventId, "isCheckedIn": true] as [String : Any]
@@ -2303,7 +2295,7 @@ struct EventDetailView: View {
                         )
                         print("📢 EventDetail: Posted check-in notification for eventId: \(eventId)")
                     } else {
-                        print("❌ CHECKIN: Failed - \(error ?? "Unknown error")")
+                        print("❌ EventDetail: Check in failed - \(error ?? "Unknown error")")
                         Haptics.errorNotification()
                     }
                 }
@@ -2312,75 +2304,67 @@ struct EventDetailView: View {
     }
     
     private func checkIfUserCheckedIn() {
-        print("🔍 INIT: EventDetailView checkIfUserCheckedIn called for event \(event.eventName ?? "unknown")")
-        
-        guard let currentUser = FirebaseUserSession.shared.currentUser else {
-            print("⚠️ INIT: Cannot check user check-in status: Missing user")
+        guard let currentUser = FirebaseUserSession.shared.currentUser,
+              let userId = currentUser.id else {
+            print("⚠️ EventDetail: Cannot check user check-in status: Missing user or user ID")
             return
         }
         
-        // CORRECT FIX: Use user's document ID (UUID)
-        guard let userUUID = currentUser.id else {
-            print("⚠️ INIT: Cannot check user check-in status: Missing user UUID")
-            print("⚠️ INIT: currentUser = \(currentUser.firstName ?? "nil")")
-            return
+        // Use same event ID resolution as toggleCheckIn
+        let eventId: String
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+        } else {
+            eventId = event.uniqueID
         }
         
-        let userIdForCheckIn = userUUID
-        
-        // Use event.id if available, otherwise use uniqueID as fallback
-        let eventId = event.id ?? event.uniqueID
         guard !eventId.isEmpty else {
-            print("⚠️ INIT: Cannot check user check-in status: Missing event ID")
-            print("⚠️ INIT: event.id = \(event.id ?? "nil")")
-            print("⚠️ INIT: event.uniqueID = \(event.uniqueID)")
+            print("⚠️ EventDetail: Cannot check user check-in status: Missing event ID")
             return
         }
         
-        print("🔍 INIT: Checking check-in status for UUID=\(userIdForCheckIn), eventId=\(eventId)")
-        
-        checkInsService.isUserCheckedIn(userId: userIdForCheckIn, eventId: eventId) { isCheckedIn in
-            print("🔍 INIT: isUserCheckedIn callback received with result: \(isCheckedIn)")
+        checkInsService.isUserCheckedIn(userId: userId, eventId: eventId) { isCheckedIn in
             DispatchQueue.main.async {
-                print("🔍 INIT: Processing isUserCheckedIn result on main thread")
-                let oldValue = self.isCheckedIn
                 self.isCheckedIn = isCheckedIn
-                print("📊 INIT: User check-in status loaded: \(oldValue) → \(self.isCheckedIn)")
+                print("📊 EventDetail: User check-in status loaded: \(self.isCheckedIn)")
             }
         }
     }
     
     private func loadCheckInCount() {
-        print("🔍 INIT: loadCheckInCount called for event \(event.eventName ?? "unknown")")
+        // Use same event ID resolution as toggleCheckIn
+        let eventId: String
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+        } else {
+            eventId = event.uniqueID
+        }
         
-        // Use event.id if available, otherwise use uniqueID as fallback
-        let eventId = event.id ?? event.uniqueID
         guard !eventId.isEmpty else {
-            print("⚠️ INIT: Cannot load check-in count: Missing event ID")
-            print("⚠️ INIT: event.id = \(event.id ?? "nil")")
-            print("⚠️ INIT: event.uniqueID = \(event.uniqueID)")
+            print("⚠️ EventDetail: Cannot load check-in count: Missing event ID")
             return
         }
         
-        print("🔍 INIT: Loading check-in count for eventId=\(eventId)")
-        
         // ENHANCED: Get both current and historical check-in counts
         checkInsService.getCombinedCheckInCount(for: eventId, itemType: "event") { currentCount, historicalCount in
-            print("🔍 INIT: getCombinedCheckInCount callback received - Current: \(currentCount), Historical: \(historicalCount)")
             DispatchQueue.main.async {
-                print("🔍 INIT: Processing getCombinedCheckInCount result on main thread")
-                let oldValue = self.checkInCount
                 self.checkInCount = historicalCount  // Show TOTAL historical count instead of just current
-                print("📊 INIT: Event detail check-in count loaded: \(oldValue) → \(self.checkInCount) (showing historical)")
+                print("📊 EventDetail: Check-in count loaded - Current: \(currentCount), Historical: \(historicalCount), SHOWING: \(historicalCount)")
             }
         }
     }
     
     private func loadAttendees() {
-        // Use event.id if available, otherwise use uniqueID as fallback
-        let eventId = event.id ?? event.uniqueID
+        // Use same event ID resolution as toggleCheckIn
+        let eventId: String
+        if let id = event.id, !id.isEmpty {
+            eventId = id
+        } else {
+            eventId = event.uniqueID
+        }
+        
         guard !eventId.isEmpty else {
-            print("⚠️ Cannot load attendees: Missing event ID")
+            print("⚠️ EventDetail: Cannot load attendees: Missing event ID")
             return
         }
         
@@ -2389,7 +2373,7 @@ struct EventDetailView: View {
             DispatchQueue.main.async {
                 self.attendees = members
                 self.isLoadingAttendees = false
-                print("👥 Loaded \(members.count) attendees")
+                print("👥 EventDetail: Loaded \(members.count) attendees")
             }
         }
     }
@@ -2557,6 +2541,152 @@ struct AttendeeCardView: View {
 }
 
 
+
+// MARK: - Current User Member Card
+struct CurrentUserMemberCard: View {
+    let user: FirebaseUser
+    let type: String // "event" or "place"
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with "You're Here!" indicator
+            HStack(spacing: 8) {
+                Image(systemName: type == "event" ? "calendar.badge.checkmark" : "location.badge.checkmark")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                Text("You're \(type == "event" ? "Going!" : "Here!")")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Image(systemName: "star.fill")
+                    .font(.caption)
+                    .foregroundColor(.yellow)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            
+            // User Profile Content
+            HStack(spacing: 16) {
+                // Profile Image
+                AsyncImage(url: URL(string: user.profilePhoto ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 80, height: 80)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue, lineWidth: 3)
+                            )
+                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                    default:
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Text(user.firstName?.prefix(1).uppercased() ?? "?")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            )
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue, lineWidth: 3)
+                            )
+                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                    }
+                }
+                
+                // User Info
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(user.firstName ?? "Unknown")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        if let age = user.age {
+                            Text("\(age)")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let city = user.city {
+                        HStack(spacing: 4) {
+                            Image(systemName: "location")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(city)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let howToApproach = user.howToApproachMe, !howToApproach.isEmpty {
+                        Text(howToApproach)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
+                    
+                    // Instagram handle if available
+                    if let instagram = user.instagramHandle, !instagram.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "camera")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                            Text(instagram.hasPrefix("@") ? instagram : "@\(instagram)")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(16)
+            .background(Color(.systemBackground))
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
+        )
+        .padding(.horizontal, 20)
+    }
+}
 
 #Preview {
     CheckInsView()
