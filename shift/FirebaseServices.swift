@@ -273,22 +273,70 @@ class FirebaseUserSession: ObservableObject {
     }
     
     func resetPassword(email: String, completion: @escaping (Bool, String?) -> Void) {
-        print("🔐 Starting password reset: Thread=MAIN")
-        
         auth.sendPasswordReset(withEmail: email) { error in
-            print("🔐 Password reset response: Thread=BACKGROUND")
-            
             DispatchQueue.main.async {
-                print("🔐 Processing password reset response on main thread")
                 if let error = error {
-                    print("🔐 Password reset error: \(error.localizedDescription)")
                     completion(false, error.localizedDescription)
                 } else {
-                    print("🔐 Password reset success")
                     completion(true, nil)
                 }
             }
         }
+    }
+    
+    // MARK: - Email Link Authentication
+    
+    /// Send email link for passwordless authentication
+    func sendSignInLink(email: String, completion: @escaping (Bool, String?) -> Void) {
+        let actionCodeSettings = ActionCodeSettings()
+        actionCodeSettings.url = URL(string: "https://shift-12948.firebaseapp.com/emailSignIn?email=\(email)")!
+        actionCodeSettings.handleCodeInApp = true
+        actionCodeSettings.setIOSBundleID("com.christiancattaneo.shift")
+        
+        auth.sendSignInLink(toEmail: email, actionCodeSettings: actionCodeSettings) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Error sending email link: \(error.localizedDescription)")
+                    completion(false, error.localizedDescription)
+                } else {
+                    print("✅ Email link sent successfully to \(email)")
+                    // Store email for later use
+                    UserDefaults.standard.set(email, forKey: "pendingEmailLink")
+                    completion(true, nil)
+                }
+            }
+        }
+    }
+    
+    /// Verify if a link is an email sign-in link
+    func isSignInLink(_ link: String) -> Bool {
+        return auth.isSignIn(withEmailLink: link)
+    }
+    
+    /// Complete sign-in with email link
+    func signInWithEmailLink(email: String, link: String, completion: @escaping (Bool, String?) -> Void) {
+        auth.signIn(withEmail: email, link: link) { [weak self] result, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Email link sign-in error: \(error.localizedDescription)")
+                    completion(false, error.localizedDescription)
+                } else if let user = result?.user {
+                    print("✅ Email link sign-in successful: \(user.uid)")
+                    // Clear stored email
+                    UserDefaults.standard.removeObject(forKey: "pendingEmailLink")
+                    // Load user data
+                    self?.loadUserDataIfNeeded(uid: user.uid)
+                    completion(true, nil)
+                } else {
+                    completion(false, "Unknown error occurred")
+                }
+            }
+        }
+    }
+    
+    /// Get stored email for pending email link
+    func getPendingEmailLink() -> String? {
+        return UserDefaults.standard.string(forKey: "pendingEmailLink")
     }
     
     func loadSavedUser() {

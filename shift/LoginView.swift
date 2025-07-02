@@ -6,6 +6,7 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showPassword = false
+    @State private var showEmailLinkAuth = false
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
@@ -52,6 +53,14 @@ struct LoginView: View {
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
+        .sheet(isPresented: $showEmailLinkAuth) {
+            EmailLinkAuthView()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("EmailLinkSignInSuccess"))) { _ in
+            // Email link authentication was successful
+            Haptics.successNotification()
+            didCompleteLogin = true
+        }
     }
     
     // MARK: - UI Components
@@ -182,14 +191,32 @@ struct LoginView: View {
             .scaleEffect(isLoading ? 0.98 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: isLoading)
             
-            // Forgot Password
-            Button(action: handleForgotPassword) {
-                Text("Forgot Password?")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+            // Authentication Options
+            VStack(spacing: 12) {
+                // Forgot Password
+                Button(action: handleForgotPassword) {
+                    Text("Forgot Password?")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
+                }
+                .disabled(isLoading)
+                
+                // Email Link Sign In
+                Button(action: {
+                    showEmailLinkAuth = true
+                }) {
+                    HStack {
+                        Image(systemName: "link")
+                            .font(.caption)
+                        Text("Sign in with Email Link")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
                     .foregroundColor(.blue)
+                }
+                .disabled(isLoading)
             }
-            .disabled(isLoading)
         }
     }
     

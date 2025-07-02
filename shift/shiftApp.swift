@@ -29,11 +29,61 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
     
-    // Handle Firebase URL schemes for authentication
+    // Handle Firebase URL schemes for authentication and email links
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         print("🔗 App opened with URL: \(url)")
-        // This can be used for Firebase Auth URL handling if needed
+        
+        // Handle email link authentication
+        if FirebaseUserSession.shared.isSignInLink(url.absoluteString) {
+            print("✅ Detected email link authentication URL")
+            handleEmailLink(url: url)
+            return true
+        }
+        
         return true
+    }
+    
+    // Handle universal links for email authentication
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        print("🔗 App opened with universal link: \(userActivity.webpageURL?.absoluteString ?? "unknown")")
+        
+        if let url = userActivity.webpageURL {
+            // Handle email link authentication
+            if FirebaseUserSession.shared.isSignInLink(url.absoluteString) {
+                print("✅ Detected email link authentication via universal link")
+                handleEmailLink(url: url)
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    private func handleEmailLink(url: URL) {
+        print("🔐 Processing email link: \(url)")
+        
+        // Check if we have a stored email
+        if let email = FirebaseUserSession.shared.getPendingEmailLink() {
+            print("📧 Found stored email for link: \(email)")
+            
+            // Complete sign-in with email link
+            FirebaseUserSession.shared.signInWithEmailLink(email: email, link: url.absoluteString) { success, error in
+                DispatchQueue.main.async {
+                    if success {
+                        print("✅ Email link authentication successful")
+                        // Post notification to update UI if needed
+                        NotificationCenter.default.post(name: NSNotification.Name("EmailLinkSignInSuccess"), object: nil)
+                    } else {
+                        print("❌ Email link authentication failed: \(error ?? "unknown error")")
+                        NotificationCenter.default.post(name: NSNotification.Name("EmailLinkSignInError"), object: error)
+                    }
+                }
+            }
+        } else {
+            print("⚠️ No stored email found for email link")
+            // You might want to prompt the user to enter their email
+            NotificationCenter.default.post(name: NSNotification.Name("EmailLinkNeedsEmail"), object: url.absoluteString)
+        }
     }
     
     func applicationDidBecomeActive(_ application: UIApplication) {
