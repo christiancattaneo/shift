@@ -17,6 +17,7 @@ struct CheckInsView: View {
     @State private var showLocationPermissionAlert = false
     @State private var recentlyCheckedInEventIds: Set<String> = []
     @State private var recentlyCheckedInPlaceIds: Set<String> = []
+    @State private var showingAddForm = false
     @StateObject private var eventsService = FirebaseEventsService()
     @StateObject private var placesService = FirebasePlacesService()
     @StateObject private var checkInsService = FirebaseCheckInsService()
@@ -454,6 +455,13 @@ struct CheckInsView: View {
         .sheet(item: $selectedPlace) { place in
             PlaceDetailView(place: place)
         }
+        .sheet(isPresented: $showingAddForm) {
+            AddEventPlaceView(
+                selectedContentType: selectedContentType,
+                eventsService: eventsService,
+                placesService: placesService
+            )
+        }
     }
     
     // MARK: - Custom Header Section
@@ -466,6 +474,17 @@ struct CheckInsView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                 Spacer()
+                
+                // Add Button
+                Button(action: {
+                    showingAddForm = true
+                    Haptics.lightImpact()
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -2575,13 +2594,6 @@ extension CheckInsView {
     }
 }
 
-extension DateFormatter {
-    func with(_ configurator: (DateFormatter) -> Void) -> DateFormatter {
-        configurator(self)
-        return self
-    }
-} 
-
 // MARK: - Supporting Views
 
 struct FilterPill: View {
@@ -2604,4 +2616,4 @@ struct FilterPill: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-} 
+}

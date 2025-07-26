@@ -462,8 +462,8 @@ exports.completeMigration = functions.https.onRequest(async (req, res) => {
                 }
               });
               
-              // Generate public URL
-              profileImageUrl = `https://storage.googleapis.com/shift-12948.firebasestorage.app/${newImagePath}`;
+              // Generate public URL with proper Firebase Storage format
+              profileImageUrl = `https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/${encodeURIComponent(newImagePath)}?alt=media`;
               
               console.log(`📸 Migrated image for ${cleanUserData.firstName} (${firebaseUID})`);
             }

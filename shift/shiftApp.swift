@@ -7,12 +7,11 @@
 
 import SwiftUI
 import Firebase
-import FirebaseMessaging
 import UserNotifications
 import os
 
 // MARK: - App Delegate
-class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         print("🚀 App launching: Thread=MAIN")
         
@@ -154,7 +153,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         
         // Set delegates
         UNUserNotificationCenter.current().delegate = self
-        Messaging.messaging().delegate = self
+        // TODO: Add FirebaseMessaging package and uncomment:
+        // Messaging.messaging().delegate = self
         
         // Request notification permissions
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
@@ -172,7 +172,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         print("✅ Registered for remote notifications")
-        Messaging.messaging().apnsToken = deviceToken
+        // TODO: Add FirebaseMessaging package and uncomment:
+        // Messaging.messaging().apnsToken = deviceToken
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -200,7 +201,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     }
     
     // MARK: - MessagingDelegate
-    
+    // TODO: Add FirebaseMessaging package and uncomment this section:
+    /*
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         print("🔔 FCM Token: \(fcmToken ?? "nil")")
         
@@ -209,6 +211,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             FirebaseUserSession.shared.updateFCMToken(fcmToken)
         }
     }
+    */
     
     // MARK: - Notification Handling
     

@@ -73,7 +73,7 @@ class ErrorHandler: ObservableObject {
     @Published var showError = false
     @Published var isRetrying = false
     
-    private var retryAction: (() async -> Void)?
+    var retryAction: (() async -> Void)?
     
     private init() {}
     

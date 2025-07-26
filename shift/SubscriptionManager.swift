@@ -78,7 +78,7 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Purchase Subscription
     
-    func purchase(_ product: Product) async throws -> Transaction? {
+    func purchase(_ product: Product) async throws -> StoreKit.Transaction? {
         isLoading = true
         errorMessage = nil
         
@@ -162,7 +162,7 @@ class SubscriptionManager: ObservableObject {
         
         // Check all product IDs for active subscriptions
         for productId in productIds {
-            guard let status = await Transaction.currentEntitlement(for: productId) else {
+            guard let status = await StoreKit.Transaction.currentEntitlement(for: productId) else {
                 continue
             }
             
@@ -203,7 +203,7 @@ class SubscriptionManager: ObservableObject {
     private func listenForTransactions() -> Task<Void, Error> {
         return Task.detached {
             // Listen for transactions
-            for await result in Transaction.updates {
+            for await result in StoreKit.Transaction.updates {
                 do {
                     let transaction = try await self.checkVerified(result)
                     

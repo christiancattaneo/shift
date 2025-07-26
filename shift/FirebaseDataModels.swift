@@ -579,70 +579,12 @@ extension FirebaseMember {
     
     // Helper to get profile image URL from Firebase Storage - Universal System
     var profileImageURL: URL? {
-        print("🖼️ MEMBER DEBUG: \(firstName) - id=\(id ?? "nil"), userId=\(userId ?? "nil")")
-        print("🖼️ MEMBER DEBUG: \(firstName) - profileImageUrl=\(profileImageUrl ?? "nil")")
-        print("🖼️ MEMBER DEBUG: \(firstName) - firebaseImageUrl=\(firebaseImageUrl ?? "nil")")
-        print("🖼️ MEMBER DEBUG: \(firstName) - profilePhoto=\(profilePhoto ?? "nil")")
-        print("🖼️ MEMBER DEBUG: \(firstName) - profileImage=\(profileImage ?? "nil")")
+        guard let documentId = id, !documentId.isEmpty else { return nil }
         
-        // PRIORITY 1: Check profileImageUrl field FIRST (NEW Firebase Storage field)
-        if let profileImageUrl = profileImageUrl, !profileImageUrl.isEmpty {
-            print("✅ MEMBER: \(firstName) using profileImageUrl: \(profileImageUrl)")
-            return URL(string: profileImageUrl)
-        }
-        
-        // PRIORITY 2: Check firebaseImageUrl field
-        if let firebaseImageUrl = firebaseImageUrl, !firebaseImageUrl.isEmpty {
-            print("✅ MEMBER: \(firstName) using firebaseImageUrl: \(firebaseImageUrl)")
-            return URL(string: firebaseImageUrl)
-        }
-        
-        // PRIORITY 3: Try document ID-based Firebase Storage URL (standard pattern)
-        if let documentId = id, !documentId.isEmpty {
-            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
-            print("✅ MEMBER: \(firstName) using document ID pattern: \(imageUrl)")
-            return URL(string: imageUrl)
-        }
-        
-        // PRIORITY 4: Try userId-based Firebase Storage URL (fallback)
-        if let userId = userId, !userId.isEmpty {
-            let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(userId).jpg?alt=media"
-            print("✅ MEMBER: \(firstName) using userId pattern: \(imageUrl)")
-            return URL(string: imageUrl)
-        }
-        
-        // PRIORITY 5: Try legacy profilePhoto field
-        if let profilePhoto = profilePhoto, !profilePhoto.isEmpty {
-            // If it's already a complete URL, use it
-            if profilePhoto.hasPrefix("http") {
-                print("✅ MEMBER: \(firstName) using profilePhoto URL: \(profilePhoto)")
-                return URL(string: profilePhoto)
-            }
-            // If it's just a filename, construct the proper URL
-            else {
-                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(profilePhoto)?alt=media"
-                print("✅ MEMBER: \(firstName) using profilePhoto filename: \(properUrl)")
-                return URL(string: properUrl)
-            }
-        }
-        
-        // PRIORITY 6: Try legacy profileImage field
-        if let profileImage = profileImage, !profileImage.isEmpty {
-            // If it's already a complete URL, use it
-            if profileImage.hasPrefix("http") {
-                print("✅ MEMBER: \(firstName) using profileImage URL: \(profileImage)")
-                return URL(string: profileImage)
-            }
-            // If it's just a filename, construct the proper URL
-            else {
-                let properUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(profileImage)?alt=media"
-                print("✅ MEMBER: \(firstName) using profileImage filename: \(properUrl)")
-                return URL(string: properUrl)
-            }
-        }
-        
-        print("❌ MEMBER: \(firstName) - NO IMAGE URL AVAILABLE")
-        return nil
+        // Universal Firebase Storage API URL construction for ALL users
+        // Works for both migrated users (UUID v4) and future users (Firebase Auth UID)
+        let imageUrl = "https://firebasestorage.googleapis.com/v0/b/shift-12948.firebasestorage.app/o/profiles%2F\(documentId).jpg?alt=media"
+        return URL(string: imageUrl)
     }
 }
 
