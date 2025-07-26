@@ -136,6 +136,28 @@ class FirebaseUserSession: ObservableObject {
         }
     }
     
+    // MARK: - FCM Token Management
+    
+    func updateFCMToken(_ token: String) {
+        guard let userId = auth.currentUser?.uid else {
+            print("❌ No user logged in to update FCM token")
+            return
+        }
+        
+        print("🔔 Updating FCM token for user: \(userId)")
+        
+        db.collection("users").document(userId).updateData([
+            "fcmToken": token,
+            "fcmTokenUpdatedAt": FieldValue.serverTimestamp()
+        ]) { error in
+            if let error = error {
+                print("❌ Failed to update FCM token: \(error)")
+            } else {
+                print("✅ FCM token updated successfully")
+            }
+        }
+    }
+    
     private func createUserDocument(user: FirebaseUser, uid: String, completion: @escaping (Bool, String?) -> Void) {
         print("🔐 Creating user document: uid=\(uid), Thread=MAIN")
         

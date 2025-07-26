@@ -35,6 +35,10 @@ struct MainTabView: View {
             .tag(2)
         }
         .tint(.blue)
+        .overlay(alignment: .top) {
+            OfflineBannerView()
+                .padding(.top, 50) // Below status bar
+        }
         .onAppear {
             setupTabBarAppearance()
         }
@@ -43,6 +47,7 @@ struct MainTabView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+        .errorAlert() // Add global error handling
     }
     
     private func setupTabBarAppearance() {

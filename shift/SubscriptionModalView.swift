@@ -3,10 +3,12 @@ import SwiftUI
 struct SubscriptionModalView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var selectedPlan = "monthly"
     @State private var isAnimating = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfService = false
+    @State private var showError = false
 
     var body: some View {
         ZStack {
@@ -58,6 +60,11 @@ struct SubscriptionModalView: View {
         }
         .sheet(isPresented: $showTermsOfService) {
             TermsOfServiceView()
+        }
+        .alert("Subscription Error", isPresented: $showError) {
+            Button("OK") { }
+        } message: {
+            Text(subscriptionManager.errorMessage ?? "Unable to complete purchase. Please try again.")
         }
     }
     
@@ -165,32 +172,34 @@ struct SubscriptionModalView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            VStack(spacing: 12) {
-                // Monthly Plan
-                PricingCard(
-                    title: "Monthly",
-                    price: "$5.99",
-                    period: "per month",
-                    features: ["All premium features", "Cancel anytime"],
-                    isSelected: selectedPlan == "monthly",
-                    isPopular: false
-                ) {
-                    selectedPlan = "monthly"
-                    Haptics.lightImpact()
-                }
-                
-                // Annual Plan
-                PricingCard(
-                    title: "Annual",
-                    price: "$4.99",
-                    originalPrice: "$5.99",
-                    period: "per month",
-                    features: ["All premium features", "Save $12 per year", "Best value"],
-                    isSelected: selectedPlan == "annual",
-                    isPopular: true
-                ) {
-                    selectedPlan = "annual"
-                    Haptics.lightImpact()
+            if subscriptionManager.isLoading {
+                ProgressView("Loading subscription options...")
+                    .padding()
+            } else if subscriptionManager.subscriptions.isEmpty {
+                Text("Unable to load subscription options")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(subscriptionManager.subscriptions, id: \.id) { product in
+                        let isMonthly = product.id.contains("monthly")
+                        let isSelected = (isMonthly && selectedPlan == "monthly") || (!isMonthly && selectedPlan == "annual")
+                        
+                        PricingCard(
+                            title: isMonthly ? "Monthly" : "Annual",
+                            price: product.displayPrice,
+                            originalPrice: isMonthly ? nil : "$239.88",
+                            period: isMonthly ? "per month" : "per year",
+                            features: isMonthly ? 
+                                ["All premium features", "Cancel anytime"] : 
+                                ["All premium features", "Save $40 per year", "Best value"],
+                            isSelected: isSelected,
+                            isPopular: !isMonthly
+                        ) {
+                            selectedPlan = isMonthly ? "monthly" : "annual"
+                            Haptics.lightImpact()
+                        }
+                    }
                 }
             }
         }
@@ -318,7 +327,12 @@ struct SubscriptionModalView: View {
                 .foregroundColor(.blue)
                 
                 Button("Restore Purchase") {
-                    // TODO: Restore purchase
+                    Task {
+                        await subscriptionManager.restorePurchases()
+                        if subscriptionManager.subscriptionStatus.isActive {
+                            dismiss()
+                        }
+                    }
                 }
                 .font(.caption)
                 .foregroundColor(.blue)
@@ -330,13 +344,31 @@ struct SubscriptionModalView: View {
     // MARK: - Helper Functions
     
     private func handleSubscription() {
-                        Haptics.successNotification()
-        
-        // TODO: Implement actual subscription logic
-        print("Subscribe to \(selectedPlan) plan")
-        
-        // For now, just dismiss the modal
-        dismiss()
+        Task {
+            // Find the selected product
+            guard let product = subscriptionManager.subscriptions.first(where: { product in
+                if selectedPlan == "monthly" {
+                    return product.id.contains("monthly")
+                } else {
+                    return product.id.contains("annual")
+                }
+            }) else {
+                print("❌ Product not found for plan: \(selectedPlan)")
+                return
+            }
+            
+            do {
+                // Attempt purchase
+                if let transaction = try await subscriptionManager.purchase(product) {
+                    Haptics.successNotification()
+                    dismiss()
+                }
+            } catch {
+                print("❌ Purchase failed: \(error)")
+                Haptics.errorNotification()
+                showError = true
+            }
+        }
     }
 }
 

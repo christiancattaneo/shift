@@ -7,10 +7,12 @@
 
 import SwiftUI
 import Firebase
+import FirebaseMessaging
+import UserNotifications
 import os
 
 // MARK: - App Delegate
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         print("🚀 App launching: Thread=MAIN")
         
@@ -25,6 +27,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         printMemoryUsage()
         
         // Image sync removed - using UUID-based system now
+        
+        // Setup push notifications
+        setupPushNotifications(application)
         
         return true
     }
@@ -140,6 +145,102 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         print("💾 Process Info: Physical Memory: \(processInfo.physicalMemory / 1024 / 1024) MB")
         print("💾 Active Processors: \(processInfo.activeProcessorCount)")
         print("💾 System Uptime: \(String(format: "%.1f", processInfo.systemUptime)) seconds")
+    }
+    
+    // MARK: - Push Notifications Setup
+    
+    private func setupPushNotifications(_ application: UIApplication) {
+        print("🔔 Setting up push notifications...")
+        
+        // Set delegates
+        UNUserNotificationCenter.current().delegate = self
+        Messaging.messaging().delegate = self
+        
+        // Request notification permissions
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            print("🔔 Notification permission granted: \(granted)")
+            if let error = error {
+                print("❌ Error requesting notifications: \(error)")
+            }
+        }
+        
+        // Register for remote notifications
+        application.registerForRemoteNotifications()
+    }
+    
+    // MARK: - Remote Notification Registration
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("✅ Registered for remote notifications")
+        Messaging.messaging().apnsToken = deviceToken
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("❌ Failed to register for remote notifications: \(error)")
+    }
+    
+    // MARK: - UNUserNotificationCenterDelegate
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Show notification even when app is in foreground
+        completionHandler([.banner, .sound, .badge])
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // Handle notification tap
+        let userInfo = response.notification.request.content.userInfo
+        print("🔔 Notification tapped: \(userInfo)")
+        
+        // Handle different notification types
+        if let notificationType = userInfo["type"] as? String {
+            handleNotificationAction(type: notificationType, userInfo: userInfo)
+        }
+        
+        completionHandler()
+    }
+    
+    // MARK: - MessagingDelegate
+    
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        print("🔔 FCM Token: \(fcmToken ?? "nil")")
+        
+        // Store FCM token for the current user
+        if let fcmToken = fcmToken {
+            FirebaseUserSession.shared.updateFCMToken(fcmToken)
+        }
+    }
+    
+    // MARK: - Notification Handling
+    
+    private func handleNotificationAction(type: String, userInfo: [AnyHashable: Any]) {
+        switch type {
+        case "message":
+            // Navigate to messages
+            if let senderId = userInfo["senderId"] as? String {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("OpenChat"),
+                    object: nil,
+                    userInfo: ["senderId": senderId]
+                )
+            }
+            
+        case "like":
+            // Navigate to likes/matches
+            NotificationCenter.default.post(name: NSNotification.Name("OpenLikes"), object: nil)
+            
+        case "event":
+            // Navigate to event
+            if let eventId = userInfo["eventId"] as? String {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("OpenEvent"),
+                    object: nil,
+                    userInfo: ["eventId": eventId]
+                )
+            }
+            
+        default:
+            print("Unknown notification type: \(type)")
+        }
     }
 }
 

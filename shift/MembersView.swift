@@ -59,6 +59,7 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
 struct MembersView: View {
     @StateObject private var membersService = FirebaseMembersService.shared
     @EnvironmentObject private var userSession: FirebaseUserSession
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     
     @State private var searchText = ""
     @State private var displayedMembers: [FirebaseMember] = []
@@ -71,6 +72,7 @@ struct MembersView: View {
     @State private var showingDetail = false
     @State private var hasMoreMembers = true
     @State private var currentPage = 0
+    @State private var showSubscriptionModal = false
     
     // Debouncing for search
     @State private var searchTask: Task<Void, Never>?
@@ -114,8 +116,13 @@ struct MembersView: View {
                     ForEach(Array(displayedMembers.enumerated()), id: \.offset) { index, member in
                         MemberCardView(member: member)
                             .onTapGesture {
-                                selectedMember = member
-                                showingDetail = true
+                                // Check subscription status before showing details
+                                if subscriptionManager.isSubscribed {
+                                    selectedMember = member
+                                    showingDetail = true
+                                } else {
+                                    showSubscriptionModal = true
+                                }
                             }
                             .onAppear {
                                 if index == displayedMembers.count - 1 {
@@ -154,6 +161,9 @@ struct MembersView: View {
             NavigationView {
                 MemberDetailView(member: member)
             }
+        }
+        .sheet(isPresented: $showSubscriptionModal) {
+            SubscriptionModalView()
         }
         .onAppear {
             membersService.fetchMembers()
@@ -1084,9 +1094,10 @@ struct MemberDetailView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
+                            .frame(maxWidth: 300, maxHeight: 400) // Constrain maximum size
                             .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
-                            .frame(maxHeight: 400)
                             .clipped()
+                            .cornerRadius(16) // Add rounded corners
                             .overlay {
                                 VStack(spacing: 12) {
                                     ProgressView()
@@ -1100,10 +1111,12 @@ struct MemberDetailView: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: .infinity)
-                            .aspectRatio(4/5, contentMode: .fit) // Crop to portrait aspect ratio
+                            .frame(maxWidth: 300, maxHeight: 400) // Constrain maximum size
+                            .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
                             .clipped()
                             .background(Color.gray.opacity(0.1))
+                            .cornerRadius(16) // Add rounded corners
+                            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4) // Add subtle shadow
                     case .failure(_):
                         Rectangle()
                             .fill(
@@ -1113,9 +1126,10 @@ struct MemberDetailView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
+                            .frame(maxWidth: 300, maxHeight: 400) // Constrain maximum size
                             .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
-                            .frame(maxHeight: 400)
                             .clipped()
+                            .cornerRadius(16) // Add rounded corners
                             .overlay {
                                 VStack(spacing: 12) {
                                     Image(systemName: "person.crop.circle.fill")
@@ -1130,9 +1144,10 @@ struct MemberDetailView: View {
                     @unknown default:
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
+                            .frame(maxWidth: 300, maxHeight: 400) // Constrain maximum size
                             .aspectRatio(4/5, contentMode: .fit) // Portrait aspect ratio
-                            .frame(maxHeight: 400)
                             .clipped()
+                            .cornerRadius(16) // Add rounded corners
                     }
                 }
                 
