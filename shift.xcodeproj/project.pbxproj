@@ -353,7 +353,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -410,7 +410,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -431,6 +431,8 @@
 				DEVELOPMENT_TEAM = 4ASDKUPAV3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Shift needs camera access to take profile photos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Shift needs photo library access to select profile photos.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Shift needs location access to verify you're within 1 mile of events when checking in and to show nearby events.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shift needs location access to verify you're within 1 mile of events when checking in and to show nearby events.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -462,6 +464,8 @@
 				DEVELOPMENT_TEAM = 4ASDKUPAV3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Shift needs camera access to take profile photos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Shift needs photo library access to select profile photos.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Shift needs location access to verify you're within 1 mile of events when checking in and to show nearby events.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shift needs location access to verify you're within 1 mile of events when checking in and to show nearby events.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

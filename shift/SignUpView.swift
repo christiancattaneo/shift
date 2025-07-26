@@ -11,6 +11,8 @@ struct SignUpView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showPassword = false
+    @State private var showPrivacyPolicy = false
+    @State private var showTermsOfService = false
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     
@@ -59,6 +61,12 @@ struct SignUpView: View {
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showTermsOfService) {
+            TermsOfServiceView()
+        }
     }
     
     // MARK: - UI Components
@@ -293,7 +301,7 @@ struct SignUpView: View {
                     HStack(spacing: 8) {
                         Button("Privacy Policy") {
                             Haptics.lightImpact()
-                            // TODO: Show privacy policy
+                            showPrivacyPolicy = true
                         }
                         .font(.caption)
                         .foregroundColor(.blue)
@@ -304,7 +312,7 @@ struct SignUpView: View {
                         
                         Button("Terms of Service") {
                             Haptics.lightImpact()
-                            // TODO: Show terms
+                            showTermsOfService = true
                         }
                         .font(.caption)
                         .foregroundColor(.blue)

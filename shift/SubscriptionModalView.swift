@@ -5,6 +5,8 @@ struct SubscriptionModalView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var selectedPlan = "monthly"
     @State private var isAnimating = false
+    @State private var showPrivacyPolicy = false
+    @State private var showTermsOfService = false
 
     var body: some View {
         ZStack {
@@ -50,6 +52,12 @@ struct SubscriptionModalView: View {
             withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
                 isAnimating = true
             }
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showTermsOfService) {
+            TermsOfServiceView()
         }
     }
     
@@ -298,13 +306,13 @@ struct SubscriptionModalView: View {
             
             HStack(spacing: 16) {
                 Button("Terms of Service") {
-                    // TODO: Show terms
+                    showTermsOfService = true
                 }
                 .font(.caption)
                 .foregroundColor(.blue)
                 
                 Button("Privacy Policy") {
-                    // TODO: Show privacy policy
+                    showPrivacyPolicy = true
                 }
                 .font(.caption)
                 .foregroundColor(.blue)
