@@ -1,15 +1,54 @@
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
+# =========================
+# Windows
+# =========================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# =========================
+# Linux
+# =========================
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =========================
+# Xcode
+# =========================
 ## User settings
 xcuserdata/
+*.xcuserdatad
 
-## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
+## Xcode 8 and earlier
 *.xcscmblueprint
 *.xccheckout
 
-## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
+## Xcode 3 and earlier
 build/
 DerivedData/
 *.moved-aside
@@ -21,90 +60,258 @@ DerivedData/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
+xcuserdata/
 
 ## Obj-C/Swift specific
 *.hmap
-
-## App packaging
 *.ipa
 *.dSYM.zip
 *.dSYM
+
+## Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+.resolved
 
 ## Playgrounds
 timeline.xctimeline
 playground.xcworkspace
 
-# Swift Package Manager
-#
-# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# *.xcodeproj
-#
-# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
-# hence it is not needed unless you have added a package configuration file to your project
-# .swiftpm
+# =========================
+# Node.js / Firebase Functions
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+*.log
+logs/
+functions/node_modules/
+functions/lib/
+functions/.runtimeconfig.json
 
-.build/
+# =========================
+# Firebase
+# =========================
+.firebase/
+.firebaserc
+firebase-debug.log*
+firebase-debug.*.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+pubsub-debug.log*
+firebase-admin-key.json
+firebase-admin-*.json
+service-account-*.json
+firestore.indexes.json.backup
+firestore.rules.backup
 
-# CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-#
-# Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+# Firebase Emulator
+*-export/
+firebase-export-*/
 
-# Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
-
-Carthage/Build/
-
-# Accio dependency management
-Dependencies/
-.accio/
-
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/
-
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
-
-# Code Injection
-#
-# After new code Injection tools there's a generated folder /iOSInjectionProject
-# https://github.com/johnno1962/injectionforxcode
-
-iOSInjectionProject/
-
-# Environment Configuration
-# SECURITY: Always protect production configuration files
-# Note: Configuration files have been removed as app now uses Firebase exclusively
-
-# API Keys and Sensitive Data
+# =========================
+# Environment & Config
+# =========================
 .env
+.env.*
+!.env.example
 *.pem
 *.p12
+*.p8
 *.mobileprovision
+*.provisionprofile
+*.cer
+*.certSigningRequest
+GoogleService-Info-*.plist
+!GoogleService-Info.plist
 
-# Firebase Storage Backup Data (Local Only)
-# Keep the 3.8GB backup locally but don't commit to git
+# =========================
+# Large Files & Media
+# =========================
+# Videos
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+*.webm
+*.m4v
+*.mpg
+*.mpeg
+*.3gp
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+*.m4a
+
+# Images (except app assets)
+*.psd
+*.ai
+*.sketch
+*.fig
+*.xd
+*.raw
+*.tiff
+*.bmp
+# Keep app icon and assets
+!shift/Assets.xcassets/**/*
+!shift/Preview Content/**/*
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bz2
+*.xz
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.iso
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+*.realm
+*.mdb
+
+# =========================
+# Backup & Migration Data
+# =========================
 data_backup/
 adalo_data/
-data_backup/
+firebase_migration_data/
+backup/
+backups/
+*.backup
+*.bak
+*.tmp
+*.temp
+*.cache
+dump/
 
-# Firebase Admin Key
-firebase-admin-key.json
+# CSV files (except necessary ones)
+*.csv
+!Events.csv
+!Places.csv
+
+# =========================
+# IDE & Editors
+# =========================
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# =========================
+# Testing & Coverage
+# =========================
+coverage/
+*.lcov
+.nyc_output/
+htmlcov/
+*.cover
+*.py,cover
+.coverage
+.coverage.*
+test-results/
+jest/
+
+# =========================
+# Documentation
+# =========================
+docs/_build/
+site/
+*.pdf
+# Keep our documentation
+!*.md
+
+# =========================
+# Miscellaneous
+# =========================
+# Thumbnails
+Thumbs.db
+.thumbnails/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Lock files (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+!package-lock.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+
+# Ruby
+*.gem
+.bundle/
+vendor/bundle/
+
+# =========================
+# Project Specific
+# =========================
+# Keep migration scripts
+!download_*.js
+!migrate_*.js
+!setup_*.js
+!firebase_migration.js
+
+# Keep test scripts
+!test_*.js
+
+# StoreKit Configuration
+# Keep the configuration file for team collaboration
+!shift/StoreKitConfig.storekit
+
+# Anything over 100MB
+*.pkl
+*.h5
+*.model
+large_files/
 
