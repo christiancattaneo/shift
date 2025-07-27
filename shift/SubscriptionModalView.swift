@@ -359,7 +359,7 @@ struct SubscriptionModalView: View {
             
             do {
                 // Attempt purchase
-                if let transaction = try await subscriptionManager.purchase(product) {
+                if try await subscriptionManager.purchase(product) != nil {
                     Haptics.successNotification()
                     dismiss()
                 }
