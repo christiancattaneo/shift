@@ -232,17 +232,20 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Firebase Integration
     
-    private func updateFirebaseSubscriptionStatus(_ isSubscribed: Bool) async {
+    nonisolated private func updateFirebaseSubscriptionStatus(_ isSubscribed: Bool) async {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
         do {
             let db = Firestore.firestore()
             
-            // Update user document
-            try await db.collection("users").document(userId).updateData([
+            // Create the update data on the main actor to avoid sendability issues
+            let updateData: [String: Any] = [
                 "subscribed": isSubscribed,
                 "subscriptionUpdatedAt": FieldValue.serverTimestamp()
-            ])
+            ]
+            
+            // Update user document
+            try await db.collection("users").document(userId).updateData(updateData)
             
             print("✅ Updated Firebase subscription status: \(isSubscribed)")
         } catch {
